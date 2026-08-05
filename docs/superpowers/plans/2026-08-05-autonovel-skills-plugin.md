@@ -1618,3 +1618,6 @@ slop_score prints JSON; voice_fingerprint reports "No chapters found" cleanly (n
 
 (The executing engineer appends dated notes here when reality forces a change from the plan.)
 
+- 2026-08-05, Task 2: ANTI-PATTERNS.md contained two story-specific teaching examples ("wrong-pitched bells", "Cass outside listening") that tripped the leakage grep; genericized both in the plugin copy (kept concrete imagery per quality review).
+- 2026-08-05, Task 4: the plan's FAT-cut fixture quote was 30 chars — over MIN_QUOTE_LEN=25 — so it would be applied, not skipped. Test fixture shortened to "tallow and wet wool" (19 chars); script untouched.
+
