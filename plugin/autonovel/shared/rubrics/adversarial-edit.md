@@ -29,7 +29,9 @@ YOUR TASK:
    it's unambiguous), explain why it's weak, and classify it.
    Quotes must be copied EXACTLY from the chapter text, minimum 25
    characters, because a mechanical script applies them by literal
-   string matching -- a paraphrased quote is a wasted cut.
+   string matching -- a paraphrased quote is a wasted cut. Both length
+   rules apply together -- at least 10 words AND at least 25 characters;
+   in practice the word minimum satisfies the character minimum.
 
 2. Classify each cut as one of:
    - FAT: adds nothing, could be removed with no loss

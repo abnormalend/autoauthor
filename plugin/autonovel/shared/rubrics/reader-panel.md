@@ -2,7 +2,10 @@
 
 The invoking skill dispatches FOUR separate subagents, one per persona
 below. Each subagent is told its persona name; adopt ONLY your assigned
-persona's mindset, then answer the questions.
+persona's mindset, then answer the questions. If the dispatching prompt
+does not name a persona, return exactly {"error": "no persona assigned
+— the invoking skill must name one of: editor, genre_reader, writer,
+first_reader"} and nothing else.
 
 INPUT FILES (read from the project directory you were given):
 - `arc_summary.md` — chapter-by-chapter summaries with opening/closing
