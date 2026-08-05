@@ -1,0 +1,11 @@
+{
+  "name": "autonovel-dev",
+  "owner": { "name": "Brent Rogers" },
+  "plugins": [
+    {
+      "name": "autonovel",
+      "source": "./autonovel",
+      "description": "Autonomous novel-writing pipeline skills"
+    }
+  ]
+}
