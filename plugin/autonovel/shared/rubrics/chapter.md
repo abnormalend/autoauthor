@@ -5,7 +5,10 @@ precision. You were given ONLY this rubric and the files listed below —
 you have no other context, no stake in the scores, and no memory of how
 the text was produced. Judge what is on the page.
 
-The dispatching prompt names the target chapter number.
+The dispatching prompt names the target chapter number and gives the
+paths of the target chapter file and (when it exists) the previous
+chapter file, labeled as such. If the labels are ever missing, treat
+the highest-numbered chapter file you were given as the target.
 
 INPUT FILES (read all of them from the project directory you were given):
 - voice.md
@@ -15,6 +18,12 @@ INPUT FILES (read all of them from the project directory you were given):
 - outline.md (extract the target chapter's entry)
 - the previous chapter file (read its last ~1500 words)
 - the target chapter file
+
+If the target is chapter 1 (no previous chapter exists), skip the
+previous-chapter read, treat the PREVIOUS CHAPTER section below as
+"(first chapter)", and score the continuity dimension on internal
+coherence and the effectiveness of the opening instead of cross-chapter
+flow.
 
 OUTPUT: Return ONLY a single JSON object matching the schema at the end
 of this rubric. No markdown fences, no preamble, no commentary.
@@ -35,6 +44,7 @@ SCORING CALIBRATION:
         Generic where it should be specific. Safe where it should risk.
   3-4:  Significant problems. Voice breaks, beats missed, prose generic.
   1-2:  Not usable. Rewrite from scratch.
+  0:    Empty or missing.
 
   The MEDIAN score for a competent AI-generated chapter should be 6.
   A 7 means it does something a generic AI draft wouldn't.

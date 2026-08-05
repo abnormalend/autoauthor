@@ -12,6 +12,10 @@ INPUT FILES (read all of them from the project directory you were given):
 - outline.md
 - arc_summary.md (chapter-by-chapter summaries maintained by the invoking skill)
 
+If arc_summary.md is missing or empty, do not attempt the evaluation.
+Return exactly {"error": "arc_summary.md missing — the invoking skill
+must regenerate it first"} and nothing else.
+
 OUTPUT: Return ONLY a single JSON object matching the schema at the end
 of this rubric. No markdown fences, no preamble, no commentary.
 
@@ -36,6 +40,11 @@ CHAPTER SUMMARIES AND SCORES:
 Read arc_summary.md from the project directory (chapter-by-chapter
 summaries maintained by the invoking skill).
 
+SCORING CALIBRATION: the median competent AI-written novel scores 6 on
+any dimension. 7 means it does something a generic AI draft would not.
+Reserve 8+ for genuine excellence you could defend against a published
+comparison. Err toward lower scores.
+
 Score these novel-level dimensions 0-10:
 - arc_completion: Do character arcs resolve satisfyingly?
 - pacing_curve: Does tension build properly across the book?
@@ -56,6 +65,6 @@ Respond with JSON:
   "overall_engagement": {"score": N, "note": "..."},
   "novel_score": N,
   "weakest_dimension": "...",
-  "weakest_chapter": N,
+  "weakest_chapter": N (the chapter number as used in the chapter filenames),
   "top_suggestion": "..."
 }
