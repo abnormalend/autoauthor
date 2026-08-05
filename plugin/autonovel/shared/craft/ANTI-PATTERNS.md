@@ -63,7 +63,7 @@ considers. Real interiority is messier -- one thought bleeds into
 another, gets interrupted, loops back.
 
 **Fix:** Replace with: the thought itself as a fragment ("The two
-years. The wrong-pitched bells."), a physical action, or dialogue.
+years. The unpaid debt."), a physical action, or dialogue.
 
 ---
 
@@ -117,8 +117,10 @@ beat that interrupts another beat.
 
 ## 9. REPETITIVE CHAPTER ENDINGS
 
-AI finds a closing pattern and reuses it. In this novel: 4 chapters
-ended with "Cass outside, listening to his father work."
+AI finds a closing pattern and reuses it. In one production draft, 4
+chapters ended with "the protagonist alone outside at night, listening
+to a parent work." Concrete, distinctive — and worn out by the second
+reuse.
 
 **Rule:** No two chapters end with the same structural move. Each
 ending belongs to THAT chapter specifically.
