@@ -18,6 +18,10 @@ professor of fiction. Fix the top items; repeat. Maximum 4 rounds.
 3. Malformed or contract-violating reviewer output anywhere in this
    skill: one strict retry, then stop the round and report to the user
    (a failed full-manuscript review is not silently skippable).
+4. Read `plugin/autonovel/skills/novel-revise/SKILL.md`'s Fix stage
+   (path: `"${CLAUDE_PLUGIN_ROOT}/skills/novel-revise/SKILL.md"`)
+   before any chapter rewrite — its scratch-copy, attempts.tsv,
+   keep/discard, and baseline conventions apply verbatim here.
 
 ## One round (R)
 
@@ -51,7 +55,16 @@ professor of fiction. Fix the top items; repeat. Maximum 4 rounds.
    probably structural to the novel's approach — accept it and say so.
    If stopping: go to Exit.
 5. **Fix the top items** (major first, then moderate; unqualified
-   before qualified; skip minor unless trivial):
+   before qualified; skip minor unless trivial). Fix at most 4 items
+   per round; the loop exists to converge, not to fix everything at
+   once. For items tagged `compression`, `addition`, or `revision`,
+   first map the item to its chapter number: match its quoted
+   passages or scene references against `chapters/ch_*.md` (grep a
+   distinctive phrase). If such an item spans multiple chapters or
+   matches none, treat it as `structural` (queue for the user). Items
+   tagged `mechanical` skip mapping — they are cross-chapter by
+   nature and go straight to the grep-and-fix path; items tagged
+   `structural` skip mapping too.
    - type `compression` or `revision` → generate a brief
      (`python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/gen_brief.py" --eval <ch>`
      when a chapter eval exists, else hand-write the brief into
@@ -64,17 +77,19 @@ professor of fiction. Fix the top items; repeat. Maximum 4 rounds.
      direct edit. Run the slop scorer over touched chapters.
    - type `addition` → surgical patch in place if < 400 words of new
      material; otherwise brief + rewrite as above.
-   - type `structural` (reordering/merging chapters) → STOP and
-     present the item to the user before acting; structural changes
-     this late are a decision, not a default.
+   - type `structural` (reordering/merging chapters) → STOP work on
+     THAT item and queue it for the user; continue fixing the other
+     items in the round, then present all queued structural items
+     together before committing the round.
    Rebuild manuscript.md after fixes (next round re-reads it).
-6. Update state.json `review_round: R`; commit
-   `review round R: <total> items, <fixed> fixed`.
+6. Update state.json `review_round: R`; commit:
+   `git add -A && git commit -m "review round R: <total> items, <fixed> fixed"`.
 
 ## Exit
 
-Set state.json `phase: "export"`. Commit `review complete: <R> rounds,
-<stars> stars`. Pushover notification (pushover skill): title
+Set state.json `phase: "export"`. Commit:
+`git add -A && git commit -m "review complete: <R> rounds, <stars> stars"`.
+Pushover notification (pushover skill): title
 "autonovel: review", message with rounds, final star rating, stop
 reason, next step `/autonovel:novel-export`. Report the same to the
 user, including any accepted structural items.

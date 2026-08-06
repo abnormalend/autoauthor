@@ -27,6 +27,10 @@ existing project.
      `cp "${CLAUDE_PLUGIN_ROOT}/shared/templates/"* <dir>/` (quoted against
      spaces in the install path) — this copies voice.md, world.md,
      characters.md, outline.md, canon.md, MYSTERY.md, state.json.
+   - Install the ignore file: `mv <dir>/gitignore <dir>/.gitignore` —
+     eval_logs/, edit_logs/, and briefs/ MUST be gitignored; the
+     drafting and revision skills depend on them surviving
+     `git reset --hard` discards and staying out of commits.
    - `mkdir chapters eval_logs edit_logs briefs`
    - Create `results.tsv` containing exactly this header line:
      `timestamp	phase	score	words	keep_discard	description`

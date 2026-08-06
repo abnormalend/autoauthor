@@ -1,0 +1,7 @@
+eval_logs/
+edit_logs/
+briefs/
+manuscript.md
+typeset/*.pdf
+typeset/chapters_content.tex
+*.epub
