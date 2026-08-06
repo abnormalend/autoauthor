@@ -375,6 +375,13 @@ geography, relationships, established events.
 SOURCE DOCUMENTS: seed.txt, world.md, characters.md (and outline.md
 once it exists — re-run this extraction whenever any layer changes).
 
+NEVER cite MYSTERY.md as a canon source — the foundation judge cannot
+see that file, so citations to it read as unverifiable and get scored
+as consistency gaps. Any fact whose only home is MYSTERY.md must ALSO
+exist in veiled form in world.md or characters.md (state what is
+observably true without revealing why); cite that visible source. The
+full secret stays in MYSTERY.md, author-eyes-only.
+
 FORMAT THE OUTPUT AS canon.md WITH THESE CATEGORIES:
 
 ### Geography

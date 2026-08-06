@@ -20,7 +20,9 @@ measure (full-novel score). Stop on plateau: full-novel score change
 3. Resume: state.json `revision_cycle` is the last COMPLETED cycle;
    this session runs cycle N = revision_cycle + 1.
 4. **Malformed judge responses (applies everywhere in this skill):**
-   one strict retry, then skip that dispatch and record it in
+   fence-wrapped but otherwise valid JSON is VALID — strip the fences;
+   for genuinely malformed output, one strict retry, then skip that
+   dispatch and record it in
    `edit_logs/skipped.md` with the cycle, step, and chapter.
 
 ## One cycle (N)

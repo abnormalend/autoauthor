@@ -53,7 +53,8 @@ a 6.0 ships; revision is Phase 3's job.
    outline.md in the project directory. Return ONLY the JSON object the
    rubric specifies."
    Save the JSON to `eval_logs/<UTC yyyymmdd_hhmmss>_chNN.json` (NN
-   zero-padded — gen_brief.py globs this pattern). Malformed JSON →
+   zero-padded — gen_brief.py globs this pattern). Fence-wrapped but
+   otherwise valid JSON is VALID — strip the fences. Malformed JSON →
    one strict retry → else record `noscore` and move on. A `noscore`
    attempt counts as a failed attempt: discard and retry, same as a
    below-gate score.

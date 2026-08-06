@@ -51,9 +51,14 @@ loop.
    JSON object the rubric specifies."
    Save the returned JSON verbatim to
    `eval_logs/<UTC yyyymmdd_hhmmss>_foundation.json`.
-   If the response is not valid JSON, re-dispatch once with a stricter
+   Fence-wrapped but otherwise valid JSON is VALID — strip the fences,
+   don't waste the retry on a formatting technicality. If the response
+   genuinely is not valid JSON, re-dispatch once with a stricter
    reminder; if still invalid, log the iteration as unscored in
    results.tsv (`keep_discard=noscore`) and continue.
+   The results.tsv score column takes `overall_score`; put
+   `lore_score` in the description (e.g. `iter N: <dimension> (lore
+   <lore_score>)`).
 2. **Gate check.** `overall_score > 7.5` AND `lore_score > 7.0` → exit
    the loop.
 3. **Target the weakest dimension.** The eval names `weakest_dimension`
