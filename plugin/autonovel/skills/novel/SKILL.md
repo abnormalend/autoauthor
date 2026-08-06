@@ -35,7 +35,8 @@ Read-only. This skill NEVER modifies project files, commits, or resets.
    - phase `drafting`  → `/autonovel:novel-draft`
    - phase `revision`  → `/autonovel:novel-revise`; but if
      `revision_cycle >= 3` and the last two full-novel scores in
-     results.tsv differ by < 0.5 → `/autonovel:novel-review`
+     results.tsv (rows whose description starts with `full-eval`)
+     differ by < 0.5 → `/autonovel:novel-review`
    - phase `review`    → `/autonovel:novel-review`
    - phase `export`    → `/autonovel:novel-export`
    - phase `done`      → congratulate; point at the PDF/ePub outputs.
