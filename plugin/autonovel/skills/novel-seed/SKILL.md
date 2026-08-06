@@ -32,8 +32,10 @@ existing project.
      drafting and revision skills depend on them surviving
      `git reset --hard` discards and staying out of commits.
    - `mkdir chapters eval_logs edit_logs briefs`
-   - Create `results.tsv` containing exactly this header line:
-     `timestamp	phase	score	words	keep_discard	description`
+   - Create `results.tsv` containing exactly this header line (the
+     separators are REAL tab characters — use printf, not echo, so
+     they can't silently become spaces):
+     `printf 'timestamp\tphase\tscore\twords\tkeep_discard\tdescription\n' > results.tsv`
    - Use the absolute `<dir>` path in every command rather than relying on
      the shell's current directory persisting.
 
