@@ -14,8 +14,8 @@ everything that EXISTS in this world. A writer should be able to
 resolve any worldbuilding question from this document alone.
 
 Ground every choice in the seed concept and the discovered voice
-(voice.md Part 2) — this document must feel like it belongs to THIS
-story, not a generic fantasy setting.
+(voice.md Part 2, filled first) — this document must feel like it
+belongs to THIS story, not a generic fantasy setting.
 
 CRAFT REQUIREMENTS (from CRAFT.md — follow these):
 - Magic system needs HARD RULES with COSTS and LIMITATIONS per
@@ -99,7 +99,10 @@ IMPORTANT:
 
 Build a complete character registry. This is the definitive reference
 for WHO exists in this story, what drives them, how they speak, and
-what secrets they carry.
+what secrets they carry. Draw on the discovered voice (voice.md
+Part 2) and world.md, both filled first — characters must sound like
+they belong to this world and their circumstances must be consistent
+with its rules.
 
 CHARACTER CRAFT REQUIREMENTS (from CRAFT.md):
 
@@ -199,7 +202,11 @@ IMPORTANT:
 ## outline.md part 1
 
 Build a complete chapter outline. Target: 22-26 chapters, ~80,000
-words total (~3,000-4,000 words per chapter).
+words total (~3,000-4,000 words per chapter). Draw on world.md,
+characters.md, the discovered voice (voice.md Part 2), and the
+central mystery (MYSTERY.md) — all filled first — as available
+inputs; the outline is the layer that turns them into a sequence of
+scenes.
 
 BUILD THE OUTLINE WITH:
 
@@ -295,6 +302,9 @@ RULES:
   gap, not a mystery; the rubric scores an empty or unbalanced ledger
   at 0 regardless of implicit threads elsewhere in the documents.
 - Plant-to-payoff distance must be at least 3 chapters.
+- The protagonist's lie (from characters.md) must be fully confronted
+  — reinforced, challenged, and finally shattered or consciously
+  kept — by the climax; the ledger must show where.
 - The climax should resolve using an option the reader can reconstruct
   from earlier established rules, not a new one invented for the
   finale.
@@ -395,9 +405,9 @@ RULES:
 - One fact per bullet point. Short. Specific. Checkable.
 - Include the source (world.md, characters.md, outline.md) in
   parentheses after each fact.
-- Target 400+ entries before exiting foundation. Be exhaustive — this
-  grows across iterations as the other layers deepen, it does not
-  need to hit 400 on the first pass.
+- Aim for 80-120 entries on the first pass; grow the canon toward
+  400+ entries before exiting foundation (facts accumulate every
+  iteration).
 - If two documents give slightly different details, note the
   discrepancy instead of silently picking one — that's a contradiction
   for the next iteration to resolve.

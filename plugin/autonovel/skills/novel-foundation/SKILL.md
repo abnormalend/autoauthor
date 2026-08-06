@@ -25,14 +25,20 @@ written in this phase. Typical runs take 5–15 iterations.
      from whatever layer docs already exist (imported or hand-built
      projects are valid — never require seed.txt).
 
-## First iteration (templates still empty)
+## Filling empty layers
 
 Fill the layers IN THIS ORDER, following the matching section of
-layer-guides.md for each: world.md → characters.md → outline.md part 1 →
-foreshadowing ledger (outline.md part 2) → voice discovery (voice.md
-Part 2 + voice_wells.json) → MYSTERY.md → canon.md. Every hard fact
-added to any layer gets a canon.md entry at the same time. Commit once:
-`foundation: initial layers`.
+layer-guides.md for each: voice discovery (from seed.txt — trial
+passages against the seed's world concept; voice.md Part 2 +
+voice_wells.json) → world.md → characters.md → MYSTERY.md →
+outline.md part 1 → foreshadowing ledger (outline.md part 2) →
+canon.md. Every hard fact added to any layer gets a canon.md entry at
+the same time. Commit once: `foundation: initial layers`.
+
+If some layers already contain real content (an interrupted run, or
+an imported project), do not refill them — fill only the still-
+template layers, in the same order, then proceed to the iteration
+loop.
 
 ## Iteration loop
 
@@ -58,10 +64,16 @@ added to any layer gets a canon.md entry at the same time. Commit once:
    plant has a payoff); canon.md captures all new facts.
 4. **Keep/discard.** Score improved over the best previous score (or
    first scored iteration) → `git add -A && git commit -m "foundation
-   iter <N>: <weakest_dimension> (<score>)"`. Score regressed →
-   `git reset --hard HEAD` is NOT enough after staged writes; use
-   `git checkout -- .` to discard the working changes, then log the
-   discard. Either way append to results.tsv:
+   iter <N>: <weakest_dimension> (<score>)"`. After every KEPT
+   iteration, update `foundation_score` and `lore_score` in state.json
+   to the new best values (this is what makes the run resumable). A
+   resuming session takes "best previous score" from state.json,
+   cross-checking the last `keep` row in results.tsv. Score regressed
+   → discard with `git reset --hard HEAD` (resets tracked files,
+   staged and unstaged, back to the last kept iteration; untracked
+   files like the new eval log survive, which is what we want — the
+   eval record is kept even for discarded iterations). Either way
+   append to results.tsv:
    `<ISO timestamp>\tfoundation\t<score>\t0\t<keep|discard|noscore>\t<one line>`.
 5. **Iteration cap.** After 15 iterations without passing the gate,
    STOP. Report the best score, the stubborn dimension, and options
