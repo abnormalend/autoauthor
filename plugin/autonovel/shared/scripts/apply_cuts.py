@@ -137,6 +137,14 @@ def process_chapter(
             stats["skipped"] += 1
             continue
 
+        # REWRITE cuts need replacement prose, not deletion — leave them
+        # for the by-hand pass the skill runs after this script.
+        if cut.get("action") == "REWRITE":
+            stats["skipped"] += 1
+            if not dry_run:
+                print(f"  SKIP [REWRITE] needs replacement text, apply by hand: {quote[:60]}")
+            continue
+
         # Skip short quotes
         if len(quote.strip()) < MIN_QUOTE_LEN:
             stats["skipped"] += 1

@@ -70,8 +70,9 @@ loop.
 4. **Keep/discard.** Score improved over the best previous score (or
    first scored iteration) → `git add -A && git commit -m "foundation
    iter <N>: <weakest_dimension> (<score>)"`. After every KEPT
-   iteration, update `foundation_score` and `lore_score` in state.json
-   to the new best values (this is what makes the run resumable). A
+   iteration, update `foundation_score`, `lore_score`, and `iteration:
+   <N>` in state.json to the new best values (this is what makes the
+   run resumable — the router reads `iteration`). A
    resuming session takes "best previous score" from state.json,
    cross-checking the last `keep` row in results.tsv. Score regressed
    → discard with `git reset --hard HEAD` (resets tracked files,

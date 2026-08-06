@@ -20,8 +20,11 @@ professor of fiction. Fix the top items; repeat. Maximum 4 rounds.
    (a failed full-manuscript review is not silently skippable).
 4. Read `plugin/autonovel/skills/novel-revise/SKILL.md`'s Fix stage
    (path: `"${CLAUDE_PLUGIN_ROOT}/skills/novel-revise/SKILL.md"`)
-   before any chapter rewrite — its scratch-copy, attempts.tsv,
-   keep/discard, and baseline conventions apply verbatim here.
+   and `"${CLAUDE_PLUGIN_ROOT}/skills/novel-revise/references/revision-playbook.md"`
+   — specifically its "Rewrite rules" section — before any chapter
+   rewrite. The Fix stage's scratch-copy, attempts.tsv, keep/discard,
+   and baseline conventions apply verbatim here, and the Rewrite rules
+   bind every chapter rewrite in this skill too.
 
 ## One round (R)
 
@@ -71,7 +74,8 @@ professor of fiction. Fix the top items; repeat. Maximum 4 rounds.
      `briefs/chNN_review.md` from the item text), then rewrite the
      chapter in-session exactly as novel-revise's Fix stage does
      (same scratch-copy, scoring, keep/discard, and attempts.tsv
-     conventions; baseline per its rules).
+     conventions; baseline per its rules; attempt rows use phase
+     `review`).
    - type `mechanical` (tics, repeated phrases) → grep the phrase
      across all chapters, fix every instance but the strongest, by
      direct edit. Run the slop scorer over touched chapters.

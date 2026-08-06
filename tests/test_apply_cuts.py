@@ -77,3 +77,30 @@ def test_dry_run_modifies_nothing(tmp_path):
     result = run_in(tmp_path, "all", "--dry-run")
     assert result.returncode == 0, result.stdout + result.stderr
     assert (tmp_path / "chapters/ch_03.md").read_text() == before
+
+
+REWRITE_CUTS = {
+    "cuts": [
+        {
+            "quote": "He realized then that the meeting had been arranged specifically so that he would feel the full weight of his isolation, and that every person in the room already knew what he was only now beginning to understand.",
+            "type": "OVER-EXPLAIN",
+            "reason": "narrator explains what the scene already shows; needs replacement prose, not deletion",
+            "action": "REWRITE",
+            "rewrite": "He said nothing. The chancellor did not look up.",
+        },
+    ],
+    "overall_fat_percentage": 20,
+}
+
+
+def test_rewrite_cut_is_skipped_not_deleted(tmp_path):
+    (tmp_path / "chapters").mkdir()
+    (tmp_path / "edit_logs").mkdir()
+    (tmp_path / "chapters/ch_03.md").write_text(CHAPTER)
+    (tmp_path / "edit_logs/ch03_cuts.json").write_text(json.dumps(REWRITE_CUTS))
+
+    result = run_in(tmp_path, "3")
+    assert result.returncode == 0, result.stdout + result.stderr
+    text = (tmp_path / "chapters/ch_03.md").read_text()
+    assert "He realized then" in text
+    assert "SKIP [REWRITE]" in result.stdout

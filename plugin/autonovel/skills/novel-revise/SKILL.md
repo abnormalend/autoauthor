@@ -53,6 +53,9 @@ can gut chapters.
 3. **Apply mechanical cuts:**
    `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/apply_cuts.py" all --types OVER-EXPLAIN REDUNDANT --min-fat 15`
    Review its FAIL lines; apply any high-value failed cuts by hand.
+   Also handle its SKIP [REWRITE] lines: apply each rewrite by hand
+   using the `rewrite` text from the chapter's cuts JSON — those cuts
+   need replacement prose, not deletion.
    Then verify no chapter fell below 1800 words
    (`wc -w chapters/ch_*.md`). If one did, restore it with
    `git checkout HEAD -- chapters/ch_NN.md` and exclude it from cuts
@@ -101,7 +104,8 @@ missing scene → thin character → weak scene → consistency):
    per chapter per cycle. After 3 failed attempts, leave the chapter
    as-is this cycle and record the item in `edit_logs/skipped.md`.
    Attempt rows go to `eval_logs/attempts.tsv` and fold into
-   results.tsv at commit. Commit kept rewrites:
+   results.tsv at commit (same columns as novel-draft's rows, but the
+   phase column is `revision`). Commit kept rewrites:
    `cycle N: <item type> ch NN (<score>)`.
 
 ### Measure
