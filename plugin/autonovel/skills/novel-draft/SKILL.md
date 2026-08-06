@@ -13,7 +13,9 @@ a 6.0 ships; revision is Phase 3's job.
 
 1. Verify the project (state.json + voice.md in the current directory),
    clean tree (`git status --porcelain` empty — if dirty, STOP and ask),
-   and `state.json` phase `drafting`. Use absolute paths everywhere.
+   and `state.json` phase `drafting`. Anchor the session in the
+   verified project directory; use absolute paths whenever there is
+   any doubt about the current directory.
 2. Required reading before the first chapter of the session:
    - `"${CLAUDE_PLUGIN_ROOT}/shared/craft/CRAFT.md"`
    - `"${CLAUDE_PLUGIN_ROOT}/shared/craft/ANTI-SLOP.md"`
@@ -37,7 +39,9 @@ a 6.0 ships; revision is Phase 3's job.
    every rule in drafting-rules.md. Title line: `# Chapter N: <Title>`.
 3. **Mechanical score:**
    `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/slop_score.py" chapters/ch_NN.md`
-   Note the `slop_penalty`.
+   Note the `slop_penalty`. Copy the attempt to an untracked scratch
+   file before judging: `cp chapters/ch_NN.md eval_logs/ch_NN_attempt_<k>.md`
+   — eval_logs/ is untracked, so attempts survive discards.
 4. **Judge.** Dispatch a fresh judge subagent (general-purpose, no
    drafting context) with exactly this prompt shape:
    "Read the rubric at `<absolute plugin path>/shared/rubrics/chapter.md`
@@ -50,22 +54,30 @@ a 6.0 ships; revision is Phase 3's job.
    rubric specifies."
    Save the JSON to `eval_logs/<UTC yyyymmdd_hhmmss>_chNN.json` (NN
    zero-padded — gen_brief.py globs this pattern). Malformed JSON →
-   one strict retry → else record `noscore` and move on.
+   one strict retry → else record `noscore` and move on. A `noscore`
+   attempt counts as a failed attempt: discard and retry, same as a
+   below-gate score.
 5. **Final score** = judge `overall_score` minus the script's
    `slop_penalty` (floor 0). This mirrors the original pipeline's
    independent mechanical adjustment.
-6. **Gate.** Final score > 6.0 → keep: `git add -A && git commit -m
-   "draft: ch NN (<final score>)"`; update state.json
-   `chapters_drafted`. Otherwise discard with `git reset --hard HEAD`
-   (untracked eval logs survive) and retry with a DIFFERENT approach
-   informed by the judge's three_weakest_sentences and
-   top_3_revisions — up to 5 attempts. After 5 failed attempts, keep
-   the best-scoring attempt anyway (rewrite it from the saved eval
-   logs if needed), commit it, and log `keep (best-of-5)`.
-   Every attempt appends to results.tsv:
+6. **Gate.** Final score > 6.0 → keep: update state.json
+   `chapters_drafted`, fold in the attempt rows (fix 2), then
+   `git add -A && git commit -m "draft: ch NN (<final score>)"`.
+   Otherwise discard with `git reset --hard HEAD` (untracked eval logs
+   survive) and retry with a DIFFERENT approach informed by the
+   judge's three_weakest_sentences and top_3_revisions — up to 5
+   attempts. After 5 failed attempts, keep the best-scoring attempt:
+   `cp eval_logs/ch_NN_attempt_<best>.md chapters/ch_NN.md`, then
+   commit, and log `keep (best-of-5)`.
+   During the retry loop, append each attempt's row to the untracked
+   `eval_logs/attempts.tsv` (same columns as results.tsv). At commit
+   time (keep or best-of-5), append ALL of this chapter's attempt rows
+   from eval_logs/attempts.tsv into results.tsv, then
+   `git add -A && git commit` — the full experiment log lands
+   atomically with the kept chapter. Row format:
    `<ISO timestamp>\tdrafting\t<final score>\t<chapter word count>\t<keep|discard|noscore>\tch NN attempt <k>`
 7. **Canon.** Append the judge's `new_canon_entries` to canon.md,
-   each tagged `[ch NN]`. If writing revealed a lore gap or
+   each tagged `(ch_NN)`. If writing revealed a lore gap or
    contradiction, log a debt in state.json:
    `{"trigger": "ch_NN: <gap>", "affected": ["<files>"], "status": "pending"}`.
 
