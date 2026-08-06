@@ -24,6 +24,10 @@ written in this phase. Typical runs take 5–15 iterations.
    - the project's `seed.txt` if present; otherwise derive the premise
      from whatever layer docs already exist (imported or hand-built
      projects are valid — never require seed.txt).
+3. If `chapters/` already contains prose (imported project), the
+   manuscript is ground truth: layer revisions during iteration must
+   document and deepen what the prose establishes — never contradict
+   it. Cite chapters as `(ch_NN)` in canon entries you add.
 
 ## Filling empty layers
 
@@ -96,9 +100,12 @@ something safer.
 
 ## Exit
 
-Set state.json: `phase: "drafting"`, `chapters_total: <chapter count
-from outline.md>`, `iteration: 0`, and record the final scores. Commit
+Set state.json: `chapters_total: <chapter count from outline.md>`,
+`iteration: 0`, and record the final scores. Set `phase`: if every
+outlined chapter already exists in `chapters/` (imported finished
+manuscript), set `"revision"`; otherwise set `"drafting"`. Commit
 `foundation complete: <overall>/<lore>`. Send a Pushover notification
 (pushover skill): title "autonovel: foundation", message with final
-scores, iterations used, and next step `/autonovel:novel-draft`. Then
-report the same to the user.
+scores, iterations used, and next step `/autonovel:novel-draft` (or
+`/autonovel:novel-revise` when exiting to revision). Then report the
+same to the user.

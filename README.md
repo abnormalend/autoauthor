@@ -25,6 +25,7 @@ Claude Code is the runtime.
 Then, in any directory:
 
     /autonovel:novel-seed        # create a novel project + pick a seed
+    /autonovel:novel-import      # bring an existing story into the pipeline
     cd ~/novels/<your-novel>
     /autonovel:novel-foundation  # build world/characters/outline/voice
     /autonovel:novel-draft       # write chapters, score-gated
