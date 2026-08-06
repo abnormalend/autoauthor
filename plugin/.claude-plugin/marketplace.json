@@ -1,5 +1,6 @@
 {
   "name": "autonovel-dev",
+  "description": "Development marketplace for the autonovel novel-writing pipeline plugin",
   "owner": { "name": "Brent Rogers" },
   "plugins": [
     {
