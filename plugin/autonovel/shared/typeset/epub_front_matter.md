@@ -4,11 +4,11 @@
 
 \
 
-**NOVEL TITLE**
+**NOVEL-TITLE**
 
 \
 
-*Author Name*
+*NOVEL-AUTHOR*
 
 \
 

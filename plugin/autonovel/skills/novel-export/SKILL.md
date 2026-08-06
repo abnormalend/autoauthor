@@ -30,15 +30,21 @@ Produces `typeset/novel.pdf` (LaTeX via tectonic) and `<title-slug>.epub`
      `typeset/epub_front_matter.md`, `typeset/epub_colophon.md` use
      `NOVEL-TITLE`, `NOVEL-TITLE-SHORT`, `NOVEL-AUTHOR`,
      `NOVEL-EPIGRAPH`, `NOVEL-END-TEXT`, `NOVEL-GENRE`.
-   - `typeset/epub_metadata.yaml` and `typeset/epub_back_cover.md` use
-     bare `TITLE` and `AUTHOR`.
+   - `typeset/epub_metadata.yaml` is the ONLY file using bare `TITLE`
+     and `AUTHOR` tokens (`epub_back_cover.md` has no placeholders —
+     nothing to fill there).
    Fill ALL of them. Sources: title from outline.md's first heading
    (confirm with the user); author — ask the user once (suggest
    `git config user.name` as the default); genre from seed.txt or the
    outline; epigraph — choose a resonant NON-SPOILER line from the
    novel's own text and confirm with the user; end-text — a short
-   closing line, confirm with the user. Grep afterwards to verify no
-   placeholder token remains in any typeset file.
+   closing line, confirm with the user. Verify afterwards in two
+   scoped passes: `grep -rn 'NOVEL-' typeset/` must return nothing,
+   and `grep -n 'TITLE\|AUTHOR' typeset/epub_metadata.yaml` must
+   return nothing. Do NOT run a bare TITLE/AUTHOR grep across all
+   typeset files — novel.tex has innocent `% === TITLE PAGE ===`
+   comments, and a global find-and-replace on the bare tokens would
+   corrupt the NOVEL-* tokens they're substrings of.
 5. **Build the PDF.**
    `python3 typeset/build_tex.py` (the staged copy — it reads
    `chapters/` from the current directory and writes
