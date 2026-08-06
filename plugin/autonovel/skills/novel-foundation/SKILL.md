@@ -44,6 +44,11 @@ an imported project), do not refill them — fill only the still-
 template layers, in the same order, then proceed to the iteration
 loop.
 
+Exception: an outline.md containing a `TO BE OUTLINED` marker counts
+as unfilled for the outline pass — fill ONLY the marked
+remaining-chapters portion (keep the as-written entries for existing
+chapters untouched).
+
 ## Iteration loop
 
 1. **Evaluate.** Dispatch a fresh judge subagent (general-purpose,
@@ -99,6 +104,9 @@ real cost, it is not a real choice. Resist rounding sharp edges into
 something safer.
 
 ## Exit
+
+Do not exit while outline.md still contains a `TO BE OUTLINED`
+marker — the outline pass must complete first, regardless of scores.
 
 Set state.json: `chapters_total: <chapter count from outline.md>`,
 `iteration: 0`, and record the final scores. Set `phase`: if every

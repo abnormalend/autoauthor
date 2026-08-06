@@ -99,6 +99,13 @@ Extraction-specific rules:
 
 ## outline.md
 
+Applies to revise and continue modes only. **Salvage mode skips this
+section entirely** — leave outline.md as its unmodified template; the
+manuscript's plot shape is exactly what's being discarded, so there is
+nothing to extract. The foundation loop's outline pass builds the
+re-draft's outline fresh from the extracted world/characters/MYSTERY
+layers and `import_source.md`, the same as a from-scratch project.
+
 Read for it: the full manuscript, chapter by chapter, plus any
 author notes about intended future chapters (continue mode only).
 
@@ -253,10 +260,12 @@ Write the state file with the same shape as
     ask if they haven't said. If they don't know yet, use
     `chapters_drafted` as a placeholder and note in the report that
     the foundation loop's outline pass will set the real total.
-  - **salvage mode:** `chapters_drafted` (0) as a placeholder — the
-    foundation loop's outline work starts from scratch and will set
-    the real total once outline.md is built. Note this explicitly in
-    the handoff report so it isn't mistaken for a finished value.
+  - **salvage mode:** `0` at import time — outline.md is not
+    extracted (left as its template; see the outline.md section
+    above), so there is no chapter count to derive one from yet. The
+    foundation loop's outline pass builds the outline from scratch and
+    sets the real `chapters_total` at its Exit. Note this explicitly
+    in the handoff report so `0` isn't mistaken for a finished value.
 - Leave `iteration`, `foundation_score`, `lore_score`, `novel_score`,
   `revision_cycle`, `review_round`, and `debts` at their template
   defaults (0 / 0.0 / `[]`) — the foundation loop sets these as it

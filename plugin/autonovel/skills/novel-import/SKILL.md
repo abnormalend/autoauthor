@@ -22,7 +22,9 @@ throughout — extraction documents what is on the page.
    - `continue` — the story is unfinished; goal is drafting the rest.
    - `salvage` — the ideas are good, the prose isn't; extract the
      foundation, discard the prose, re-draft.
-   Read the ENTIRE source before anything else.
+   Read the ENTIRE source before anything else. For sources too large
+   for one pass, read in sequential slices, keeping running notes per
+   chapter — never extract from an unread portion.
 
 2. **Initialize the project** exactly as novel-seed step 2 does:
    safety checks first (STOP if `<dir>` exists non-empty; verify the
@@ -56,8 +58,11 @@ throughout — extraction documents what is on the page.
    order: chapters on disk first (step 3), then voice (Part 2 +
    voice_wells.json, including the fingerprint run when chapters
    exist), then world.md → characters.md → MYSTERY.md → outline.md
-   (as-written + observed ledger) → canon.md. Cite chapters as
-   `(ch_NN)` (salvage mode: cite `(source §N)` sections of
+   (as-written + observed ledger) → canon.md (salvage mode: SKIP
+   outline extraction entirely — leave outline.md as its template;
+   the foundation fill pass outlines the re-draft fresh, using the
+   extracted layers and import_source.md as raw material). Cite
+   chapters as `(ch_NN)` (salvage mode: cite `(source §N)` sections of
    import_source.md).
 
 5. **Write state.json** per the extraction guide's state rules, and
