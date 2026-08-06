@@ -14,7 +14,7 @@ Write a compression brief (`gen_brief.py --cuts <ch>` or `--panel <ch>`)
 and rewrite the chapter in-session per that brief.
 Target: cut 40-60% of the chapter's words.
 Keep: the 2-3 essential beats the panel identified.
-WARNING: don't over-compress. 1700 words is too thin for any chapter.
+WARNING: don't over-compress. Below ~1800 words is too thin for any chapter.
 Sweet spot: 2200-3000 words for a compressed chapter.
 
 **b. Missing scene**

@@ -19,8 +19,18 @@ measure (full-novel score). Stop on plateau: full-novel score change
    skill's directory).
 3. Resume: state.json `revision_cycle` is the last COMPLETED cycle;
    this session runs cycle N = revision_cycle + 1.
+4. **Malformed judge responses (applies everywhere in this skill):**
+   one strict retry, then skip that dispatch and record it in
+   `edit_logs/skipped.md` with the cycle, step, and chapter.
 
 ## One cycle (N)
+
+**Resume check:** inspect `git log --oneline -20` for this cycle's
+step commits (`cycle N: arc summary`, `cycle N: adversarial cuts
+(…)`, `cycle N: reader panel`). Skip any Diagnose step whose commit
+already exists — NEVER re-run the adversarial-edit + apply-cuts pair
+for a cycle that already applied cuts; cutting twice compounds and
+can gut chapters.
 
 ### Diagnose
 
@@ -37,13 +47,16 @@ measure (full-novel score). Stop on plateau: full-novel score change
    chapters/ch_NN.md>`. Return ONLY the JSON the rubric specifies."
    Save each response verbatim to `edit_logs/chNN_cuts.json` (exact
    filename — apply_cuts.py globs it). Dispatch in parallel batches
-   of 4–6. Malformed JSON → one strict retry → else skip that chapter
-   this cycle and note it.
+   of 4–6 (malformed responses: see Setup's shared policy).
 3. **Apply mechanical cuts:**
    `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/apply_cuts.py" all --types OVER-EXPLAIN REDUNDANT --min-fat 15`
    Review its FAIL lines; apply any high-value failed cuts by hand.
-   Run the slop scorer over the touched chapters as a sanity check.
-   Commit `cycle N: adversarial cuts (<words removed> words)`.
+   Then verify no chapter fell below 1800 words
+   (`wc -w chapters/ch_*.md`). If one did, restore it with
+   `git checkout HEAD -- chapters/ch_NN.md` and exclude it from cuts
+   this cycle. Run the slop scorer over the touched chapters as a
+   sanity check. Commit `cycle N: adversarial cuts (<words removed>
+   words)`.
 4. **Reader panel** — dispatch FOUR judge subagents in parallel, one
    per persona: "Read the rubric at `<absolute plugin
    path>/shared/rubrics/reader-panel.md` and follow it exactly. Your
@@ -54,9 +67,12 @@ measure (full-novel score). Stop on plateau: full-novel score change
    `{"readers": {"editor": {...}, "genre_reader": {...}, "writer":
    {...}, "first_reader": {...}}, "consensus": [...],
    "disagreements": [...]}` — consensus = any chapter, character, or
-   scene named by 3+ readers for the same question; disagreements =
-   items flagged by some readers and not others (these are editorial
-   decisions, record them). Commit `cycle N: reader panel`.
+   scene named by 3+ readers for the same question; disagreements use
+   the exact shape gen_brief.py consumes: `{"question": "<question
+   key>", "chapter": <integer N>, "flagged_by": ["<personas>"],
+   "not_flagged": ["<personas>"]}` — `chapter` MUST be a JSON integer,
+   not a string, because gen_brief.py matches on int equality. Commit
+   `cycle N: reader panel`.
 
 ### Fix (consensus items, priority order per the playbook)
 
@@ -77,19 +93,25 @@ missing scene → thin character → weak scene → consistency):
    dispatch (labeled target/previous paths, per chapter.md's
    contract), final score = judge minus slop penalty. Keep if the
    final score beats the chapter's previous score (from the latest
-   eval log); else discard (`git reset --hard HEAD`), max 3 attempts
-   per chapter per cycle. Attempt rows go to `eval_logs/attempts.tsv`
-   and fold into results.tsv at commit. Commit kept rewrites:
+   eval log; if no valid prior eval exists for the chapter — imported
+   project or noscore history — use the drafting gate 6.0 as the
+   baseline); else discard (`git reset --hard HEAD`), max 3 attempts
+   per chapter per cycle. After 3 failed attempts, leave the chapter
+   as-is this cycle and record the item in `edit_logs/skipped.md`.
+   Attempt rows go to `eval_logs/attempts.tsv` and fold into
+   results.tsv at commit. Commit kept rewrites:
    `cycle N: <item type> ch NN (<score>)`.
 
 ### Measure
 
-1. Refresh arc_summary.md entries for rewritten chapters. Dispatch the
-   full-novel judge: "Read the rubric at `<absolute plugin
-   path>/shared/rubrics/full-novel.md` and follow it exactly. The
-   project directory is `<absolute project path>`. The input files are
-   voice.md, world.md, characters.md, outline.md, arc_summary.md.
-   Return ONLY the JSON the rubric specifies." Save to
+1. Refresh arc_summary.md entries for rewritten chapters AND
+   recompute the header line's total word count (`wc -w
+   chapters/ch_*.md | tail -1`); use that same fresh total in the
+   results.tsv row. Dispatch the full-novel judge: "Read the rubric at
+   `<absolute plugin path>/shared/rubrics/full-novel.md` and follow it
+   exactly. The project directory is `<absolute project path>`. The
+   input files are voice.md, world.md, characters.md, outline.md,
+   arc_summary.md. Return ONLY the JSON the rubric specifies." Save to
    `eval_logs/<UTC yyyymmdd_hhmmss>_full.json`. Log to results.tsv:
    `<ISO timestamp>\trevision\t<novel_score>\t<total words>\tkeep\tfull-eval cycle N`
    (the `full-eval` description prefix is a contract — the router's
