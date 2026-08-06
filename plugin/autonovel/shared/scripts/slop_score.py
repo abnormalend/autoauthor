@@ -10,7 +10,8 @@ Prints a JSON report to stdout:
    "summary": {"worst_file": ..., "max_penalty": N, "mean_penalty": N}}
 
 The slop_penalty (0-10) is subtracted from LLM-judge chapter scores by the
-autonovel skills. Verbatim port of the scorer from autonovel evaluate.py.
+autonovel skills. Verbatim port of the mechanical scorer from the original
+autonovel pipeline's evaluation tooling.
 """
 import json
 import re

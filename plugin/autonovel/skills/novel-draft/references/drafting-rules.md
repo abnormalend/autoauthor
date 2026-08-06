@@ -1,6 +1,6 @@
 # Drafting Rules
 
-Ported from the original pipeline's writer prompt (draft_chapter.py).
+Ported from the original pipeline's chapter-drafting writer prompt.
 Follow all 24 rules on every chapter.
 
 ## Writer's stance

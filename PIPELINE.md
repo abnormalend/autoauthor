@@ -1,3 +1,7 @@
+> **Historical reference.** The pipeline now ships as Claude Code skills —
+> see `plugin/autonovel/`. This document records the original Python
+> implementation and the production methodology it was derived from.
+
 # AUTONOVEL: Reproducible Novel Pipeline
 
 ## Overview

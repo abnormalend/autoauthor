@@ -9,147 +9,94 @@ the same modify-evaluate-keep/discard loop, applied to fiction.
 
 **First novel produced:** *The Second Son of the House of Bells* —
 19 chapters, 79,456 words.
-See the `autonovel/bells` branch.
+See the `autonovel/bells` branch of the upstream
+[NousResearch/autonovel](https://github.com/NousResearch/autonovel) repo.
 
 ---
 
-## Quick Start
+## Quick Start (Claude Code skills)
 
-```bash
-# Clone and setup
-git clone <repo-url> && cd autonovel
-cp .env.example .env    # Add your API keys
+This fork packages the pipeline as a Claude Code plugin. No API keys —
+Claude Code is the runtime.
 
-# Install dependencies
-uv sync
+    /plugin marketplace add /path/to/autonovel/plugin
+    /plugin install autonovel@autonovel-dev
 
-# Generate a seed concept (or write your own in seed.txt)
-uv run python seed.py
+Then, in any directory:
 
-# Run the full pipeline
-uv run python run_pipeline.py --from-scratch
-```
+    /autonovel:novel-seed        # create a novel project + pick a seed
+    cd ~/novels/<your-novel>
+    /autonovel:novel-foundation  # build world/characters/outline/voice
+    /autonovel:novel-draft       # write chapters, score-gated
+    /autonovel:novel-revise      # adversarial cuts + reader panel cycles
+    /autonovel:novel-review      # dual-persona manuscript review loop
+    /autonovel:novel-export      # typeset PDF + ePub
+    /autonovel:novel             # status + what to run next, anytime
+
+Each novel lives in its own directory with its own git repo. The
+art/audiobook scripts (fal.ai / ElevenLabs) remain as standalone Python
+tools at the repo root and still use `.env` keys.
 
 ---
 
 ## The Pipeline
 
 ### Phase 1: Foundation
-Build the world, characters, outline, voice, and canon from a seed concept.
-Loop until `foundation_score > 7.5`.
+`/autonovel:novel-foundation` builds the world, characters, outline,
+voice, and canon from a seed concept. Loops until the foundation rubric
+score clears its bar.
 
 ### Phase 2: First Draft
-Write chapters sequentially. Evaluate each one. Keep if `score > 6.0`,
-retry if not. Forward progress over perfection.
+`/autonovel:novel-draft` writes chapters sequentially. Each chapter is
+scored against the chapter rubric; keep if it passes, retry if not.
+Forward progress over perfection.
 
 ### Phase 3a: Automated Revision
-Adversarial editing → apply cuts → reader panel → generate briefs →
-rewrite chapters. Plateau detection stops the loop when scores stabilize.
+`/autonovel:novel-revise` runs adversarial editing → apply cuts →
+reader panel → generate briefs → rewrite chapters. Plateau detection
+stops the loop when scores stabilize.
 
-### Phase 3b: Opus Review Loop
-Send the full manuscript to Claude Opus for dual-persona review
-(literary critic + professor of fiction). Parse actionable items.
-Fix the top issues. Repeat until the reviewer runs out of major items.
+### Phase 3b: Dual-Persona Review Loop
+`/autonovel:novel-review` sends the full manuscript through a
+dual-persona review (literary critic + professor of fiction). Parses
+actionable items, fixes the top issues, repeats until the reviewer
+runs out of major items.
 
 ### Phase 4: Export
-Rebuild docs, typeset in LaTeX, generate art, produce audiobook scripts,
-build ePub, create landing page.
+`/autonovel:novel-export` rebuilds docs, typesets in LaTeX, and builds
+the ePub. Art and audiobook generation remain separate standalone
+scripts (see API Keys below); `landing/` is a static landing-page
+template.
 
-See [PIPELINE.md](PIPELINE.md) for the full technical specification.
-
----
-
-## Tools (27 Python scripts)
-
-### Foundation
-| Tool | Purpose |
-|------|---------|
-| `seed.py` | Generate seed concepts |
-| `gen_world.py` | Seed → world bible |
-| `gen_characters.py` | Seed + world → character registry |
-| `gen_outline.py` | Outline with beats and foreshadowing |
-| `gen_outline_part2.py` | Foreshadowing ledger |
-| `gen_canon.py` | Cross-reference hard facts |
-| `voice_fingerprint.py` | Voice analysis and discovery |
-
-### Drafting
-| Tool | Purpose |
-|------|---------|
-| `draft_chapter.py` | Write a single chapter with anti-pattern rules |
-| `run_drafts.py` | Batch sequential chapter drafter |
-
-### Evaluation
-| Tool | Purpose |
-|------|---------|
-| `evaluate.py` | Mechanical slop scorer + LLM judge |
-| `adversarial_edit.py` | "Cut 500 words" analysis → classified cuts |
-| `compare_chapters.py` | Head-to-head Elo tournament |
-| `reader_panel.py` | 4-persona novel-level evaluation |
-| `review.py` | Opus dual-persona review with stopping conditions |
-
-### Revision
-| Tool | Purpose |
-|------|---------|
-| `gen_brief.py` | Auto-generate revision briefs from feedback |
-| `gen_revision.py` | Rewrite a chapter from a revision brief |
-| `apply_cuts.py` | Batch adversarial cut applicator |
-
-### Art & Cover
-| Tool | Purpose |
-|------|---------|
-| `gen_art.py` | Art pipeline: style, curate, ornaments, vectorize |
-| `gen_art_directions.py` | Generate diverse art directions for curation |
-| `gen_cover_composite.py` | Text overlay on cover art |
-| `gen_cover_print.py` | Print-ready full-wrap cover (Lulu/KDP specs) |
-
-### Audiobook
-| Tool | Purpose |
-|------|---------|
-| `gen_audiobook_script.py` | Parse chapters into speaker-attributed scripts |
-| `gen_audiobook.py` | Generate multi-voice audio via ElevenLabs |
-
-### Orchestration
-| Tool | Purpose |
-|------|---------|
-| `run_pipeline.py` | Full pipeline orchestrator (seed → finished novel) |
-| `build_arc_summary.py` | Regenerate arc summary from chapters |
-| `build_outline.py` | Regenerate outline from chapters |
+See [PIPELINE.md](PIPELINE.md) for the original technical specification
+this pipeline was derived from.
 
 ---
 
-## File Structure
+## Plugin Layout
 
 ```
-FRAMEWORK (reusable, on master):
-  program.md             — Agent instructions per phase
-  CRAFT.md               — Craft education (plot, character, world, prose)
-  ANTI-SLOP.md           — Word-level AI tell detection
-  ANTI-PATTERNS.md       — Structural AI pattern detection
-  PIPELINE.md            — Full automation specification
-  WORKFLOW.md            — Step-by-step human guide
-
-TEMPLATES (filled per-novel on a branch):
-  voice.md               — Part 1: guardrails. Part 2: discovered per novel
-  world.md               — World bible template
-  characters.md          — Character registry template
-  outline.md             — Chapter outline template
-  canon.md               — Hard facts database
-  MYSTERY.md             — Central mystery (author-only)
-  state.json             — Pipeline state tracker
-
-TYPESETTING:
-  typeset/novel.tex      — LaTeX template (EB Garamond, trade paperback)
-  typeset/build_tex.py   — Chapters → LaTeX with vector ornaments
-  typeset/epub_*          — ePub metadata, CSS, and front matter
-
-ART:
-  audiobook_voices.json  — Character → ElevenLabs voice mapping
-  landing/index.html     — Responsive landing page template
-
-CONFIG:
-  .env.example           — API keys (Anthropic, fal.ai, ElevenLabs)
-  pyproject.toml         — Python dependencies
+plugin/autonovel/
+  skills/
+    novel/               — status + routing: what to run next
+    novel-seed/           — project scaffold + seed selection
+    novel-foundation/     — world, characters, outline, voice, canon
+    novel-draft/          — score-gated chapter drafting
+    novel-revise/         — adversarial cuts + reader panel cycles
+    novel-review/         — dual-persona manuscript review loop
+    novel-export/         — LaTeX + ePub typesetting
+  shared/
+    craft/                — craft education (plot, character, world, prose)
+    rubrics/               — foundation, chapter, full-novel, revision rubrics
+    templates/             — world/characters/outline/voice/canon templates
+    scripts/                — slop scorer, cuts applicator, voice fingerprint, etc.
+    typeset/                — LaTeX template + ePub build assets
 ```
+
+Each skill's `SKILL.md` carries the phase instructions that used to live
+in the framework's agent-instructions and step-by-step guide docs; the
+mechanical logic that used to live in the root-level scripts now lives
+under `shared/scripts/` and `shared/typeset/`.
 
 ---
 
@@ -168,20 +115,23 @@ The novel is five co-evolving layers:
 
 Changes propagate both down (lore change → outline change → chapter
 revision) and up (writing reveals a gap → update lore → check
-downstream). The pipeline tracks propagation debts in `state.json`.
+downstream). The pipeline tracks propagation debts in `state.json`
+inside each novel's own project directory.
 
 ### Two Immune Systems
 
-1. **Mechanical** (`evaluate.py`, no LLM): regex scans for banned words,
-   fiction clichés, show-don't-tell violations, sentence uniformity.
+1. **Mechanical** (`shared/scripts/`, no LLM): regex scans for banned
+   words, fiction clichés, show-don't-tell violations, sentence
+   uniformity.
 
-2. **LLM Judge** (`evaluate.py`, separate model): scores prose quality,
-   voice adherence, character distinctiveness, beat coverage.
+2. **LLM Judge** (the skills themselves, via rubrics in
+   `shared/rubrics/`): scores prose quality, voice adherence, character
+   distinctiveness, beat coverage.
 
-### The Opus Review Loop
+### The Dual-Persona Review Loop
 
-After automated revision cycles, the full manuscript goes to Claude Opus
-with this prompt:
+After automated revision cycles, `/autonovel:novel-review` sends the
+full manuscript through a review prompt built around:
 
 > "Read the below novel. Review it first as a literary critic and then
 > as a professor of fiction. Give specific, actionable suggestions for
@@ -195,16 +145,13 @@ loop continues until the reviewer's items are mostly qualified hedges rather tha
 
 ## API Keys
 
-The pipeline uses three external services:
-
-| Service | Key | Used for |
-|---------|-----|----------|
-| Anthropic | `ANTHROPIC_API_KEY` | Writing, evaluation, review (Sonnet + Opus) |
-| fal.ai | `FAL_KEY` | Cover art and ornament generation (Nano Banana 2) |
-| ElevenLabs | `ELEVENLABS_API_KEY` | Multi-voice audiobook generation |
-
-Copy `.env.example` to `.env` and fill in your keys. Only the Anthropic
-key is required for the core pipeline. Art and audiobook are optional.
+Only the art and audiobook tools use API keys — `gen_art.py`,
+`gen_art_directions.py`, `gen_cover_composite.py`, `gen_cover_print.py`,
+`gen_audiobook.py`, and `gen_audiobook_script.py`, which call fal.ai and
+ElevenLabs. Copy `.env.example` to `.env` and fill in `FAL_KEY` and
+`ELEVENLABS_API_KEY` if you want to use them. The core writing pipeline
+(seed → foundation → draft → revise → review → export) runs entirely as
+Claude Code skills and needs no API keys.
 
 ---
 
