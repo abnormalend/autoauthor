@@ -53,9 +53,29 @@ can gut chapters.
 3. **Apply mechanical cuts:**
    `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/apply_cuts.py" all --types OVER-EXPLAIN REDUNDANT --min-fat 15`
    Review its FAIL lines; apply any high-value failed cuts by hand.
-   Also handle its SKIP [REWRITE] lines: apply each rewrite by hand
-   using the `rewrite` text from the chapter's cuts JSON — those cuts
-   need replacement prose, not deletion.
+   **Also handle its SKIP [REWRITE] lines** — do not filter the
+   script's output down to FAIL/SAVED and move on, or you will silently
+   drop this entire category (on a first cycle it can be 250+ items and
+   the bulk of the available improvement). These cuts need replacement
+   prose, not deletion: apply each using the `rewrite` text from the
+   chapter's cuts JSON. They are trims, not rewordings — a good one
+   stops a sentence early or drops the second half of a doubled image,
+   keeping the author's own words.
+
+   Two filters, both required:
+   - **Reject any "rewrite" longer than its quote.** That is an
+     expansion wearing a trim's clothes.
+   - **Skip any whose containing paragraph contains dialogue.** This
+     one is measured, not cautionary. Action beats sitting between
+     lines of speech ("She set one measurement beside another, flat, a
+     tailor calling numbers") read as redundant to a cutting judge and
+     are exactly what stops an exchange from becoming talking heads.
+     Applying them wholesale on one project dropped voice_consistency
+     8→7 and overall_engagement 8→7 at the full-novel eval; restoring
+     only the dialogue-adjacent ones and keeping the narration-only
+     ones recovered voice to 8 and lifted the novel score above where
+     it started. Apply the narration-only trims freely; leave the
+     dialogue paragraphs alone.
    **If the run reports `Applied: 0` because every chapter fell under
    `--min-fat 15`,** that is expected on a draft that already had a
    post-draft slop pass (judges typically return 7–12% fat there). Do
@@ -68,12 +88,26 @@ can gut chapters.
    can leave a paragraph ending on a comma, ending with no terminal
    punctuation at all, or two speeches glued into one line. Neither the
    word-count check nor the slop scorer detects any of this. Diff each
-   changed paragraph against the pre-cut tree and flag any that now end
-   in `[,;]`, end without terminal punctuation, contain a double space,
-   or contain adjacent/empty quote pairs (`" "`, `""`). Repair each by
-   hand against the pre-cut text — usually promoting a comma to a
-   period or restoring a paragraph break. Re-run the audit until it
-   reports zero.
+   changed paragraph against the pre-cut tree and flag any that now:
+   end in `[,;]`; end without terminal punctuation; contain a double
+   space; contain adjacent or empty quote pairs (`" "`, `""`); contain
+   whitespace before punctuation (this catches `he said, , and`, which
+   a double-space-only scan misses); or contain a doubled word. Compare
+   only paragraphs that actually changed — unchanged text is not your
+   damage and will drown the signal.
+
+   Repair each by hand against the pre-cut text: usually promoting a
+   comma to a period, restoring a paragraph break, or merging two
+   speeches that lost the beat between them. Re-run until it reports
+   zero. Expect one or two false positives from intentional oddities
+   (an emoticon on a hand-lettered sign) — check them, then leave them.
+
+   Audit against the tree as it stood at the START of this cycle, and
+   re-run after ANY later mechanical pass in the same cycle. A defect
+   introduced in cycle N and missed by its audit will otherwise sit in
+   the manuscript indefinitely, because cycle N+1 diffs against a tree
+   that already contains it — that is exactly how a `he said, , and`
+   survived a cycle.
    Then verify no chapter fell below 1800 words
    (`wc -w chapters/ch_*.md`). If one did, restore it with
    `git checkout HEAD -- chapters/ch_NN.md` and exclude it from cuts
@@ -159,20 +193,66 @@ missing scene → thin character → weak scene → consistency):
    grep the rest of the manuscript for it: a compression brief that
    removes a plant (an object, a card, a named regular) silently breaks
    its payoff chapters later.
+
+   **Three canon pre-flight checks before you write a line.** These are
+   the errors that actually recur, and each one costs an attempt:
+   - *Reserved sentence architectures.* canon.md's dialogue-invariants
+     line usually assigns one rhetorical shape to one character
+     exclusively (e.g. balanced-antithesis epigrams to a single
+     speaker). Writing new dialogue for anyone else, it is very easy to
+     reach for that shape at their emotional peak — it happened twice
+     in two cycles on one project, to two different characters. Re-read
+     that canon line and check your new lines against it before
+     dispatching the judge.
+   - *Canonical form of any object you touch.* If a drawing, notebook,
+     letter or photograph already exists, canon fixes when it was made,
+     where it lives, and how it is handled. Do not invent a fresh
+     scene for it from memory; grep canon.md and the originating
+     chapter first. Inventing a plausible-but-wrong origin, or adding
+     an unreconciled second copy of an existing artifact, both read as
+     continuity bugs.
+   - *Arithmetic you introduce.* Any new interval, count or date
+     ("nineteen months", "six Saturdays deep") will be checked against
+     the Story Clock. If you do not need the number, do not write one.
 4. Score it exactly as novel-draft does: scratch copy to
    `eval_logs/ch_NN_attempt_<k>.md`, slop score, chapter-judge
    dispatch (labeled target/previous paths, per chapter.md's
    contract), final score = judge minus slop penalty. Keep if the
-   final score beats the chapter's previous score (from the latest
-   eval log; if no valid prior eval exists for the chapter — imported
-   project or noscore history — use the drafting gate 6.0 as the
-   baseline); else discard (`git reset --hard HEAD`), max 3 attempts
-   per chapter per cycle. After 3 failed attempts, leave the chapter
-   as-is this cycle and record the item in `edit_logs/skipped.md`.
-   Attempt rows go to `eval_logs/attempts.tsv` and fold into
-   results.tsv at commit (same columns as novel-draft's rows, but the
-   phase column is `revision`). Commit kept rewrites:
-   `cycle N: <item type> ch NN (<score>)`.
+   final score beats the chapter's baseline (see below); else discard
+   (`git reset --hard HEAD`), max 3 attempts per chapter per cycle.
+   After 3 failed attempts, leave the chapter as-is this cycle and
+   record the item in `edit_logs/skipped.md`. Attempt rows go to
+   `eval_logs/attempts.tsv` and fold into results.tsv at commit (same
+   columns as novel-draft's rows, but the phase column is `revision`).
+   Commit kept rewrites: `cycle N: <item type> ch NN (<score>)`.
+
+   **The baseline must be same-cycle. This is not optional and it is
+   the most common way this step goes wrong.** The obvious baseline —
+   the chapter's last score in `eval_logs/` — is usually a DRAFTING
+   score, and the drafting judge is measurably more generous than the
+   revision judge on identical prose. Measured on one project: a
+   chapter carrying a recorded 8.0 scored 7.0 when its near-original
+   text was re-judged during revision, and another carrying 7.5 scored
+   7.0. Gating a revision-phase score against a drafting-phase number
+   silently discards work that is not actually worse.
+
+   So: use the recorded score as a first pass, but **the moment a
+   rewrite fails the gate, re-score the CURRENT committed text of that
+   chapter** (dispatch the same judge, same labeled paths, write to
+   `eval_logs/chNN_baseline.json`) and compare against that number
+   instead. One extra dispatch settles whether you are discarding a
+   regression or a phantom. Log the baseline row to attempts.tsv with
+   `baseline` in the keep_discard column so later cycles can reuse it.
+
+   Two consequences worth internalising:
+   - Same-judge variance on identical text runs about ±0.5, so a
+     single measurement is noisy. Do not spend a second and third
+     attempt chasing a 0.5 gap before you have re-baselined; the gap
+     may not exist.
+   - A rewrite that TIES a true same-cycle baseline is not an
+     improvement and should still be discarded — but a rewrite that
+     ties the *recorded* number may in fact be beating the true one.
+     Re-baseline before concluding either way.
 
 ### Measure
 
@@ -206,6 +286,19 @@ missing scene → thin character → weak scene → consistency):
    `<ISO timestamp>\trevision\t<novel_score>\t<total words>\tkeep\tfull-eval cycle N`
    (the `full-eval` description prefix is a contract — the router's
    plateau check greps for it).
+
+   **If you measure more than once in a cycle** — legitimate when a
+   measurement comes back down and you repair the cause and re-measure
+   — only the FINAL measurement may carry the `full-eval cycle N`
+   prefix. Log the intermediate one with a plain description and no
+   `full-eval` prefix, or the plateau check will read one cycle as two
+   and can stop revision early on a number you already fixed.
+
+   **Read the dimension scores, not just the total.** A total that
+   moves 0.2 looks like noise; the dimensions underneath show whether
+   it is. Two dimensions dropping a full point each while a third rises
+   is a real regression with a specific cause, and comparing the
+   per-dimension row against the previous cycle's usually names it.
 2. Address the eval's `top_suggestion` if actionable this cycle (the
    playbook's eval-callout patterns have the recipes); at most 2 such
    fixes per cycle, scored and gated like any rewrite.
@@ -241,7 +334,13 @@ to the reader panel and the full-novel judge, and any step that edits
 chapters invalidates it.
 
 Cut narration, not scenes. A compression that summarizes a dramatized
-beat scores worse than the bloat it replaced.
+beat scores worse than the bloat it replaced. Inside a scene, leave the
+action beats between lines of dialogue alone — they are what keeps an
+exchange from being talking heads, and every cutting judge reads them
+as redundant.
+
+Never discard a rewrite against a score you did not measure this cycle.
+Drafting-phase numbers run high; re-baseline the committed text first.
 
 ## Optional cycle-1 diagnostic: chapter tournament
 

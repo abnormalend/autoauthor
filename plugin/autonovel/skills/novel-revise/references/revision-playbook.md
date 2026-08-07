@@ -160,7 +160,25 @@ same dimension, stop — diminishing returns.
   measures how legible a defect is in summary, NOT how real it is. Three
   readers naming the same chapter for the same reason can all be wrong
   in the same way. Verify every consensus item against the prose before
-  briefing it (SKILL.md Fix step 1).
+  briefing it (SKILL.md Fix step 1). Consensus also moves between
+  cycles: an item four readers agreed on can come back contested when
+  two of them say the thing is correct by design. A reversal like that
+  is evidence the original consensus was soft — drop the item rather
+  than spending a fourth attempt on it.
+- **Stale baselines (the gate's blind spot).** A chapter's recorded
+  score usually comes from the drafting judge, which runs 0.5-1.0 above
+  the revision judge on identical prose. Every rewrite you gate against
+  that number is being held to a bar that does not exist. Re-score the
+  current committed text before discarding anything (SKILL.md Fix step
+  4). Related: same-judge variance on identical text is about ±0.5, so
+  treat a single score as a reading, not a verdict.
+- **Cutting a chapter whose real problem is somewhere else.** When the
+  panel names a stretch (ch 10-12, ch 8-17), the defect is usually the
+  repeated BEAT running through all of them, not any one chapter's
+  length. Compressing the middle instance leaves the pattern intact and
+  costs you the chapter's texture. Look for the repetition first; if it
+  spans six chapters it is an outline problem and no single rewrite
+  will move the score.
 - **Editing a high-scoring chapter at all.** The keep gate is "beats
   the previous score," so any chapter already at 8.0 is a bad bet: it
   has the least room above it and the most to lose, and normal judge
