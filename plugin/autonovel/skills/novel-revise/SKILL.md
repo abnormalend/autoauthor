@@ -56,12 +56,35 @@ can gut chapters.
    Also handle its SKIP [REWRITE] lines: apply each rewrite by hand
    using the `rewrite` text from the chapter's cuts JSON — those cuts
    need replacement prose, not deletion.
+   **If the run reports `Applied: 0` because every chapter fell under
+   `--min-fat 15`,** that is expected on a draft that already had a
+   post-draft slop pass (judges typically return 7–12% fat there). Do
+   not accept the empty result and do not raise the fat numbers: re-run
+   the same command with `--min-fat 0`, which keeps the type filter and
+   drops only the gate. Say so in the commit message.
+   **Then audit for splice damage — REQUIRED, and not optional because
+   the word counts look fine.** The script deletes quoted spans
+   mid-paragraph, so a cut that removes a trailing or interior sentence
+   can leave a paragraph ending on a comma, ending with no terminal
+   punctuation at all, or two speeches glued into one line. Neither the
+   word-count check nor the slop scorer detects any of this. Diff each
+   changed paragraph against the pre-cut tree and flag any that now end
+   in `[,;]`, end without terminal punctuation, contain a double space,
+   or contain adjacent/empty quote pairs (`" "`, `""`). Repair each by
+   hand against the pre-cut text — usually promoting a comma to a
+   period or restoring a paragraph break. Re-run the audit until it
+   reports zero.
    Then verify no chapter fell below 1800 words
    (`wc -w chapters/ch_*.md`). If one did, restore it with
    `git checkout HEAD -- chapters/ch_NN.md` and exclude it from cuts
    this cycle. Run the slop scorer over the touched chapters as a
-   sanity check. Commit `cycle N: adversarial cuts (<words removed>
-   words)`.
+   sanity check.
+   **Finally, resync arc_summary.md** (see the resync procedure under
+   Measure). This step just edited most of the manuscript, and the file
+   built in step 1 now quotes sentences that no longer exist in the
+   book — the reader panel in step 4 and the full-novel judge in
+   Measure both read it. Commit `cycle N: adversarial cuts (<words
+   removed> words)`.
 4. **Reader panel** — dispatch FOUR judge subagents in parallel, one
    per persona: "Read the rubric at `<absolute plugin
    path>/shared/rubrics/reader-panel.md` and follow it exactly. Your
@@ -79,21 +102,64 @@ can gut chapters.
    not a string, because gen_brief.py matches on int equality. Commit
    `cycle N: reader panel`.
 
+   **What the panel is and isn't evidence of.** All four readers see
+   arc_summary.md and never the prose. Their verdicts are therefore
+   claims about the *summary*, and the summary is lossy in one
+   direction: it compresses dramatized scenes into clauses. So a
+   chapter whose strength is texture, restraint, or slow accumulation
+   reads to the panel as drag, and a scene the summary renders in six
+   words reads as missing. Expect two recurring false positives —
+   "missing scene" for a beat that is fully on the page, and "cut
+   candidate" for a chapter that is merely quiet. Both can carry 3+
+   reader agreement, because all four are misled by the same lossy
+   line. Treat a `cut_candidate` verdict as a hypothesis about
+   REPETITION, not about length. Verification is mandatory before any
+   brief (Fix step 1).
+   If `edit_logs/` is gitignored (the default template), the panel and
+   cuts JSON are untracked; make the step commit with
+   `--allow-empty` so the resume check still finds it.
+
 ### Fix (consensus items, priority order per the playbook)
 
 For each consensus item, in playbook priority order (cut candidate →
 missing scene → thin character → weak scene → consistency):
-1. Generate a brief:
+1. **Verify the item against the chapter text before briefing
+   anything.** Open the chapter (and the outline entry) and confirm the
+   defect is on the page. Panel consensus is not evidence that it is —
+   the readers saw only arc_summary.md, so an item can carry 3-of-4
+   agreement and still be an artifact of one compressed summary line.
+   Check the specific claim:
+   - *missing scene* → grep the chapter for the beat. If it is already
+     dramatized, the summary was lossy, not the chapter. Do not rewrite.
+   - *cut candidate* → find what actually repeats. Compare the chapter's
+     closing move against its neighbours' closing moves; a real cut
+     candidate repeats a beat or a posture, and the fix is to break the
+     repetition, which is rarely the same edit as making it shorter.
+   - *thin character* → count their actual lines and scenes.
+   - any item → check the outline entry, which may already require the
+     thing the panel wants added, or forbid it by design.
+   If the item does not survive this check, skip it, record it in
+   `edit_logs/skipped.md` with what you verified and where, and move to
+   the next item. Rewriting a chapter to add a scene it already
+   contains costs it its score and gains nothing.
+2. Generate a brief:
    `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/gen_brief.py" --panel <ch>`
    (or `--cuts <ch>`; use `--eval <ch>` once this cycle's chapter
    evals exist). Review the brief; sharpen it by hand if the playbook
    recipe for this item type demands specifics the script missed.
-2. Rewrite the chapter in-session following the brief plus the
+   **Check the brief's TARGET before using it.** A COMPRESS brief sets
+   the target at 55% of current length, which on a chapter already near
+   the floor asks for a word count the 1800-word guardrail forbids
+   (2,400 → 1,320). The guardrail wins; override the number by hand.
+3. Rewrite the chapter in-session following the brief plus the
    playbook's Rewrite rules, with the drafting context recipe
    (voice.md, world.md, characters.md in full; the old chapter as raw
    material — keep what works; previous chapter's last ~1000 words;
-   next chapter's opening ~1500 chars).
-3. Score it exactly as novel-draft does: scratch copy to
+   next chapter's opening ~1500 chars). Before cutting any element,
+   grep the rest of the manuscript for it: a compression brief that
+   removes a plant (an object, a card, a named regular) silently breaks
+   its payoff chapters later.
+4. Score it exactly as novel-draft does: scratch copy to
    `eval_logs/ch_NN_attempt_<k>.md`, slop score, chapter-judge
    dispatch (labeled target/previous paths, per chapter.md's
    contract), final score = judge minus slop penalty. Keep if the
@@ -110,10 +176,28 @@ missing scene → thin character → weak scene → consistency):
 
 ### Measure
 
-1. Refresh arc_summary.md entries for rewritten chapters AND
-   recompute the header line's total word count (`wc -w
-   chapters/ch_*.md | tail -1`); use that same fresh total in the
-   results.tsv row. Dispatch the full-novel judge: "Read the rubric at
+1. **Resync arc_summary.md, then dispatch.** The full-novel judge
+   scores the novel from this file alone, so a stale line here is a
+   wrong score for the whole cycle.
+
+   **Resync procedure** (used here and at the end of Diagnose step 3;
+   run it over EVERY chapter changed since the file was written — cuts
+   and by-hand repairs, not just rewritten chapters):
+   - Rebuild each changed chapter's opening and closing ~100-word
+     passages mechanically from the current chapter text, so they are
+     verbatim by construction rather than by transcription.
+   - Recompute every per-chapter word count in the `## Chapter NN`
+     headers and the header line's total (`wc -w chapters/ch_*.md |
+     tail -1`); use that same fresh total in the results.tsv row.
+   - Re-verify every remaining quoted line (the key-dialogue
+     exchanges): whitespace-normalise both sides and confirm each quote
+     still occurs in its chapter. For any that no longer match, locate
+     the longest surviving prefix and replace the quote with the
+     current paragraph containing it.
+   - Repeat until zero quoted passages fail the check. Do not hand a
+     summary containing invented or deleted prose to a judge.
+
+   Dispatch the full-novel judge: "Read the rubric at
    `<absolute plugin path>/shared/rubrics/full-novel.md` and follow it
    exactly. The project directory is `<absolute project path>`. The
    input files are voice.md, world.md, characters.md, outline.md,
@@ -146,6 +230,18 @@ step `/autonovel:novel-review`. Report the same to the user.
 Never compress a chapter below 1800 words. Expect rewrites to run ~30%
 long — brief for shorter than you want. If the full-novel eval names a
 NEW weakest chapter twice in a row after fixes, stop chasing it.
+
+Never brief a rewrite off a panel consensus item you have not confirmed
+in the chapter text. The four readers share one lossy input, so they
+share its errors; agreement measures legibility in summary, not truth.
+
+Never hand arc_summary.md to a judge without re-verifying that every
+passage it quotes still occurs in the manuscript. It is the sole input
+to the reader panel and the full-novel judge, and any step that edits
+chapters invalidates it.
+
+Cut narration, not scenes. A compression that summarizes a dramatized
+beat scores worse than the bloat it replaced.
 
 ## Optional cycle-1 diagnostic: chapter tournament
 

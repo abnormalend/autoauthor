@@ -10,17 +10,55 @@ Work consensus items in this priority order.
 
 **a. Cut candidate (agreement across most/all readers)**
 
-Write a compression brief (`gen_brief.py --cuts <ch>` or `--panel <ch>`)
-and rewrite the chapter in-session per that brief.
+FIRST: verify the item against the chapter (SKILL.md Fix step 1). The
+panel reads only arc_summary.md, and summary flattens texture — a quiet
+chapter and a repetitive chapter look identical in summary form, but
+only one of them has a defect.
+
+What the panel is actually detecting when it is right is REPETITION: a
+beat, a posture, or a closing move the chapter shares with its
+neighbours. Diagnose that before touching length. Compare the chapter's
+final paragraph against the final paragraphs of the chapters on either
+side; in a withholding arc the recurring offender is usually the ending
+(protagonist alone, restating what they did not say). Re-ending the
+chapter on a different move fixes what the readers felt. Removing words
+does not.
+
+Then write a compression brief (`gen_brief.py --cuts <ch>` or
+`--panel <ch>`) and rewrite in-session per that brief.
 Target: cut 40-60% of the chapter's words.
 Keep: the 2-3 essential beats the panel identified.
 WARNING: don't over-compress. Below ~1800 words is too thin for any chapter.
 Sweet spot: 2200-3000 words for a compressed chapter.
+WARNING: the script's COMPRESS target (55% of current) will ask for a
+count under the 1800 floor on any chapter below ~3,300 words. Override
+it by hand; the guardrail wins.
+
+**The compression trap — read before any cut-candidate rewrite.**
+The panel and the chapter judge want opposite things, and the chapter
+judge holds the gate. Compression that turns dramatized scene into
+narrated summary reliably drops `beat_coverage` to 6, because the
+chapter rubric scores a summarized beat as half-hit. A rewrite can be
+shorter, tighter and cleaner and still score BELOW the baggier original
+on that alone. So cut narration, gloss, retrospective essays and
+repeated interiority — never scenes, dialogue, or dramatized beats. If
+a chapter is long because it is eventful, the right outcome may be that
+it keeps its words and loses its repetition. Length is the panel's
+proxy, not its finding.
 
 **b. Missing scene**
 
-Write an expansion brief and rewrite the target chapter in-session, OR
-apply a surgical patch by hand if the missing scene is under 400 words.
+FIRST: grep the chapter for the beat. "Missing scene" is the panel's
+most common false positive, because a scene the summary renders in one
+clause reads to four summary-readers as absent. If it is already
+dramatized, the summary was lossy — skip the item and log it. Check the
+outline entry too: it may already require the beat (proving it should
+be there) or forbid it by design (a withholding the book chose on
+purpose, which the panel will keep asking you to undo).
+
+Otherwise write an expansion brief and rewrite the target chapter
+in-session, OR apply a surgical patch by hand if the missing scene is
+under 400 words.
 Key: the brief must specify what to KEEP (existing good material) and
 what to ADD (the missing beat).
 
@@ -117,6 +155,30 @@ same dimension, stop — diminishing returns.
   gets fixed and exposes the next. Chasing it indefinitely doesn't
   converge — after 2 rotations back to a chapter already fixed once
   this revision, stop chasing that dimension and move on.
+- **Trusting panel consensus as fact.** The four readers share one
+  input (arc_summary.md), so they share its blind spots: agreement
+  measures how legible a defect is in summary, NOT how real it is. Three
+  readers naming the same chapter for the same reason can all be wrong
+  in the same way. Verify every consensus item against the prose before
+  briefing it (SKILL.md Fix step 1).
+- **Editing a high-scoring chapter at all.** The keep gate is "beats
+  the previous score," so any chapter already at 8.0 is a bad bet: it
+  has the least room above it and the most to lose, and normal judge
+  variance (±0.5) can sink a genuinely good edit. Spend the cycle's
+  attempts on the 7.0s. When the panel's top consensus item lands on
+  the book's strongest chapter, that is itself a signal the item is a
+  summary artifact.
+- **Patches that pass every check you thought to run and still fail.**
+  A surgical patch can be canon-safe, slop-clean, correctly voiced, and
+  still cost the chapter its score. Budget 3 attempts and expect to
+  spend them: attempt 1 typically surfaces a canon seam the patch
+  introduced (an object moved out of its established handling), attempt
+  2 a voice-architecture seam (a reserved sentence shape given to the
+  wrong character). Preserve the best attempt in
+  `eval_logs/ch_NN_attempt_<k>.md`, log the trajectory in
+  `edit_logs/skipped.md`, and resume it next cycle rather than
+  restarting from scratch — a monotonic 7.5 → 7.8 with canon now clean
+  is a near miss, not a dead end.
 
 ## Rewrite rules (apply to every chapter rewrite)
 
