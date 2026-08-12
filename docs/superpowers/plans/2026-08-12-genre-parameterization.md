@@ -3961,6 +3961,30 @@ these by hand and record the results in the commit message:
    judge returns a `pillar` object with the general pack's four dimensions,
    that `pillar_score` is populated, and that the gate is reachable. **This
    is the acceptance test for the whole plan.**
+
+   **Record the iteration count, not just pass/fail.** `general`'s four
+   dimensions carry score caps at 5/5/5-or-6/6. If two of the three 5-caps
+   fire at once, the remaining two must average above 9 to clear
+   `pillar_score > 7.0` — and this rubric reserves 9+ for work where the
+   judge genuinely struggled to find flaws. So the gate is unreachable in
+   any single iteration where two 5-caps fire.
+
+   That is not necessarily wrong: the loop targets the weakest dimension
+   each pass, so a cap is a "fix this before proceeding" signal rather than
+   a wall, and clearing it is exactly the work the loop exists to do. The
+   open question is whether 15 iterations is enough. `fantasy` carries no
+   comparable caps, so the two packs are not calibrated to the same bar.
+
+   Judge the result on iterations used:
+   - Clears in under 8 — the caps are working as intended, no action.
+   - Clears in 8-15 — tight but functional; note it and move on.
+   - Hits the 15-iteration cap — the caps are a cliff rather than a
+     gradient. Do NOT fix this by weakening the criteria; they are the
+     best-discriminating scoring text in the repo and the pattern the
+     remaining seven packs should copy. Fix it by making the caps scale
+     (e.g. "score 5 max" becomes "subtract 2, floor 3"), or by giving
+     `fantasy` matching caps so both packs face the same bar and the gate
+     itself can be re-tuned against a consistent scale.
 2. Take an existing fantasy project, run the migration, and run one
    foundation iteration. Confirm the score lands within ~0.5 of its last
    pre-change score — the lossless-port check.
@@ -3977,6 +4001,24 @@ git commit --allow-empty -m "chore: genre parameterization smoke test results
 ```
 
 ---
+
+## Known gap to close before phases 3-4
+
+`content_register` has no controlled vocabulary and no validation. An
+author can write `{"violence": "on-page but not graphic"}` and it passes,
+because any string is accepted. Two consequences: the value becomes a
+Genre Contract promise the book must keep, with nothing defining what it
+means; and `resolve_genre.py`'s `merge()` hard-fails a resolve when two
+packs choose differently-worded levels that mean the same thing —
+`"closed-door"` versus `"fade to black"` would be treated as a genuine
+disagreement.
+
+This is harmless with two shipped packs and no `content_register` values
+in use. It becomes a real problem the moment `erotica`, `cozy`, and `ya`
+are authored, since those are the packs the field exists for, and they
+may be written in parallel. Define the allowed axes and their levels —
+probably `heat`, `violence`, `language`, each with an ordered scale — and
+validate against them, before authoring those three.
 
 ## Follow-on work (not in this plan)
 
