@@ -12,12 +12,21 @@ INPUT FILES (read all of them from the project directory you were given):
 - outline.md
 - canon.md
 
+GENRE PACKS: the dispatching prompt gives you the absolute path of one
+primary genre pack and, optionally, a secondary pack and any number of
+modifier packs. Read them all. They define the pillar dimensions you score,
+the category weights you apply, and the genre contract you check. If no pack
+path was given, return exactly
+{"error": "no genre pack supplied — the invoking skill must resolve one"}
+and nothing else.
+
 OUTPUT: Return ONLY a single JSON object matching the schema at the end
 of this rubric. No markdown fences, no preamble, no commentary.
 
 ---
 
-Evaluate these fantasy novel planning documents.
+Evaluate these planning documents for a novel in the genre named by the
+primary pack's `genre_noun`.
 
 SCORING CALIBRATION (read this before scoring anything):
 
@@ -64,10 +73,10 @@ CROSS-CHECKS (perform these before scoring):
    - Deduct from character_distinctiveness if multiple characters
      share the same sentence structures
 2. Check for missing NEGATIVE SPACE -- what's absent?
-   - Are there gaps in the magic system that would block a specific
-     plot scene? (e.g., can the protagonist's ability do what the
-     climax requires? What established rule resolves the climactic
-     conflict?)
+   - Are there gaps in the pillar system (as the pack defines it) that
+     would block a specific plot scene? (e.g., can the protagonist's
+     ability do what the climax requires? What established rule resolves
+     the climactic conflict?)
    - Are there characters needed for the plot who don't exist?
    - Are there scenes the outline demands that the world can't support?
 3. Check for CONVENIENT GAPS vs DELIBERATE MYSTERY:
@@ -78,36 +87,23 @@ CROSS-CHECKS (perform these before scoring):
      not an iceberg.
 4. Check the canon for INTERNAL CONTRADICTIONS:
    - Cross-reference dates, ages, and timelines
-   - Check if character abilities match magic system rules
+   - Check that character capabilities match the rules the pack's pillar
+     dimensions govern
    - Look for factual conflicts between documents
 
 Score these dimensions (gap + improvement required for each):
 
-LORE & WORLDBUILDING:
-- magic_system: Hard rules with COSTS and LIMITATIONS per Sanderson's
-  Second Law. Could a writer resolve the CLIMACTIC CONFLICT using only
-  rules already established? Are costs plot-driving, not decorative?
-  Are there at least 3 societal implications explored with specificity?
-  Is the system TESTABLE -- could you write a courtroom scene, a
-  contract negotiation, and a magical confrontation without inventing
-  new rules?
-- world_history: Timeline of events creating PRESENT-DAY tensions.
-  Each historical event should map to a current faction conflict or
-  character motivation. Decorative history (cool but plot-irrelevant)
-  counts against the score, not for it.
-- geography_and_culture: Locations distinct with sensory signatures.
-  Cultures with specific customs that GENERATE CONFLICT. Economy that
-  creates class tension. Check: could two different scenes set in two
-  different locations feel meaningfully different based on what's here?
-- lore_interconnection: Does changing one element force changes in
-  at least two others? Test by mentally removing the magic system --
-  does the political structure collapse? Does the class system change?
-  If elements are modular/detachable, score low.
-- iceberg_depth: Implied depth vs stated depth. But CHECK: does the
-  author actually know the answers to the mysteries, or are they
-  handwaving? If a planning doc says "the answer will be revealed"
-  without specifying WHAT the answer is, that's a gap wearing an
-  iceberg costume.
+PILLAR (the genre's own category — the primary pack names it in
+`pillar_label` and defines its dimensions under `## Pillar Dimensions`):
+
+Score every dimension the primary pack declares, using that pack's stated
+criteria. A declared dimension is an unindented bullet in that section of
+the form `- key — criteria`; any prose, `###` subsection, or indented
+bullet above the list is supporting material the criteria are judged
+against, not a dimension to score. If a secondary pack is loaded, also
+score its pillar dimensions; on a key collision the primary's definition
+wins. Ignore any modifier pack's pillar dimensions — modifiers do not
+contribute scored dimensions.
 
 CHARACTER:
 - character_depth: Wound/want/need/lie chains that are CAUSALLY LINKED
@@ -152,32 +148,47 @@ CRAFT:
   granular enough? Are there known facts from other docs that
   AREN'T in the canon?
 
+GENRE CONTRACT:
+Read every loaded pack's `## Genre Contract` section. These are binary
+promises, not scored dimensions. Check each one against the OUTLINE — does
+the planned ending satisfy it, does the planned structure make it reachable?
+List every promise the plan would breach. A breach caps overall_score at 6.
+
 Respond with JSON:
 {
-  "magic_system": {"score": N, "gap": "biggest weakness", "fix": "specific improvement", "note": "..."},
-  "world_history": {"score": N, "gap": "...", "fix": "...", "note": "..."},
-  "geography_and_culture": {"score": N, "gap": "...", "fix": "...", "note": "..."},
-  "lore_interconnection": {"score": N, "gap": "...", "fix": "...", "note": "..."},
-  "iceberg_depth": {"score": N, "gap": "...", "fix": "...", "note": "..."},
-  "character_depth": {"score": N, "gap": "...", "fix": "...", "note": "..."},
-  "character_distinctiveness": {"score": N, "gap": "...", "fix": "...", "note": "..."},
-  "character_secrets": {"score": N, "gap": "...", "fix": "...", "note": "..."},
-  "outline_completeness": {"score": N, "gap": "...", "fix": "...", "note": "..."},
-  "foreshadowing_balance": {"score": N, "gap": "...", "fix": "...", "note": "..."},
-  "internal_consistency": {"score": N, "gap": "...", "fix": "...", "note": "..."},
-  "voice_clarity": {"score": N, "gap": "...", "fix": "...", "note": "..."},
-  "canon_coverage": {"score": N, "gap": "...", "fix": "...", "note": "..."},
+  "pillar": {
+    "<each dimension key the pack declares>": {"score": N, "gap": "biggest weakness", "fix": "specific improvement", "note": "..."}
+  },
+  "character": {
+    "character_depth": {"score": N, "gap": "...", "fix": "...", "note": "..."},
+    "character_distinctiveness": {"score": N, "gap": "...", "fix": "...", "note": "..."},
+    "character_secrets": {"score": N, "gap": "...", "fix": "...", "note": "..."}
+  },
+  "structure": {
+    "outline_completeness": {"score": N, "gap": "...", "fix": "...", "note": "..."},
+    "foreshadowing_balance": {"score": N, "gap": "...", "fix": "...", "note": "..."}
+  },
+  "craft": {
+    "internal_consistency": {"score": N, "gap": "...", "fix": "...", "note": "..."},
+    "voice_clarity": {"score": N, "gap": "...", "fix": "...", "note": "..."},
+    "canon_coverage": {"score": N, "gap": "...", "fix": "...", "note": "..."}
+  },
+  "genre_contract": {"violations": ["list any promises the plan would breach"], "note": "..."},
   "slop_in_planning_docs": {"found": ["list any AI slop patterns found in exemplar dialogue, voice examples, or character descriptions"], "note": "..."},
   "contradictions_found": ["list any factual contradictions between documents"],
   "overall_score": N,
-  "lore_score": N,
+  "pillar_score": N,
   "weakest_dimension": "...",
   "top_3_improvements": ["ranked list of the 3 highest-leverage improvements"]
 }
 
-WEIGHTING: lore/worldbuilding 40%, character 30%, structure 20%, craft 10%.
-A novel with thin worldbuilding but a complete outline is WORSE than deep
-worldbuilding with an incomplete outline.
+`pillar_score` is the mean of the pillar category's dimension scores.
+`weakest_dimension` is a bare dimension key from any category.
+
+WEIGHTING: use the `weights` object in the primary pack's frontmatter —
+pillar, character, structure, and craft, summing to 100. Ignore any
+secondary or modifier pack's weights; only the primary's apply.
+overall_score is the weighted mean of the four category means.
 
 FINAL CHECK: If your overall_score is above 7, re-read your gap lists.
 If any gap describes a problem that would force a writer to stop and
