@@ -28,6 +28,11 @@ project (`<project>/genres/`). The project copy wins.
   architecture, book shape, and seed prompt.
 - **secondary** — contributes additively to a primary. Its weights,
   `pillar_label`, `beat_system`, `shape`, and Plot Architecture are ignored.
+  Its `## Genre Contract` is NOT ignored — every loaded pack's contract is
+  checked. So if your pack declares `["primary", "secondary"]`, each promise
+  must be true in both slots. "The relationship is the main plot" is false in
+  a romantasy; scope it ("where this pack is the primary...") or write the
+  promise so it holds either way.
 - **modifier** — an orthogonal axis (age category, heat level, tone). Only
   its Framing, Genre Contract, Drafting Rules, and `content_register` are
   read. It may not declare `weights`, `pillar_label`, `beat_system`,
@@ -67,13 +72,44 @@ they are what stops a judge from rewarding a real gap — but several low
 caps in one section can put the gate out of reach for a book that is
 otherwise fine.
 
-Sanity-check before you ship the pack: **if every cap in your section
-fired at once, what would the pillar average be, and is it above 7.0?**
-Four dimensions capping at 5/5/6/6 average 5.5, so the loop cannot exit
-until at least two of those caps stop firing. That is a correct and
-useful demand *if* each cap fires only on a genuine defect. A cap an
-ordinary competent book trips by accident is mis-set: raise the number
-or narrow the trigger — do not delete the cap.
+Check the **partial-fire** case, not the all-fire one. Asking "if every cap
+fired, is the average still above 7.0?" is the obvious test and it is the
+wrong one — a pack can pass it and still be unreachable, because real books
+trip one or two caps, not all of them.
+
+Scores are integers and the gate is strict, so with N dimensions the pillar
+sum must be **at least 7N + 1**. With k caps firing at value C, the
+remaining N − k dimensions must average `(7N + 1 − kC) / (N − k)`. Compute
+that for k = 1 and k = 2 and read the answer against this rubric's own
+calibration, which reserves 9+ for work where the judge "genuinely
+struggled to find flaws":
+
+| Pack shape | 1 cap fires | 2 caps fire |
+|---|---|---|
+| 4 dimensions, caps at 5 | rest average 8.00 | rest average **9.50** — needs a 10 and a 9 |
+| 5 dimensions, caps at 6 | rest average 7.50 | rest average 8.00 |
+
+**Reject any design where two caps firing requires a 9.** One cap should
+leave the gate clearly reachable; two should be hard but possible; three
+should block, because three real defects ought to.
+
+**Dimension count is the lever, not cap severity.** This is the least
+obvious thing on this page. Going from four dimensions to five is what
+makes 6-caps safe — at four dimensions, two 6-caps still force `9, 8` from
+the remainder. If your arithmetic comes out unreachable, adding a fifth
+dimension usually fixes it more cleanly than softening a cap, because it
+keeps every criterion honest.
+
+For a failure so severe that any book committing it should be blocked
+outright, do not reach for a punishing cap. Put it in `## Genre Contract`
+instead: a contract breach caps `overall_score` at 6 and never touches
+`pillar_score`, so it stops the loop without making the pillar gate
+arithmetically unreachable. Then let the graded version of the same fault
+keep an ordinary cap, and say in the criteria that the two are not to be
+double-counted.
+
+A cap an ordinary competent book trips by accident is mis-set: raise the
+number or narrow the trigger — do not delete the cap.
 
 ---
 
@@ -146,6 +182,13 @@ vocabularies. Anything else is rejected at authoring time.
 Declare only the axes your genre actually constrains. A pack that says
 nothing about violence should omit `violence` rather than set it to `none` —
 omitting leaves it open, while `none` promises the book contains none.
+
+**`{}` is the right answer for most genre packs, not a placeholder.**
+Romance spans closed-door to explicit and mystery spans cozy to hardboiled;
+neither genre constrains any axis, so both ship `{}` and leave all three
+open for a modifier to set. Declaring a level here forces it on every book
+in the genre. If you are reaching for one, ask whether you are describing
+the genre or describing one book in it.
 
 **A declared level is a promise checked in both directions.** A book that
 promises `explicit` and fades to black has broken its contract exactly as
@@ -233,6 +276,21 @@ The roster the foundation loop must build, with the depth each role needs.
 
 ## Plot Architecture
 
+`beat_system` and this section do different jobs and can both be declared.
+`beat_system` names the **beat vocabulary** the outline labels chapters with
+and the chapter rubric scores against. This section sets the **act shape and
+percentage marks**. Declaring one does not replace the other: mystery ships
+`beat_system: save-the-cat` alongside its own act structure, and the outline
+uses Save the Cat beat names at the act marks stated here.
+
+**If you declare a `beat_system` other than `save-the-cat`, you must state
+its beats here or in a `###` subsection above your scored dimensions.**
+Nothing else in the pipeline knows them — `layer-guides.md` tells the
+outliner to place "the beats of the pack's `beat_system` at their stated
+percentage marks", and if your pack does not state them, there is nothing to
+place. Name each beat and its percentage mark, the way Save the Cat is
+enumerated in `CRAFT.md`.
+
 Act-by-act shape. Omit this section entirely to inherit the base structure.
 
 ## Canon Categories
@@ -255,8 +313,17 @@ for (magic system rules, clues and alibis, the relationship's beats).
 
 ## Artifacts
 
-One subsection per file named in `artifacts:` — its template, which phase
-fills it, and what the rubric checks about it.
+One subsection per file named in `artifacts:`. An artifact has a lifecycle
+across four phases, not one, and your subsection should say what happens in
+each:
+
+- **seed** creates the file from the template you give here
+- **foundation** fills it, and re-checks it whenever a layer it draws on changes
+- **draft** and **revise/review** update it as the manuscript moves
+
+Give the template itself (a markdown table's columns, or the headings),
+state which pillar dimension scores it, and say what a judge checks. An
+artifact nothing scores is a file the pipeline will quietly stop maintaining.
 
 ## Drafting Rules
 
@@ -264,6 +331,15 @@ Appended to the base 24 in `drafting-rules.md`. Number from 25. May include
 a genre-specific banned-phrase list.
 
 ## Seed Prompt
+
+**Field order is load-bearing.** `novel-seed` presents each generated concept
+as TITLE + HOOK + *the first required field the neutral scaffold does not
+already define*. The scaffold defines WORLD, TENSION, THEME, and WHY IT'S NOT
+GENERIC — so whatever you list immediately after WORLD becomes the single
+field a user compares ten concepts by. Put your genre's discriminating field
+there: `MAGIC/COST` for fantasy, `STAKES` for general fiction, `THE CRIME`
+for mystery. A field like WHEN or SETTING in that slot makes the user choose
+between ten premises on their least distinguishing attribute.
 
 What `novel-seed` reads to generate ten concepts. Four parts, in this
 order:

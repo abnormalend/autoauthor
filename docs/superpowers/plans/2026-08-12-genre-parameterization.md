@@ -40,6 +40,8 @@
 | `plugin/autonovel/shared/genres/TEMPLATE.md` | Annotated skeleton + authoring guide. |
 | `plugin/autonovel/shared/genres/general.md` | Neutral default pack. |
 | `plugin/autonovel/shared/genres/fantasy.md` | Lossless port of today's fantasy content. |
+| `plugin/autonovel/shared/genres/romance.md` | Romance pack (primary or secondary). Almost no world; declares no `content_register`. |
+| `plugin/autonovel/shared/genres/mystery.md` | Mystery pack (primary or secondary). First pack to declare an artifact (`clue_ledger.md`) and a `## Plot Architecture`. |
 | `tests/test_genre_pack.py` | Parser + validator unit tests. |
 | `tests/test_resolve_genre.py` | Resolution, merge, conflict tests. |
 | `tests/test_no_genre_leak.py` | Guard: no genre terms outside `shared/genres/`. |
@@ -4204,10 +4206,21 @@ thing, which is a different and much stronger claim.
 
 ## Follow-on work (not in this plan)
 
-Spec phases 3 and 4 — authoring `science-fiction`, `romance`, `mystery`,
-`thriller`, `erotica`, `ya`, and `cozy`. Each is a self-contained pack file
-validated by `validate_genre_pack.py` and covered by the existing
+Spec phases 3 and 4 — authoring `science-fiction`, `thriller`, `erotica`,
+`ya`, and `cozy`. Each is a self-contained pack file validated by
+`validate_genre_pack.py` and covered by the existing
 `test_cli_validates_all_shipped_packs` test, so they need no further
-mechanism work. `romance` and `mystery` should come first: romance has no
-world at all, and mystery is the first pack to declare an artifact, so
-together they prove the design across its widest span.
+mechanism work.
+
+`romance` and `mystery` have since been authored and shipped — they went
+first because they stress the design in opposite directions: romance has
+almost no world, and mystery was the first pack to declare an artifact
+(`clue_ledger.md`) and its own `## Plot Architecture`. Between them they
+exercised every part of the mechanism, and neither needed a change to it.
+Both declare an empty `content_register`, which is the case the clamping
+design exists to serve: romance spans closed-door to explicit and mystery
+spans cozy to hardboiled, so each leaves every axis open for a modifier to
+set. Authors of the remaining packs should read those two alongside
+`TEMPLATE.md`; in particular, both hold every pillar-dimension score cap at
+6 across five dimensions, which keeps the 7.0 pillar gate reachable when
+one or two caps fire and correctly unreachable when three do.
