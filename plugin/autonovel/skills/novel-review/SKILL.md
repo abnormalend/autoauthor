@@ -13,12 +13,23 @@ professor of fiction. Fix the top items; repeat. Maximum 4 rounds.
 
 1. Verify the project (state.json + voice.md), clean tree (dirty →
    STOP and ask), phase `review`. Anchor in the project directory.
-2. Resume: state.json `review_round` is the last COMPLETED round; this
+2. **Resolve the genre.** Run from the project directory:
+
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py"
+   ```
+
+   If it exits non-zero, STOP and report — an unresolvable or conflicting
+   genre stack must be fixed before any review work. Keep the reported pack
+   paths; every judge dispatch below needs them. If `state.json` has no
+   `genre` field at all, STOP and run the migration in `novel/SKILL.md`
+   first.
+3. Resume: state.json `review_round` is the last COMPLETED round; this
    session runs round R = review_round + 1.
-3. Malformed or contract-violating reviewer output anywhere in this
+4. Malformed or contract-violating reviewer output anywhere in this
    skill: one strict retry, then stop the round and report to the user
    (a failed full-manuscript review is not silently skippable).
-4. Read `plugin/autonovel/skills/novel-revise/SKILL.md`'s Fix stage
+5. Read `plugin/autonovel/skills/novel-revise/SKILL.md`'s Fix stage
    (path: `"${CLAUDE_PLUGIN_ROOT}/skills/novel-revise/SKILL.md"`)
    and `"${CLAUDE_PLUGIN_ROOT}/skills/novel-revise/references/revision-playbook.md"`
    — specifically its "Rewrite rules" section — before any chapter
@@ -34,7 +45,9 @@ professor of fiction. Fix the top items; repeat. Maximum 4 rounds.
    derived, never source).
 2. **Review.** Dispatch a fresh judge subagent (general-purpose, no
    other context) with exactly: "Read the rubric at `<absolute plugin
-   path>/shared/rubrics/manuscript-review.md` and follow it exactly.
+   path>/shared/rubrics/manuscript-review.md` and the genre pack(s) at
+   `<resolved pack paths, primary first, each labeled with its role>`,
+   and follow the rubric exactly.
    The project directory is `<absolute project path>`. Return ONLY the
    output the rubric specifies." Request the strongest available model
    for this dispatch if the Agent tool exposes a model choice —

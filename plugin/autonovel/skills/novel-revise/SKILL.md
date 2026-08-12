@@ -14,12 +14,23 @@ measure (full-novel score). Stop on plateau: full-novel score change
 1. Verify the project (state.json + voice.md present), clean tree
    (dirty → STOP and ask), phase `revision`. Anchor the session in the
    project directory; absolute paths when in doubt.
-2. Required reading: `"${CLAUDE_PLUGIN_ROOT}/shared/craft/ANTI-PATTERNS.md"`,
-   the project's voice.md, and `references/revision-playbook.md` (this
-   skill's directory).
-3. Resume: state.json `revision_cycle` is the last COMPLETED cycle;
+2. **Resolve the genre.** Run from the project directory:
+
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py"
+   ```
+
+   If it exits non-zero, STOP and report — an unresolvable or conflicting
+   genre stack must be fixed before any revision work. Keep the reported
+   pack paths; every judge dispatch below needs them. If `state.json` has no
+   `genre` field at all, STOP and run the migration in `novel/SKILL.md`
+   first.
+3. Required reading: `"${CLAUDE_PLUGIN_ROOT}/shared/craft/ANTI-PATTERNS.md"`,
+   the project's voice.md, `references/revision-playbook.md` (this
+   skill's directory), and every genre pack path the resolver reported.
+4. Resume: state.json `revision_cycle` is the last COMPLETED cycle;
    this session runs cycle N = revision_cycle + 1.
-4. **Malformed judge responses (applies everywhere in this skill):**
+5. **Malformed judge responses (applies everywhere in this skill):**
    fence-wrapped but otherwise valid JSON is VALID — strip the fences;
    for genuinely malformed output, one strict retry, then skip that
    dispatch and record it in
@@ -43,9 +54,10 @@ can gut chapters.
    `cycle N: arc summary`.
 2. **Adversarial edit** — for EACH chapter, dispatch a fresh judge
    subagent: "Read the rubric at
-   `<absolute plugin path>/shared/rubrics/adversarial-edit.md` and
-   follow it exactly. The project directory is `<absolute project
-   path>`. The target chapter file is `<absolute path to
+   `<absolute plugin path>/shared/rubrics/adversarial-edit.md` and the
+   genre pack(s) at `<resolved pack paths, primary first, each labeled
+   with its role>`, and follow the rubric exactly. The project directory
+   is `<absolute project path>`. The target chapter file is `<absolute path to
    chapters/ch_NN.md>`. Return ONLY the JSON the rubric specifies."
    Save each response verbatim to `edit_logs/chNN_cuts.json` (exact
    filename — apply_cuts.py globs it). Dispatch in parallel batches
@@ -121,7 +133,9 @@ can gut chapters.
    removed> words)`.
 4. **Reader panel** — dispatch FOUR judge subagents in parallel, one
    per persona: "Read the rubric at `<absolute plugin
-   path>/shared/rubrics/reader-panel.md` and follow it exactly. Your
+   path>/shared/rubrics/reader-panel.md` and the genre pack(s) at
+   `<resolved pack paths, primary first, each labeled with its role>`,
+   and follow the rubric exactly. Your
    assigned persona is <editor|genre_reader|writer|first_reader>. The
    project directory is `<absolute project path>`; the input file is
    arc_summary.md. Return ONLY the JSON the rubric specifies."
@@ -217,7 +231,9 @@ missing scene → thin character → weak scene → consistency):
 4. Score it exactly as novel-draft does: scratch copy to
    `eval_logs/ch_NN_attempt_<k>.md`, slop score, chapter-judge
    dispatch (labeled target/previous paths, per chapter.md's
-   contract), final score = judge minus slop penalty. Keep if the
+   contract, and the genre pack(s) at `<resolved pack paths, primary
+   first, each labeled with its role>`), final score = judge minus slop
+   penalty. Keep if the
    final score beats the chapter's baseline (see below); else discard
    (`git reset --hard HEAD`), max 3 attempts per chapter per cycle.
    After 3 failed attempts, leave the chapter as-is this cycle and
@@ -278,8 +294,10 @@ missing scene → thin character → weak scene → consistency):
      summary containing invented or deleted prose to a judge.
 
    Dispatch the full-novel judge: "Read the rubric at
-   `<absolute plugin path>/shared/rubrics/full-novel.md` and follow it
-   exactly. The project directory is `<absolute project path>`. The
+   `<absolute plugin path>/shared/rubrics/full-novel.md` and the genre
+   pack(s) at `<resolved pack paths, primary first, each labeled with its
+   role>`, and follow the rubric exactly. The project directory is
+   `<absolute project path>`. The
    input files are voice.md, world.md, characters.md, outline.md,
    arc_summary.md. Return ONLY the JSON the rubric specifies." Save to
    `eval_logs/<UTC yyyymmdd_hhmmss>_full.json`. Log to results.tsv:

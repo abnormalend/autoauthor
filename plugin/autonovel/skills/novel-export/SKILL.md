@@ -35,8 +35,12 @@ Produces `typeset/novel.pdf` (LaTeX via tectonic) and `<title-slug>.epub`
      nothing to fill there).
    Fill ALL of them. Sources: title from outline.md's first heading
    (confirm with the user); author — ask the user once (suggest
-   `git config user.name` as the default); genre from seed.txt or the
-   outline; epigraph — choose a resonant NON-SPOILER line from the
+   `git config user.name` as the default);
+   genre — run `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py"`
+   and offer `display_label` as the default `NOVEL-GENRE` (e.g. "Mystery
+   Romance"); let the user edit it, since hybrid genre names are not
+   reliably composable from pack labels;
+   epigraph — choose a resonant NON-SPOILER line from the
    novel's own text and confirm with the user; end-text — a short
    closing line, confirm with the user. Verify afterwards in two
    scoped passes: `grep -rn 'NOVEL-' typeset/` must return nothing,

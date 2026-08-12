@@ -22,9 +22,14 @@ Read-only. This skill NEVER modifies project files, commits, or resets.
    - `git log --oneline -10` and `git status --porcelain`
    - chapter count and total words across `chapters/ch_*.md`
    - newest files in `eval_logs/`, `edit_logs/`, `briefs/`
+   - the resolved genre: run
+     `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py"` and
+     report `label_parts` and each pack's role. If it exits non-zero,
+     report the error — do not attempt to fix it (this skill is read-only).
 
-3. **Report** in a short table + prose: current phase and iteration;
-   scores against their gates (foundation > 7.5 AND lore > 7.0;
+3. **Report** in a short table + prose: current phase and iteration; the
+   resolved genre (primary, secondary, and modifiers with their roles);
+   scores against their gates (foundation > 7.5 AND pillar > 7.0;
    chapters > 6.0; revision plateau Δ < 0.5 across 2 cycles); chapters
    drafted vs planned; pending debts from state.json; and a WARNING if
    the git tree is dirty (uncommitted work from an interrupted run —
