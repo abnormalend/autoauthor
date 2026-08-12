@@ -90,7 +90,7 @@ CROSS-CHECKS (perform these before scoring):
 4. Check the canon for INTERNAL CONTRADICTIONS:
    - Cross-reference dates, ages, and timelines
    - Check that what characters can do matches whatever constrains them in
-     the pack's pillar dimensions — a magic system's rules, an
+     the pack's pillar dimensions — a declared system's stated limits, an
      institution's reach, a period's technology, a household's money
    - Look for factual conflicts between documents
 
@@ -166,10 +166,10 @@ inert (the mean was already at or below 6).
 Respond with JSON:
 {
   "pillar": {
-    (one entry per dimension key the primary pack declares — use the key
-     exactly as written in the pack, e.g. "magic_system". The object key
-     here is always the literal `pillar`; `pillar_label` names this
-     category in your prose, never in the JSON.)
+    (one entry per dimension key the primary pack declares — copy each key
+     exactly as the pack's bullet writes it, never a paraphrase. The
+     enclosing key here is always the literal `pillar`; `pillar_label`
+     names this category in your prose, never in the JSON.)
     "<dimension_key>": {"score": N, "gap": "biggest weakness", "fix": "specific improvement", "note": "..."}
   },
   "character": {
