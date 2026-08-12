@@ -57,6 +57,17 @@ def test_parse_returns_meta_sections_and_dimensions(tmp_path):
     assert pack["dimensions"] == ["alpha_dim", "beta_dim", "gamma_dim"]
 
 
+def test_sub_headings_are_not_sections(tmp_path):
+    # SECTION_RE must stay anchored to exactly '## ', not '#{2,}' — a
+    # '### Sub' heading is prose structure inside a section, not a pack
+    # section Task 2's validator gates on.
+    body = "## Framing\n\n### Sub\n\n- genre_noun — \"test novel\"\n"
+    path = write_pack(tmp_path, "testgenre", VALID_PRIMARY_META, body)
+    pack = genre_pack.parse_pack(path)
+    assert pack["sections"] == ["Framing"]
+    assert "Sub" not in pack["sections"]
+
+
 def test_parse_rejects_missing_frontmatter(tmp_path):
     path = tmp_path / "broken.md"
     path.write_text("# Just a heading\n", encoding="utf-8")
@@ -139,6 +150,45 @@ def test_fenced_block_does_not_corrupt_sections_or_dimensions(tmp_path):
     # The fenced example is still there for humans/LLM judges to read —
     # masking must not leak into the returned body.
     assert "fake_dim" in pack["body"]
+    # section_body must slice the ORIGINAL body: a fence inside a section
+    # comes back verbatim, not blanked.
+    assert "- fake_dim — not real." in genre_pack.section_body(
+        pack["body"], "Artifacts")
+
+
+INDENTED_FENCE_BODY = """
+## Framing
+
+- genre_noun — "test novel"
+
+## Artifacts
+
+- clue_ledger.md — Example format:
+
+  ```
+  ## Pillar Dimensions
+
+  - fake_dim — not real.
+  ```
+
+## Pillar Dimensions
+
+- alpha_dim — First criteria.
+- beta_dim — Second criteria.
+- gamma_dim — Third criteria.
+
+## Drafting Rules
+
+25. Something genre-specific.
+"""
+
+
+def test_indented_fence_does_not_corrupt_dimensions(tmp_path):
+    path = write_pack(tmp_path, "testgenre", VALID_PRIMARY_META,
+                      INDENTED_FENCE_BODY)
+    pack = genre_pack.parse_pack(path)
+    assert pack["dimensions"] == ["alpha_dim", "beta_dim", "gamma_dim"]
+    assert "fake_dim" not in pack["dimensions"]
 
 
 # --- A hyphen or en dash instead of an em dash must be surfaced, not dropped

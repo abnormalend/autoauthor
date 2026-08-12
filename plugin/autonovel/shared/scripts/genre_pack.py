@@ -33,19 +33,30 @@ CORE_PROJECT_FILES = {
     "manuscript.md", "voice_wells.json", "import_source.md",
 }
 
-# A fenced block, ``` or ~~~ (3+), opened and closed by matching markers.
-# Used to blank fenced regions before structural matching so a pack author
-# showing example syntax in a fence (e.g. under '## Artifacts') can't be
-# mistaken for a real heading or dimension line. An unclosed fence simply
-# doesn't match and masks nothing — that is an acceptable, safe failure.
-FENCE_RE = re.compile(r"^(?P<f>```+|~~~+).*?^(?P=f)[ \t]*$", re.M | re.S)
+# A fenced block, backtick or tilde, 3 or more of the same character,
+# opened and closed by matching markers, with up to 3 spaces of leading
+# indent (CommonMark allows this — e.g. a fence indented under a bullet
+# in '## Artifacts'). Used to blank fenced regions before structural
+# matching so a pack author showing example syntax in a fence can't be
+# mistaken for a real heading or dimension line. The closing marker must
+# match the opening marker's exact character count via backreference —
+# CommonMark itself only requires the closer be at least as long as the
+# opener, so this is a deliberate simplification. It fails safe (an
+# under-matched fence is simply not masked) rather than over-masking, and
+# being strict is exactly what lets a doc nest a short fence inside a
+# longer outer one — e.g. TEMPLATE.md wraps a 3-backtick example fence
+# inside its own longer outer fence — without either marker being
+# mistaken for closing the other. An unclosed fence simply doesn't match
+# and masks nothing — an acceptable, safe failure.
+FENCE_RE = re.compile(r"^ {0,3}(?P<f>```+|~~~+).*?^ {0,3}(?P=f)[ \t]*$",
+                      re.M | re.S)
 
 # '- <key> — <criteria>'  (em dash, not hyphen)
 DIMENSION_RE = re.compile(r"^-\s+([a-z][a-z0-9_]*)\s+—", re.M)
 # Same shape but with a hyphen or en dash where an em dash belongs — the
 # typo autocorrect produces. Never matches a line DIMENSION_RE also matches,
 # since the two require different characters in the same position.
-DIMENSION_LOOSE_RE = re.compile(r"^-\s+([a-z][a-z0-9_]*)\s+[–-]\s", re.M)
+DIMENSION_LOOSE_RE = re.compile(r"^-\s+([a-z][a-z0-9_]*)\s+[–-]", re.M)
 SECTION_RE = re.compile(r"^##\s+(.+?)\s*$", re.M)
 
 
@@ -56,7 +67,14 @@ class PackError(Exception):
 def _mask_fences(text):
     """Same-length copy of text with fenced blocks blanked to spaces
     (newlines preserved), so structural regexes skip fenced content while
-    offsets into the mask still index the corresponding original text."""
+    offsets into the mask still index the corresponding original text.
+
+    Called more than once on overlapping text (once on a whole body, again
+    on a slice of it in _pillar_dimensions) — that's safe because
+    section_body locates its slice boundaries in an already-masked copy,
+    so a slice can never begin or end in the middle of a fenced region.
+    Re-masking a slice therefore always sees the same complete fences the
+    first pass saw, never a partial one that could be mismatched."""
     return FENCE_RE.sub(lambda m: re.sub(r"[^\n]", " ", m.group(0)), text)
 
 

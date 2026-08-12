@@ -58,7 +58,7 @@
 
 Create `tests/test_genre_pack.py`:
 
-```python
+````python
 import json
 import sys
 from pathlib import Path
@@ -116,6 +116,17 @@ def test_parse_returns_meta_sections_and_dimensions(tmp_path):
     assert pack["meta"]["name"] == "testgenre"
     assert pack["sections"] == ["Framing", "Pillar Dimensions", "Drafting Rules"]
     assert pack["dimensions"] == ["alpha_dim", "beta_dim", "gamma_dim"]
+
+
+def test_sub_headings_are_not_sections(tmp_path):
+    # SECTION_RE must stay anchored to exactly '## ', not '#{2,}' — a
+    # '### Sub' heading is prose structure inside a section, not a pack
+    # section Task 2's validator gates on.
+    body = "## Framing\n\n### Sub\n\n- genre_noun — \"test novel\"\n"
+    path = write_pack(tmp_path, "testgenre", VALID_PRIMARY_META, body)
+    pack = genre_pack.parse_pack(path)
+    assert pack["sections"] == ["Framing"]
+    assert "Sub" not in pack["sections"]
 
 
 def test_parse_rejects_missing_frontmatter(tmp_path):
@@ -200,6 +211,45 @@ def test_fenced_block_does_not_corrupt_sections_or_dimensions(tmp_path):
     # The fenced example is still there for humans/LLM judges to read —
     # masking must not leak into the returned body.
     assert "fake_dim" in pack["body"]
+    # section_body must slice the ORIGINAL body: a fence inside a section
+    # comes back verbatim, not blanked.
+    assert "- fake_dim — not real." in genre_pack.section_body(
+        pack["body"], "Artifacts")
+
+
+INDENTED_FENCE_BODY = """
+## Framing
+
+- genre_noun — "test novel"
+
+## Artifacts
+
+- clue_ledger.md — Example format:
+
+  ```
+  ## Pillar Dimensions
+
+  - fake_dim — not real.
+  ```
+
+## Pillar Dimensions
+
+- alpha_dim — First criteria.
+- beta_dim — Second criteria.
+- gamma_dim — Third criteria.
+
+## Drafting Rules
+
+25. Something genre-specific.
+"""
+
+
+def test_indented_fence_does_not_corrupt_dimensions(tmp_path):
+    path = write_pack(tmp_path, "testgenre", VALID_PRIMARY_META,
+                      INDENTED_FENCE_BODY)
+    pack = genre_pack.parse_pack(path)
+    assert pack["dimensions"] == ["alpha_dim", "beta_dim", "gamma_dim"]
+    assert "fake_dim" not in pack["dimensions"]
 
 
 # --- A hyphen or en dash instead of an em dash must be surfaced, not dropped
@@ -295,7 +345,7 @@ def test_parsed_pack_carries_body_and_path(tmp_path):
     assert pack["path"] == path
     assert isinstance(pack["body"], str)
     assert "## Pillar Dimensions" in pack["body"]
-```
+````
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
@@ -306,7 +356,7 @@ Expected: collection error — `ModuleNotFoundError: No module named 'genre_pack
 
 Create `plugin/autonovel/shared/scripts/genre_pack.py`:
 
-```python
+````python
 """Genre pack parsing and validation. Library module — no CLI.
 
 A genre pack is a markdown file whose first block is JSON frontmatter
@@ -342,19 +392,30 @@ CORE_PROJECT_FILES = {
     "manuscript.md", "voice_wells.json", "import_source.md",
 }
 
-# A fenced block, ``` or ~~~ (3+), opened and closed by matching markers.
-# Used to blank fenced regions before structural matching so a pack author
-# showing example syntax in a fence (e.g. under '## Artifacts') can't be
-# mistaken for a real heading or dimension line. An unclosed fence simply
-# doesn't match and masks nothing — that is an acceptable, safe failure.
-FENCE_RE = re.compile(r"^(?P<f>```+|~~~+).*?^(?P=f)[ \t]*$", re.M | re.S)
+# A fenced block, backtick or tilde, 3 or more of the same character,
+# opened and closed by matching markers, with up to 3 spaces of leading
+# indent (CommonMark allows this — e.g. a fence indented under a bullet
+# in '## Artifacts'). Used to blank fenced regions before structural
+# matching so a pack author showing example syntax in a fence can't be
+# mistaken for a real heading or dimension line. The closing marker must
+# match the opening marker's exact character count via backreference —
+# CommonMark itself only requires the closer be at least as long as the
+# opener, so this is a deliberate simplification. It fails safe (an
+# under-matched fence is simply not masked) rather than over-masking, and
+# being strict is exactly what lets a doc nest a short fence inside a
+# longer outer one — e.g. TEMPLATE.md wraps a 3-backtick example fence
+# inside its own longer outer fence — without either marker being
+# mistaken for closing the other. An unclosed fence simply doesn't match
+# and masks nothing — an acceptable, safe failure.
+FENCE_RE = re.compile(r"^ {0,3}(?P<f>```+|~~~+).*?^ {0,3}(?P=f)[ \t]*$",
+                      re.M | re.S)
 
 # '- <key> — <criteria>'  (em dash, not hyphen)
 DIMENSION_RE = re.compile(r"^-\s+([a-z][a-z0-9_]*)\s+—", re.M)
 # Same shape but with a hyphen or en dash where an em dash belongs — the
 # typo autocorrect produces. Never matches a line DIMENSION_RE also matches,
 # since the two require different characters in the same position.
-DIMENSION_LOOSE_RE = re.compile(r"^-\s+([a-z][a-z0-9_]*)\s+[–-]\s", re.M)
+DIMENSION_LOOSE_RE = re.compile(r"^-\s+([a-z][a-z0-9_]*)\s+[–-]", re.M)
 SECTION_RE = re.compile(r"^##\s+(.+?)\s*$", re.M)
 
 
@@ -365,7 +426,14 @@ class PackError(Exception):
 def _mask_fences(text):
     """Same-length copy of text with fenced blocks blanked to spaces
     (newlines preserved), so structural regexes skip fenced content while
-    offsets into the mask still index the corresponding original text."""
+    offsets into the mask still index the corresponding original text.
+
+    Called more than once on overlapping text (once on a whole body, again
+    on a slice of it in _pillar_dimensions) — that's safe because
+    section_body locates its slice boundaries in an already-masked copy,
+    so a slice can never begin or end in the middle of a fenced region.
+    Re-masking a slice therefore always sees the same complete fences the
+    first pass saw, never a partial one that could be mismatched."""
     return FENCE_RE.sub(lambda m: re.sub(r"[^\n]", " ", m.group(0)), text)
 
 
@@ -463,12 +531,12 @@ def _pillar_dimensions(body):
         return [], []
     masked = _mask_fences(section)
     return DIMENSION_RE.findall(masked), DIMENSION_LOOSE_RE.findall(masked)
-```
+````
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `uv run pytest tests/test_genre_pack.py -v`
-Expected: 16 passed
+Expected: 18 passed
 
 - [ ] **Step 5: Commit**
 
@@ -739,7 +807,7 @@ def _validate_shape(shape):
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `uv run pytest tests/test_genre_pack.py -v`
-Expected: 31 passed (16 from Task 1 plus the 15 validator tests above)
+Expected: 33 passed (18 from Task 1 plus the 15 validator tests above)
 
 - [ ] **Step 5: Commit**
 
@@ -1372,6 +1440,13 @@ collide with the base dimensions (`character_depth`,
 `character_distinctiveness`, `character_secrets`, `outline_completeness`,
 `foreshadowing_balance`, `internal_consistency`, `voice_clarity`,
 `canon_coverage`).
+
+This section takes dimension bullets only — no prose bullets. The parser
+reads every `- key <dash> ...` line in this section as a dimension
+declaration (or, with the wrong dash, a malformed one), so a stray prose
+bullet such as `- write carefully, judges score 0-10` will be parsed as a
+dimension key and can trip the validator. Put prose elsewhere (a
+paragraph above the bullets, or another section).
 
 Write real rubric criteria, not labels. A judge scores 0-10 against these.
 
