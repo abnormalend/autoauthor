@@ -16,13 +16,26 @@ a 6.0 ships; revision is Phase 3's job.
    and `state.json` phase `drafting`. Anchor the session in the
    verified project directory; use absolute paths whenever there is
    any doubt about the current directory.
-2. Required reading before the first chapter of the session:
+2. **Resolve the genre.** Run from the project directory:
+
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py"
+   ```
+
+   If it exits non-zero, STOP and report — an unresolvable or conflicting
+   genre stack must be fixed before any drafting work. Keep the reported
+   pack paths; every judge dispatch below needs them. If `state.json` has no
+   `genre` field at all, STOP and run the migration in `novel/SKILL.md`
+   first.
+3. Required reading before the first chapter of the session:
    - `"${CLAUDE_PLUGIN_ROOT}/shared/craft/CRAFT.md"`
    - `"${CLAUDE_PLUGIN_ROOT}/shared/craft/ANTI-SLOP.md"`
    - `"${CLAUDE_PLUGIN_ROOT}/shared/craft/ANTI-PATTERNS.md"`
    - the project's `voice.md` (both parts)
    - `references/drafting-rules.md` (in this skill's directory)
-3. Resume point: next chapter = highest N among existing
+   - every genre pack path reported by
+     `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py"`
+4. Resume point: next chapter = highest N among existing
    `chapters/ch_NN.md` + 1. First chapter of a fresh project is 1.
 
 ## Per-chapter loop (repeat through state.json chapters_total)
@@ -34,8 +47,9 @@ a 6.0 ships; revision is Phase 3's job.
    - the previous chapter's last ~1000 words (skip for chapter 1)
    - the NEXT chapter's outline entry, first ~10 lines (for
      continuity; skip for the final chapter)
-2. **Write `chapters/ch_NN.md`** — the complete chapter, target
-   ~3,200 words (or the outline entry's stated target), following
+2. **Write `chapters/ch_NN.md`** — the complete chapter, target the
+   resolved pack's `shape.chapter_words` (or the outline entry's stated
+   target, which wins where it differs), following
    every rule in drafting-rules.md. Title line: `# Chapter N: <Title>`.
 3. **Mechanical score:**
    `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/slop_score.py" chapters/ch_NN.md`
@@ -45,7 +59,9 @@ a 6.0 ships; revision is Phase 3's job.
 4. **Judge.** Dispatch a fresh judge subagent (general-purpose, no
    drafting context) with exactly this prompt shape:
    "Read the rubric at `<absolute plugin path>/shared/rubrics/chapter.md`
-   and follow it exactly. The project directory is `<absolute project
+   and the genre pack(s) at `<resolved pack paths, primary first, each
+   labeled with its role>`, and follow the rubric exactly. The project
+   directory is `<absolute project
    path>`. The target chapter is chapter <N>; its file is
    `<absolute path to chapters/ch_NN.md>`. The previous chapter file is
    `<absolute path to ch_(N-1)>` (omit this line for chapter 1). The
