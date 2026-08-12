@@ -1,12 +1,17 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "autonovel-dev",
   "description": "Development marketplace for the autonovel novel-writing pipeline plugin",
   "owner": { "name": "Brent Rogers" },
+  "version": "0.2.0",
   "plugins": [
     {
       "name": "autonovel",
+      "description": "Autonomous novel-writing pipeline: seed, foundation, drafting, revision, review, and export skills, with swappable genre packs and score-gated iteration.",
+      "version": "0.2.0",
+      "author": { "name": "Brent Rogers" },
       "source": "./autonovel",
-      "description": "Autonomous novel-writing pipeline skills"
+      "category": "productivity"
     }
   ]
 }
