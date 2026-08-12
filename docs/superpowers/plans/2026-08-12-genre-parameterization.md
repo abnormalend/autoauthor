@@ -1,0 +1,2827 @@
+# Genre Parameterization Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Move every fantasy-specific assumption out of the autonovel plugin's base files into swappable genre packs, so the pipeline can write any genre — and specifically so a novel without a magic system can clear the foundation gate.
+
+**Architecture:** A genre pack is one markdown file with a JSON frontmatter block and prose sections. Base rubrics, guides, and templates become genre-neutral and carry explicit hooks telling the reader to consult the resolved pack. A `resolve_genre.py` script owns pack resolution and merging so six skills don't each reimplement it in prose; skills pass the resolved pack paths to their judge subagents alongside the rubric path.
+
+**Tech Stack:** Claude Code plugin (markdown skills), stdlib-only Python 3.12, pytest.
+
+**Spec:** `docs/superpowers/specs/2026-08-12-genre-parameterization-design.md`
+
+**Scope:** This plan covers spec phases 1 and 2 — the mechanism, plus the `general` and `fantasy` packs, base-file surgery, and migration. Phases 3–4 (authoring `science-fiction`, `romance`, `mystery`, `thriller`, `erotica`, `ya`, `cozy`) are genre-authoring work and get their own plan.
+
+---
+
+## Key facts for the implementing engineer
+
+- **Repo root:** `/Users/brent/code/autonovel`. Work on `master`. The plugin lives at `plugin/autonovel/`.
+- **Scripts are stdlib-only.** No third-party imports in anything under `plugin/autonovel/shared/scripts/`. This is why pack frontmatter is JSON rather than YAML.
+- **Scripts run from the novel project directory,** not the plugin. Existing scripts use `BASE_DIR = Path.cwd()`. Follow that.
+- **Tests** live in `tests/`, use pytest, and invoke scripts via `subprocess` with `cwd=tmp_path`. Pattern to copy: `tests/test_gen_brief.py`.
+- **Run tests with:** `uv run pytest tests/ -v`
+- **Plugin path in skill text** is always `${CLAUDE_PLUGIN_ROOT}`, quoted against spaces: `"${CLAUDE_PLUGIN_ROOT}/shared/..."`.
+- **The De-Bells rule** (from the original plan): no content from any specific novel may leak into the machinery. Task 20 adds its enforceable successor for genre.
+- **Judge dispatch pattern** used throughout the skills: dispatch a fresh `general-purpose` subagent whose prompt is only (1) read a rubric file, (2) read specific project files by absolute path, (3) return only the JSON the rubric specifies. Genre packs join step (1) as additional static reference material — this preserves the clean-room property.
+- **Commit after every task.** Conventional-ish messages.
+
+---
+
+## File structure
+
+**New files:**
+
+| Path | Responsibility |
+|---|---|
+| `plugin/autonovel/shared/scripts/genre_pack.py` | Library: parse and validate one pack. No CLI. |
+| `plugin/autonovel/shared/scripts/validate_genre_pack.py` | CLI wrapper around the validator. |
+| `plugin/autonovel/shared/scripts/resolve_genre.py` | CLI: read `state.json`, resolve the pack set, merge, print JSON. |
+| `plugin/autonovel/shared/genres/TEMPLATE.md` | Annotated skeleton + authoring guide. |
+| `plugin/autonovel/shared/genres/general.md` | Neutral default pack. |
+| `plugin/autonovel/shared/genres/fantasy.md` | Lossless port of today's fantasy content. |
+| `tests/test_genre_pack.py` | Parser + validator unit tests. |
+| `tests/test_resolve_genre.py` | Resolution, merge, conflict tests. |
+| `tests/test_no_genre_leak.py` | Guard: no genre terms outside `shared/genres/`. |
+
+`genre_pack.py` is a library because both CLIs need it; splitting it keeps each file focused and each testable on its own. Both CLIs live in the same directory, so a plain `import genre_pack` works — Python puts the script's own directory on `sys.path[0]`.
+
+---
+
+## Task 1: Pack parser
+
+**Files:**
+- Create: `plugin/autonovel/shared/scripts/genre_pack.py`
+- Test: `tests/test_genre_pack.py`
+
+- [ ] **Step 1: Write the failing tests**
+
+Create `tests/test_genre_pack.py`:
+
+```python
+import json
+import sys
+from pathlib import Path
+
+import pytest
+
+SCRIPTS = Path(__file__).parent.parent / "plugin/autonovel/shared/scripts"
+sys.path.insert(0, str(SCRIPTS))
+
+import genre_pack  # noqa: E402
+
+
+def write_pack(tmp_path, name, meta, body=""):
+    """Write a pack file and return its path."""
+    path = tmp_path / f"{name}.md"
+    path.write_text("---\n" + json.dumps(meta, indent=2) + "\n---\n" + body,
+                    encoding="utf-8")
+    return path
+
+
+VALID_PRIMARY_META = {
+    "name": "testgenre",
+    "label": "Test Genre",
+    "role": ["primary"],
+    "pillar_label": "Test Pillar",
+    "weights": {"pillar": 40, "character": 30, "structure": 20, "craft": 10},
+    "beat_system": "save-the-cat",
+    "shape": {"chapters": [22, 26], "words": [80000, 95000],
+              "chapter_words": 3200, "pov_default": "third limited past"},
+    "conflicts_with": [],
+    "artifacts": [],
+}
+
+VALID_PRIMARY_BODY = """
+## Framing
+
+- genre_noun — "test novel"
+
+## Pillar Dimensions
+
+- alpha_dim — First criteria.
+- beta_dim — Second criteria.
+- gamma_dim — Third criteria.
+
+## Drafting Rules
+
+25. Something genre-specific.
+"""
+
+
+def test_parse_returns_meta_sections_and_dimensions(tmp_path):
+    path = write_pack(tmp_path, "testgenre", VALID_PRIMARY_META,
+                      VALID_PRIMARY_BODY)
+    pack = genre_pack.parse_pack(path)
+    assert pack["meta"]["name"] == "testgenre"
+    assert pack["sections"] == ["Framing", "Pillar Dimensions", "Drafting Rules"]
+    assert pack["dimensions"] == ["alpha_dim", "beta_dim", "gamma_dim"]
+
+
+def test_parse_rejects_missing_frontmatter(tmp_path):
+    path = tmp_path / "broken.md"
+    path.write_text("# Just a heading\n", encoding="utf-8")
+    with pytest.raises(genre_pack.PackError, match="frontmatter opener"):
+        genre_pack.parse_pack(path)
+
+
+def test_parse_rejects_unclosed_frontmatter(tmp_path):
+    path = tmp_path / "broken.md"
+    path.write_text('---\n{"name": "x"}\n', encoding="utf-8")
+    with pytest.raises(genre_pack.PackError, match="never closed"):
+        genre_pack.parse_pack(path)
+
+
+def test_parse_rejects_invalid_json(tmp_path):
+    path = tmp_path / "broken.md"
+    path.write_text("---\n{not json}\n---\n", encoding="utf-8")
+    with pytest.raises(genre_pack.PackError, match="not valid JSON"):
+        genre_pack.parse_pack(path)
+
+
+def test_dimensions_only_read_from_pillar_section(tmp_path):
+    body = """
+## Framing
+
+- genre_noun — "test novel"
+
+## Pillar Dimensions
+
+- alpha_dim — First.
+- beta_dim — Second.
+- gamma_dim — Third.
+
+## Canon Categories
+
+- geography — not a dimension.
+"""
+    path = write_pack(tmp_path, "testgenre", VALID_PRIMARY_META, body)
+    pack = genre_pack.parse_pack(path)
+    assert pack["dimensions"] == ["alpha_dim", "beta_dim", "gamma_dim"]
+```
+
+- [ ] **Step 2: Run the tests to verify they fail**
+
+Run: `uv run pytest tests/test_genre_pack.py -v`
+Expected: collection error — `ModuleNotFoundError: No module named 'genre_pack'`
+
+- [ ] **Step 3: Write the parser**
+
+Create `plugin/autonovel/shared/scripts/genre_pack.py`:
+
+```python
+#!/usr/bin/env python3
+"""Genre pack parsing and validation. Library module — no CLI.
+
+A genre pack is a markdown file whose first block is JSON frontmatter
+delimited by lines of exactly '---', followed by '## ' prose sections.
+
+Frontmatter is JSON rather than YAML because the plugin's scripts are
+stdlib-only and Python ships no YAML parser.
+"""
+import json
+import re
+from pathlib import Path
+
+ROLES = {"primary", "secondary", "modifier"}
+
+# Dimensions the base rubric already scores. A pack's pillar dimensions may
+# not collide with these — that is what stops a literary pack from
+# double-counting prose against the base craft category.
+RESERVED_DIMENSIONS = {
+    "character_depth", "character_distinctiveness", "character_secrets",
+    "outline_completeness", "foreshadowing_balance",
+    "internal_consistency", "voice_clarity", "canon_coverage",
+}
+
+WEIGHT_KEYS = ("pillar", "character", "structure", "craft")
+
+# Fields only a primary may declare. A modifier that sets these is trying to
+# own structure it is not allowed to own.
+PRIMARY_ONLY_FIELDS = ("weights", "pillar_label", "beat_system", "shape")
+
+CORE_PROJECT_FILES = {
+    "seed.txt", "voice.md", "world.md", "characters.md", "outline.md",
+    "canon.md", "MYSTERY.md", "state.json", "results.tsv", "arc_summary.md",
+    "manuscript.md", "voice_wells.json", "import_source.md",
+}
+
+# '- <key> — <criteria>'  (em dash, not hyphen)
+DIMENSION_RE = re.compile(r"^-\s+([a-z][a-z0-9_]*)\s+—", re.M)
+SECTION_RE = re.compile(r"^##\s+(.+?)\s*$", re.M)
+
+
+class PackError(Exception):
+    """Malformed pack. The message is user-facing."""
+
+
+def parse_pack(path):
+    """Parse a pack file.
+
+    Returns {'meta': dict, 'sections': [str], 'dimensions': [str],
+             'path': Path, 'body': str}.
+    Raises PackError if the file is unreadable or the frontmatter is broken.
+    """
+    path = Path(path)
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as e:
+        raise PackError(f"{path}: cannot read pack file: {e}")
+    meta, body = _split_frontmatter(text, path)
+    return {
+        "meta": meta,
+        "sections": SECTION_RE.findall(body),
+        "dimensions": _pillar_dimensions(body),
+        "path": path,
+        "body": body,
+    }
+
+
+def _split_frontmatter(text, path):
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        raise PackError(f"{path}: missing '---' frontmatter opener on line 1")
+    close = None
+    for i, line in enumerate(lines[1:], start=1):
+        if line.strip() == "---":
+            close = i
+            break
+    if close is None:
+        raise PackError(f"{path}: frontmatter never closed with '---'")
+    raw = "\n".join(lines[1:close])
+    try:
+        meta = json.loads(raw)
+    except json.JSONDecodeError as e:
+        raise PackError(f"{path}: frontmatter is not valid JSON: {e}")
+    if not isinstance(meta, dict):
+        raise PackError(f"{path}: frontmatter must be a JSON object")
+    return meta, "\n".join(lines[close + 1:])
+
+
+def section_body(body, heading):
+    """Text under '## <heading>' up to the next '## ', or None if absent."""
+    match = re.search(rf"^##\s+{re.escape(heading)}\s*$", body, re.M)
+    if not match:
+        return None
+    rest = body[match.end():]
+    nxt = re.search(r"^##\s+", rest, re.M)
+    return rest[:nxt.start()] if nxt else rest
+
+
+def _pillar_dimensions(body):
+    section = section_body(body, "Pillar Dimensions")
+    if section is None:
+        return []
+    return DIMENSION_RE.findall(section)
+```
+
+- [ ] **Step 4: Run the tests to verify they pass**
+
+Run: `uv run pytest tests/test_genre_pack.py -v`
+Expected: 5 passed
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add plugin/autonovel/shared/scripts/genre_pack.py tests/test_genre_pack.py
+git commit -m "feat: genre pack parser"
+```
+
+---
+
+## Task 2: Pack validator
+
+**Files:**
+- Modify: `plugin/autonovel/shared/scripts/genre_pack.py` (append `validate_pack`)
+- Test: `tests/test_genre_pack.py` (append)
+
+- [ ] **Step 1: Write the failing tests**
+
+Append to `tests/test_genre_pack.py`:
+
+```python
+def validate(tmp_path, name, meta, body=VALID_PRIMARY_BODY, known=None):
+    path = write_pack(tmp_path, name, meta, body)
+    return genre_pack.validate_pack(genre_pack.parse_pack(path),
+                                    known_names=known)
+
+
+def test_valid_primary_has_no_errors(tmp_path):
+    assert validate(tmp_path, "testgenre", VALID_PRIMARY_META) == []
+
+
+def test_name_must_match_filename(tmp_path):
+    meta = {**VALID_PRIMARY_META, "name": "mismatch"}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("filename stem" in e for e in errors)
+
+
+def test_role_must_be_known(tmp_path):
+    meta = {**VALID_PRIMARY_META, "role": ["primary", "bogus"]}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("unknown role" in e for e in errors)
+
+
+def test_role_must_be_non_empty_list(tmp_path):
+    meta = {**VALID_PRIMARY_META, "role": []}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("non-empty list" in e for e in errors)
+
+
+def test_weights_must_sum_to_100(tmp_path):
+    meta = {**VALID_PRIMARY_META,
+            "weights": {"pillar": 40, "character": 30, "structure": 20, "craft": 5}}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("must sum to 100" in e for e in errors)
+
+
+def test_primary_requires_pillar_label(tmp_path):
+    meta = {k: v for k, v in VALID_PRIMARY_META.items() if k != "pillar_label"}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("pillar_label" in e for e in errors)
+
+
+def test_primary_requires_framing_and_pillar_sections(tmp_path):
+    errors = validate(tmp_path, "testgenre", VALID_PRIMARY_META,
+                      body="## Drafting Rules\n\n25. Something.\n")
+    assert any("'## Framing'" in e for e in errors)
+    assert any("'## Pillar Dimensions'" in e for e in errors)
+
+
+def test_modifier_may_not_declare_weights(tmp_path):
+    meta = {"name": "testmod", "label": "Test Mod", "role": ["modifier"],
+            "weights": {"pillar": 40, "character": 30, "structure": 20, "craft": 10}}
+    errors = validate(tmp_path, "testmod", meta,
+                      body="## Framing\n\n- comps — Someone.\n")
+    assert any("must not declare 'weights'" in e for e in errors)
+
+
+def test_modifier_may_not_have_pillar_dimensions(tmp_path):
+    meta = {"name": "testmod", "label": "Test Mod", "role": ["modifier"]}
+    errors = validate(tmp_path, "testmod", meta, body=VALID_PRIMARY_BODY)
+    assert any("must not have a '## Pillar Dimensions'" in e for e in errors)
+
+
+def test_valid_modifier_has_no_errors(tmp_path):
+    meta = {"name": "testmod", "label": "Test Mod", "role": ["modifier"],
+            "content_register": {"heat": "explicit"},
+            "conflicts_with": []}
+    body = "## Framing\n\n- comps — Someone.\n\n## Genre Contract\n\n- Something binary.\n"
+    assert validate(tmp_path, "testmod", meta, body=body) == []
+
+
+def test_dimension_count_must_be_three_to_six(tmp_path):
+    body = VALID_PRIMARY_BODY.replace("- gamma_dim — Third criteria.\n", "")
+    errors = validate(tmp_path, "testgenre", VALID_PRIMARY_META, body=body)
+    assert any("need 3-6" in e for e in errors)
+
+
+def test_dimensions_may_not_collide_with_reserved(tmp_path):
+    body = VALID_PRIMARY_BODY.replace("- alpha_dim — First criteria.",
+                                      "- voice_clarity — Colliding.")
+    errors = validate(tmp_path, "testgenre", VALID_PRIMARY_META, body=body)
+    assert any("collide with reserved" in e for e in errors)
+
+
+def test_conflicts_with_must_resolve(tmp_path):
+    meta = {**VALID_PRIMARY_META, "conflicts_with": ["nosuchpack"]}
+    errors = validate(tmp_path, "testgenre", meta, known={"testgenre", "general"})
+    assert any("unknown pack" in e for e in errors)
+
+
+def test_shape_range_must_be_ordered(tmp_path):
+    meta = {**VALID_PRIMARY_META,
+            "shape": {**VALID_PRIMARY_META["shape"], "chapters": [26, 22]}}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("not ordered" in e for e in errors)
+
+
+def test_artifact_may_not_collide_with_core_file(tmp_path):
+    meta = {**VALID_PRIMARY_META, "artifacts": ["canon.md"]}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("collides with a core project file" in e for e in errors)
+```
+
+- [ ] **Step 2: Run the tests to verify they fail**
+
+Run: `uv run pytest tests/test_genre_pack.py -v`
+Expected: FAIL — `AttributeError: module 'genre_pack' has no attribute 'validate_pack'`
+
+- [ ] **Step 3: Write the validator**
+
+Append to `plugin/autonovel/shared/scripts/genre_pack.py`:
+
+```python
+def validate_pack(pack, known_names=None):
+    """Validate a parsed pack.
+
+    Returns a list of human-readable error strings; empty means valid.
+    known_names, when given, is the set of pack names that exist, used to
+    check conflicts_with references.
+    """
+    errors = []
+    meta = pack["meta"]
+    path = pack["path"]
+    sections = set(pack["sections"])
+
+    name = meta.get("name")
+    if not isinstance(name, str) or not name:
+        errors.append("frontmatter 'name' must be a non-empty string")
+    elif name != path.stem:
+        errors.append(
+            f"'name' is {name!r} but the filename stem is {path.stem!r}")
+
+    if not isinstance(meta.get("label"), str) or not meta.get("label"):
+        errors.append("frontmatter 'label' must be a non-empty string")
+
+    role = meta.get("role")
+    if not isinstance(role, list) or not role:
+        errors.append("frontmatter 'role' must be a non-empty list")
+        role = []
+    else:
+        unknown = [r for r in role if r not in ROLES]
+        if unknown:
+            errors.append(
+                f"unknown role(s) {unknown}; valid roles are {sorted(ROLES)}")
+
+    scoring = any(r in ("primary", "secondary") for r in role)
+    is_primary = "primary" in role
+    modifier_only = set(role) == {"modifier"}
+
+    if scoring:
+        errors.extend(_validate_weights(meta.get("weights")))
+
+    if is_primary:
+        if not meta.get("pillar_label"):
+            errors.append("'pillar_label' is required for primary packs")
+        for required in ("Framing", "Pillar Dimensions"):
+            if required not in sections:
+                errors.append(
+                    f"primary pack must have a '## {required}' section")
+
+    if modifier_only:
+        for field in PRIMARY_ONLY_FIELDS:
+            if field in meta:
+                errors.append(f"modifier pack must not declare {field!r}")
+        if "Pillar Dimensions" in sections:
+            errors.append(
+                "modifier pack must not have a '## Pillar Dimensions' section")
+
+    if scoring:
+        errors.extend(_validate_dimensions(pack["dimensions"]))
+
+    conflicts = meta.get("conflicts_with", [])
+    if not isinstance(conflicts, list):
+        errors.append("'conflicts_with' must be a list")
+    elif known_names is not None:
+        unknown = [n for n in conflicts if n not in known_names]
+        if unknown:
+            errors.append(f"'conflicts_with' names unknown pack(s): {unknown}")
+
+    errors.extend(_validate_shape(meta.get("shape")))
+
+    artifacts = meta.get("artifacts") or []
+    if not isinstance(artifacts, list):
+        errors.append("'artifacts' must be a list")
+    else:
+        for artifact in artifacts:
+            if artifact in CORE_PROJECT_FILES:
+                errors.append(
+                    f"artifact {artifact!r} collides with a core project file")
+
+    return errors
+
+
+def _validate_weights(weights):
+    if not isinstance(weights, dict):
+        return ["'weights' is required for primary and secondary packs"]
+    missing = [k for k in WEIGHT_KEYS if k not in weights]
+    if missing:
+        return [f"'weights' missing key(s): {missing}"]
+    if not all(isinstance(weights[k], int) for k in WEIGHT_KEYS):
+        return ["'weights' values must be integers"]
+    total = sum(weights[k] for k in WEIGHT_KEYS)
+    if total != 100:
+        return [f"'weights' sum to {total}, must sum to 100"]
+    return []
+
+
+def _validate_dimensions(dimensions):
+    errors = []
+    if not 3 <= len(dimensions) <= 6:
+        errors.append(
+            f"'## Pillar Dimensions' has {len(dimensions)} dimension(s); "
+            "need 3-6, and each bullet must read '- <key> — <criteria>' "
+            "with an em dash")
+    clash = sorted(set(dimensions) & RESERVED_DIMENSIONS)
+    if clash:
+        errors.append(
+            f"pillar dimension(s) {clash} collide with reserved base dimensions")
+    dupes = sorted({d for d in dimensions if dimensions.count(d) > 1})
+    if dupes:
+        errors.append(f"duplicate pillar dimension key(s): {dupes}")
+    return errors
+
+
+def _validate_shape(shape):
+    if shape is None:
+        return []
+    if not isinstance(shape, dict):
+        return ["'shape' must be a JSON object"]
+    errors = []
+    for key in ("chapters", "words"):
+        rng = shape.get(key)
+        if rng is None:
+            continue
+        if (not isinstance(rng, list) or len(rng) != 2
+                or not all(isinstance(v, int) for v in rng)):
+            errors.append(f"shape.{key} must be a two-integer range")
+        elif rng[0] > rng[1]:
+            errors.append(f"shape.{key} range {rng} is not ordered low..high")
+    return errors
+```
+
+- [ ] **Step 4: Run the tests to verify they pass**
+
+Run: `uv run pytest tests/test_genre_pack.py -v`
+Expected: 20 passed
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add plugin/autonovel/shared/scripts/genre_pack.py tests/test_genre_pack.py
+git commit -m "feat: genre pack validation rules"
+```
+
+---
+
+## Task 3: validate_genre_pack.py CLI
+
+**Files:**
+- Create: `plugin/autonovel/shared/scripts/validate_genre_pack.py`
+- Test: `tests/test_genre_pack.py` (append)
+
+- [ ] **Step 1: Write the failing tests**
+
+Append to `tests/test_genre_pack.py`:
+
+```python
+import subprocess
+
+VALIDATE_CLI = SCRIPTS / "validate_genre_pack.py"
+
+
+def test_cli_accepts_valid_pack(tmp_path):
+    path = write_pack(tmp_path, "testgenre", VALID_PRIMARY_META,
+                      VALID_PRIMARY_BODY)
+    result = subprocess.run([sys.executable, str(VALIDATE_CLI), str(path)],
+                            capture_output=True, text=True)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "OK" in result.stdout
+
+
+def test_cli_rejects_invalid_pack_with_message(tmp_path):
+    meta = {**VALID_PRIMARY_META, "name": "mismatch"}
+    path = write_pack(tmp_path, "testgenre", meta, VALID_PRIMARY_BODY)
+    result = subprocess.run([sys.executable, str(VALIDATE_CLI), str(path)],
+                            capture_output=True, text=True)
+    assert result.returncode == 1
+    assert "filename stem" in result.stdout + result.stderr
+
+
+def test_cli_validates_all_shipped_packs():
+    genres = Path(__file__).parent.parent / "plugin/autonovel/shared/genres"
+    packs = sorted(p for p in genres.glob("*.md") if p.stem != "TEMPLATE")
+    assert packs, "no genre packs found to validate"
+    result = subprocess.run(
+        [sys.executable, str(VALIDATE_CLI), *[str(p) for p in packs]],
+        capture_output=True, text=True)
+    assert result.returncode == 0, result.stdout + result.stderr
+```
+
+Note: `test_cli_validates_all_shipped_packs` will fail until Task 7 writes the first pack. That is expected and intentional — it is the guard that keeps every shipped pack valid.
+
+- [ ] **Step 2: Run the tests to verify they fail**
+
+Run: `uv run pytest tests/test_genre_pack.py -k cli -v`
+Expected: FAIL — `No such file or directory: '.../validate_genre_pack.py'`
+
+- [ ] **Step 3: Write the CLI**
+
+Create `plugin/autonovel/shared/scripts/validate_genre_pack.py`:
+
+```python
+#!/usr/bin/env python3
+"""Validate one or more genre pack files.
+
+Usage:
+  python3 validate_genre_pack.py path/to/fantasy.md [more...]
+  python3 validate_genre_pack.py "${CLAUDE_PLUGIN_ROOT}/shared/genres/"*.md
+
+Exit 0 if every pack is valid; 1 otherwise, with errors on stdout.
+"""
+import sys
+from pathlib import Path
+
+from genre_pack import PackError, parse_pack, validate_pack
+
+
+def main(argv):
+    if not argv:
+        print("usage: validate_genre_pack.py <pack.md> [more...]",
+              file=sys.stderr)
+        return 2
+
+    paths = [Path(a) for a in argv]
+    known = {p.stem for p in paths}
+    # Packs referenced by conflicts_with may live alongside the ones named on
+    # the command line, so treat every sibling .md as a known name too.
+    for path in paths:
+        known |= {p.stem for p in path.parent.glob("*.md")}
+    known.discard("TEMPLATE")
+
+    failed = False
+    for path in paths:
+        try:
+            pack = parse_pack(path)
+        except PackError as e:
+            print(f"FAIL {path}\n  {e}")
+            failed = True
+            continue
+        errors = validate_pack(pack, known_names=known)
+        if errors:
+            failed = True
+            print(f"FAIL {path}")
+            for error in errors:
+                print(f"  {error}")
+        else:
+            print(f"OK   {path}")
+    return 1 if failed else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
+```
+
+- [ ] **Step 4: Run the tests to verify they pass**
+
+Run: `uv run pytest tests/test_genre_pack.py -k "cli and not shipped" -v`
+Expected: 2 passed. The `shipped` test still fails — Task 7 fixes it.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add plugin/autonovel/shared/scripts/validate_genre_pack.py tests/test_genre_pack.py
+git commit -m "feat: validate_genre_pack CLI"
+```
+
+---
+
+## Task 4: resolve_genre.py — resolution and search path
+
+**Files:**
+- Create: `plugin/autonovel/shared/scripts/resolve_genre.py`
+- Test: `tests/test_resolve_genre.py`
+
+- [ ] **Step 1: Write the failing tests**
+
+Create `tests/test_resolve_genre.py`:
+
+```python
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+REPO = Path(__file__).parent.parent.resolve()
+SCRIPT = REPO / "plugin/autonovel/shared/scripts/resolve_genre.py"
+PLUGIN_GENRES = REPO / "plugin/autonovel/shared/genres"
+
+
+def run(project, *args):
+    return subprocess.run([sys.executable, str(SCRIPT), *args],
+                          capture_output=True, text=True, cwd=project)
+
+
+def write_state(project, **fields):
+    state = {"phase": "foundation", "iteration": 0, "foundation_score": 0.0,
+             "pillar_score": 0.0, "chapters_drafted": 0, "chapters_total": 0,
+             "novel_score": 0.0, "revision_cycle": 0, "review_round": 0,
+             "debts": []}
+    state.update(fields)
+    (project / "state.json").write_text(json.dumps(state), encoding="utf-8")
+
+
+def write_project_pack(project, name, meta, body):
+    genres = project / "genres"
+    genres.mkdir(exist_ok=True)
+    (genres / f"{name}.md").write_text(
+        "---\n" + json.dumps(meta) + "\n---\n" + body, encoding="utf-8")
+
+
+PRIMARY_BODY = """
+## Framing
+
+- genre_noun — "test novel"
+
+## Pillar Dimensions
+
+- alpha_dim — First.
+- beta_dim — Second.
+- gamma_dim — Third.
+"""
+
+
+def primary_meta(name, **overrides):
+    meta = {
+        "name": name, "label": name.title(), "role": ["primary"],
+        "pillar_label": "Test Pillar",
+        "weights": {"pillar": 40, "character": 30, "structure": 20, "craft": 10},
+        "beat_system": "save-the-cat",
+        "shape": {"chapters": [22, 26], "words": [80000, 95000],
+                  "chapter_words": 3200, "pov_default": "third limited past"},
+        "conflicts_with": [], "artifacts": [],
+    }
+    meta.update(overrides)
+    return meta
+
+
+def test_missing_genre_resolves_to_general(tmp_path):
+    write_state(tmp_path)
+    result = run(tmp_path)
+    assert result.returncode == 0, result.stdout + result.stderr
+    out = json.loads(result.stdout)
+    assert out["packs"][0]["name"] == "general"
+    assert out["packs"][0]["role"] == "primary"
+
+
+def test_resolves_shipped_plugin_pack(tmp_path):
+    write_state(tmp_path, genre="fantasy")
+    result = run(tmp_path)
+    assert result.returncode == 0, result.stdout + result.stderr
+    out = json.loads(result.stdout)
+    assert out["packs"][0]["name"] == "fantasy"
+    assert out["packs"][0]["path"].startswith(str(PLUGIN_GENRES))
+
+
+def test_project_pack_overrides_plugin_pack(tmp_path):
+    write_state(tmp_path, genre="fantasy")
+    write_project_pack(tmp_path, "fantasy",
+                       primary_meta("fantasy", label="Local Fantasy"),
+                       PRIMARY_BODY)
+    result = run(tmp_path)
+    assert result.returncode == 0, result.stdout + result.stderr
+    out = json.loads(result.stdout)
+    assert out["label"] == "Local Fantasy"
+    assert out["packs"][0]["path"].startswith(str(tmp_path))
+
+
+def test_unknown_pack_is_an_error(tmp_path):
+    write_state(tmp_path, genre="nosuchgenre")
+    result = run(tmp_path)
+    assert result.returncode == 1
+    assert "nosuchgenre" in result.stderr
+
+
+def test_missing_state_json_is_an_error(tmp_path):
+    result = run(tmp_path)
+    assert result.returncode == 1
+    assert "state.json" in result.stderr
+
+
+def test_pack_must_declare_the_role_it_is_used_in(tmp_path):
+    write_state(tmp_path, genre="modonly")
+    write_project_pack(tmp_path, "modonly",
+                       {"name": "modonly", "label": "Mod Only",
+                        "role": ["modifier"]},
+                       "## Framing\n\n- comps — Someone.\n")
+    result = run(tmp_path)
+    assert result.returncode == 1
+    assert "does not declare role 'primary'" in result.stderr
+```
+
+- [ ] **Step 2: Run the tests to verify they fail**
+
+Run: `uv run pytest tests/test_resolve_genre.py -v`
+Expected: FAIL — `No such file or directory: '.../resolve_genre.py'`
+
+- [ ] **Step 3: Write the resolver**
+
+Create `plugin/autonovel/shared/scripts/resolve_genre.py`:
+
+```python
+#!/usr/bin/env python3
+"""Resolve a novel project's genre packs and print the merged config as JSON.
+
+Run from the novel project directory:
+  python3 resolve_genre.py           # reads ./state.json, prints JSON
+  python3 resolve_genre.py --check   # validate only, print nothing on success
+
+Search order for each pack name: ./genres/<name>.md first, then the plugin's
+shared/genres/<name>.md. The project wins, so a one-off pack for a single
+novel needs no plugin change.
+
+Exit 0 on success; 1 with a message on stderr for any resolution, validation,
+or conflict error.
+"""
+import argparse
+import json
+import sys
+from pathlib import Path
+
+from genre_pack import PackError, parse_pack, validate_pack
+
+DEFAULT_GENRE = "general"
+PLUGIN_GENRES = Path(__file__).resolve().parent.parent / "genres"
+
+
+def fail(message):
+    print(f"ERROR: {message}", file=sys.stderr)
+    raise SystemExit(1)
+
+
+def load_state(project):
+    path = project / "state.json"
+    if not path.exists():
+        fail(f"no state.json in {project} — run this from a novel project "
+             "directory")
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        fail(f"state.json is not valid JSON: {e}")
+
+
+def known_names(project):
+    names = {p.stem for p in PLUGIN_GENRES.glob("*.md")}
+    names |= {p.stem for p in (project / "genres").glob("*.md")}
+    names.discard("TEMPLATE")
+    return names
+
+
+def find_pack(project, name):
+    for candidate in (project / "genres" / f"{name}.md",
+                      PLUGIN_GENRES / f"{name}.md"):
+        if candidate.exists():
+            return candidate
+    fail(f"unknown genre pack {name!r}; looked in {project / 'genres'} and "
+         f"{PLUGIN_GENRES}")
+
+
+def load_pack(project, name, role, names):
+    path = find_pack(project, name)
+    try:
+        pack = parse_pack(path)
+    except PackError as e:
+        fail(str(e))
+    errors = validate_pack(pack, known_names=names)
+    if errors:
+        fail(f"{path} is invalid:\n  " + "\n  ".join(errors))
+    if role not in pack["meta"].get("role", []):
+        fail(f"pack {name!r} does not declare role {role!r} "
+             f"(it declares {pack['meta'].get('role')})")
+    pack["used_as"] = role
+    return pack
+
+
+def resolve(project):
+    state = load_state(project)
+    names = known_names(project)
+
+    packs = [load_pack(project, state.get("genre") or DEFAULT_GENRE,
+                       "primary", names)]
+    if state.get("genre_secondary"):
+        packs.append(load_pack(project, state["genre_secondary"],
+                               "secondary", names))
+    for modifier in state.get("genre_modifiers") or []:
+        packs.append(load_pack(project, modifier, "modifier", names))
+
+    check_conflicts(packs)
+    return packs
+
+
+def check_conflicts(packs):
+    loaded = {p["meta"]["name"] for p in packs}
+    for pack in packs:
+        name = pack["meta"]["name"]
+        clashes = sorted(
+            set(pack["meta"].get("conflicts_with") or []) & loaded)
+        if clashes:
+            fail(f"pack {name!r} conflicts with loaded pack(s) {clashes}")
+
+
+def merge(packs):
+    primary = packs[0]
+    meta = primary["meta"]
+
+    content_register = {}
+    artifacts = []
+    for pack in packs:
+        content_register.update(pack["meta"].get("content_register") or {})
+        for artifact in pack["meta"].get("artifacts") or []:
+            if artifact not in artifacts and pack["used_as"] != "modifier":
+                artifacts.append(artifact)
+
+    return {
+        "packs": [{"name": p["meta"]["name"], "role": p["used_as"],
+                   "path": str(p["path"])} for p in packs],
+        "label": meta["label"],
+        "label_parts": [p["meta"]["label"] for p in packs],
+        "pillar_label": meta.get("pillar_label"),
+        "weights": meta.get("weights"),
+        "beat_system": meta.get("beat_system", "save-the-cat"),
+        "shape": meta.get("shape", {}),
+        "content_register": content_register,
+        "artifacts": artifacts,
+    }
+
+
+def main(argv):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--check", action="store_true",
+                        help="validate only; print nothing on success")
+    args = parser.parse_args(argv)
+
+    packs = resolve(Path.cwd())
+    if args.check:
+        return 0
+    print(json.dumps(merge(packs), indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
+```
+
+- [ ] **Step 4: Run the tests to verify they pass**
+
+Run: `uv run pytest tests/test_resolve_genre.py -v`
+Expected: 4 passed, 2 failed. The two that resolve `general` and `fantasy` from the plugin fail until Tasks 7 and 8 write those packs.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add plugin/autonovel/shared/scripts/resolve_genre.py tests/test_resolve_genre.py
+git commit -m "feat: resolve_genre CLI with project-over-plugin search path"
+```
+
+---
+
+## Task 5: resolve_genre.py — merge and conflict tests
+
+**Files:**
+- Test: `tests/test_resolve_genre.py` (append)
+
+The merge and conflict logic was written in Task 4; this task proves it.
+
+- [ ] **Step 1: Write the failing tests**
+
+Append to `tests/test_resolve_genre.py`:
+
+```python
+SECONDARY_META = {
+    "name": "testsecond", "label": "Test Second",
+    "role": ["primary", "secondary"], "pillar_label": "Second Pillar",
+    "weights": {"pillar": 20, "character": 40, "structure": 25, "craft": 15},
+    "conflicts_with": [], "artifacts": ["second_ledger.md"],
+}
+
+MODIFIER_META = {
+    "name": "testmod", "label": "Test Mod", "role": ["modifier"],
+    "content_register": {"heat": "explicit"},
+    "conflicts_with": ["testya"],
+    # A modifier may declare artifacts; merge() must ignore them.
+    "artifacts": ["mod_ledger.md"],
+}
+
+MODIFIER_BODY = "## Framing\n\n- comps — Someone.\n\n## Drafting Rules\n\n25. Body first.\n"
+
+
+def setup_stack(tmp_path):
+    write_state(tmp_path, genre="testprimary", genre_secondary="testsecond",
+                genre_modifiers=["testmod"])
+    write_project_pack(tmp_path, "testprimary",
+                       primary_meta("testprimary", artifacts=["clue_ledger.md"]),
+                       PRIMARY_BODY)
+    write_project_pack(tmp_path, "testsecond", SECONDARY_META, PRIMARY_BODY)
+    write_project_pack(tmp_path, "testmod", MODIFIER_META, MODIFIER_BODY)
+
+
+def test_primary_owns_weights_and_shape(tmp_path):
+    setup_stack(tmp_path)
+    out = json.loads(run(tmp_path).stdout)
+    assert out["weights"] == {"pillar": 40, "character": 30,
+                              "structure": 20, "craft": 10}
+    assert out["shape"]["chapter_words"] == 3200
+    assert out["pillar_label"] == "Test Pillar"
+
+
+def test_label_parts_lists_every_pack_in_order(tmp_path):
+    setup_stack(tmp_path)
+    out = json.loads(run(tmp_path).stdout)
+    assert out["label"] == "Testprimary"
+    assert out["label_parts"] == ["Testprimary", "Test Second", "Test Mod"]
+
+
+def test_modifier_contributes_content_register(tmp_path):
+    setup_stack(tmp_path)
+    out = json.loads(run(tmp_path).stdout)
+    assert out["content_register"] == {"heat": "explicit"}
+
+
+def test_artifacts_union_excludes_modifier_contributions(tmp_path):
+    setup_stack(tmp_path)
+    out = json.loads(run(tmp_path).stdout)
+    assert out["artifacts"] == ["clue_ledger.md", "second_ledger.md"]
+
+
+def test_all_three_pack_paths_reported_with_roles(tmp_path):
+    setup_stack(tmp_path)
+    out = json.loads(run(tmp_path).stdout)
+    assert [(p["name"], p["role"]) for p in out["packs"]] == [
+        ("testprimary", "primary"),
+        ("testsecond", "secondary"),
+        ("testmod", "modifier"),
+    ]
+
+
+def test_conflicting_modifiers_are_rejected(tmp_path):
+    write_state(tmp_path, genre="testprimary",
+                genre_modifiers=["testmod", "testya"])
+    write_project_pack(tmp_path, "testprimary", primary_meta("testprimary"),
+                       PRIMARY_BODY)
+    write_project_pack(tmp_path, "testmod", MODIFIER_META, MODIFIER_BODY)
+    write_project_pack(tmp_path, "testya",
+                       {"name": "testya", "label": "Test YA",
+                        "role": ["modifier"], "conflicts_with": []},
+                       MODIFIER_BODY)
+    result = run(tmp_path)
+    assert result.returncode == 1
+    assert "conflicts with loaded pack" in result.stderr
+
+
+def test_check_flag_prints_nothing_on_success(tmp_path):
+    setup_stack(tmp_path)
+    result = run(tmp_path, "--check")
+    assert result.returncode == 0
+    assert result.stdout.strip() == ""
+```
+
+- [ ] **Step 2: Run the tests**
+
+Run: `uv run pytest tests/test_resolve_genre.py -v`
+Expected: the seven new tests pass; the two plugin-pack tests still fail pending Tasks 7–8.
+
+- [ ] **Step 3: Fix any merge bugs the tests expose**
+
+If `test_artifacts_union_excludes_modifier_contributions` fails, check the `pack["used_as"] != "modifier"` guard in `merge()`. If `test_conflicting_modifiers_are_rejected` fails, check that `check_conflicts` compares against every loaded name, not just the primary.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add tests/test_resolve_genre.py
+git commit -m "test: resolve_genre merge and conflict rules"
+```
+
+---
+
+## Task 6: Pack authoring template
+
+**Files:**
+- Create: `plugin/autonovel/shared/genres/TEMPLATE.md`
+
+- [ ] **Step 1: Write the template**
+
+Create `plugin/autonovel/shared/genres/TEMPLATE.md`:
+
+````markdown
+# Genre Pack Authoring Guide
+
+Copy this file to `<name>.md`, fill it in, and validate:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/validate_genre_pack.py" <name>.md
+```
+
+A pack may live in the plugin (`shared/genres/`) or in a single novel
+project (`<project>/genres/`). The project copy wins.
+
+## Roles
+
+`role` is a list, because most packs serve more than one:
+
+- **primary** — owns the pillar dimensions, category weights, plot
+  architecture, book shape, and seed prompt.
+- **secondary** — contributes additively to a primary. Its weights,
+  `pillar_label`, `beat_system`, `shape`, and Plot Architecture are ignored.
+- **modifier** — an orthogonal axis (age category, heat level, tone). Only
+  its Framing, Genre Contract, Drafting Rules, and `content_register` are
+  read. It may not declare `weights`, `pillar_label`, `beat_system`,
+  `shape`, or a Pillar Dimensions section.
+
+Romance is `["primary", "secondary"]` — a romance novel, or a romantic
+subplot in a fantasy. Erotica is `["primary", "modifier"]`.
+
+## Required
+
+A primary needs `## Framing` and `## Pillar Dimensions`. A modifier needs
+neither. Everything else is optional; omit `## Plot Architecture` to inherit
+the base Save the Cat structure.
+
+---
+
+```
+---
+{
+  "name": "<must match the filename stem>",
+  "label": "<human-readable; feeds NOVEL-GENRE at export>",
+  "role": ["primary"],
+  "pillar_label": "<names the rubric category, e.g. 'Relationship Architecture'>",
+  "weights": {"pillar": 40, "character": 30, "structure": 20, "craft": 10},
+  "beat_system": "save-the-cat",
+  "content_register": {},
+  "conflicts_with": [],
+  "shape": {
+    "chapters": [22, 26],
+    "words": [80000, 95000],
+    "chapter_words": 3200,
+    "pov_default": "third limited past"
+  },
+  "artifacts": []
+}
+---
+```
+
+`weights` must be integers summing to 100. `content_register` declares
+intensity axes and their levels — `{"heat": "explicit"}`,
+`{"violence": "off-page"}` — and a declared level becomes a Genre Contract
+promise the book must keep. `artifacts` names extra project files this genre
+requires; describe each under `## Artifacts`.
+
+## Framing
+
+Terms and personas the rubrics substitute wherever they refer to genre, the
+central system, or comparable authors. Use these exact keys.
+
+- genre_noun — "<e.g. 'fantasy novel'>"
+- pillar_noun — "<what the prose calls the central system, e.g. 'magic system'>"
+- comps — <4-6 authors a genre reader would compare this to>
+- seed_persona — <one sentence: who is generating concepts>
+- reader_persona — <one sentence: the Genre Reader panel persona>
+- writer_persona — <one sentence: the Writer panel persona>
+
+## Pillar Dimensions
+
+Three to six scored dimensions. Each bullet MUST read `- key — criteria`
+with an em dash; the validator extracts keys from that shape. Keys must not
+collide with the base dimensions (`character_depth`,
+`character_distinctiveness`, `character_secrets`, `outline_completeness`,
+`foreshadowing_balance`, `internal_consistency`, `voice_clarity`,
+`canon_coverage`).
+
+Write real rubric criteria, not labels. A judge scores 0-10 against these.
+
+- example_dim — What excellent looks like, what a gap looks like, and one
+  concrete test the judge can apply.
+
+## Genre Contract
+
+Binary, checkable promises — not 0-10 scores. A breach caps the score.
+`foundation.md` checks these against the outline; `full-novel.md` and
+`novel-review` check them against the manuscript.
+
+- <e.g. "The central relationship resolves HEA or HFN.">
+
+## World Sections
+
+Required headings for `world.md`, one per line, in order.
+
+## Cast Requirements
+
+The roster the foundation loop must build, with the depth each role needs.
+
+## Plot Architecture
+
+Act-by-act shape. Omit this section entirely to inherit the base structure.
+
+## Canon Categories
+
+Categories for `canon.md`, each with one example entry in the genre.
+
+## Artifacts
+
+One subsection per file named in `artifacts:` — its template, which phase
+fills it, and what the rubric checks about it.
+
+## Drafting Rules
+
+Appended to the base 24 in `drafting-rules.md`. Number from 25. May include
+a genre-specific banned-phrase list.
+
+## Seed Prompt
+
+Required concept fields, the DO-NOT list, and diversity requirements for
+`novel-seed`.
+````
+
+- [ ] **Step 2: Verify the template itself is not mistaken for a pack**
+
+Run: `uv run pytest tests/test_genre_pack.py -k shipped -v`
+Expected: still fails (no packs yet), but confirm the error names a missing pack rather than `TEMPLATE.md` — the test globs `*.md` and excludes stem `TEMPLATE`.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add plugin/autonovel/shared/genres/TEMPLATE.md
+git commit -m "docs: genre pack authoring template"
+```
+
+---
+
+## Task 7: The `general` pack
+
+**Files:**
+- Create: `plugin/autonovel/shared/genres/general.md`
+
+This is the neutral default. Its low pillar weight is what lets a
+contemporary novel clear the foundation gate.
+
+- [ ] **Step 1: Write the pack**
+
+Create `plugin/autonovel/shared/genres/general.md`:
+
+````markdown
+---
+{
+  "name": "general",
+  "label": "General Fiction",
+  "role": ["primary"],
+  "pillar_label": "Setting & Thematic Architecture",
+  "weights": {"pillar": 15, "character": 40, "structure": 20, "craft": 25},
+  "beat_system": "save-the-cat",
+  "content_register": {},
+  "conflicts_with": [],
+  "shape": {
+    "chapters": [20, 30],
+    "words": [75000, 95000],
+    "chapter_words": 3000,
+    "pov_default": "third limited past"
+  },
+  "artifacts": []
+}
+---
+
+## Framing
+
+- genre_noun — "novel"
+- pillar_noun — "the world of the novel"
+- comps — Marilynne Robinson, Kazuo Ishiguro, Elena Ferrante, Colson Whitehead, Rachel Cusk
+- seed_persona — a novelist with wide range and no house style, who generates premises that are specific, surprising, and structurally sound
+- reader_persona — a thoughtful reader who finishes 40 novels a year across every shelf in the store, cares about whether a book earns its length, and has no patience for a premise that never pays out
+- writer_persona — a published novelist and workshop teacher who reads as a craftsperson and cares about the gap between what a book attempts and what it achieves
+
+## Pillar Dimensions
+
+- setting_specificity — Do places do narrative work, or are they backdrop? A scene should be impossible to relocate without loss. Check: could two scenes in two locations be swapped with only proper nouns changed? If yes, score 5 max.
+- social_texture — Class, work, money, family structure, institutions. Are the character's material circumstances specific and consequential, or is everyone comfortably unplaced? Decorative sociology counts against, not for.
+- thematic_architecture — Is there a genuine question the book is asking, stated nowhere and present everywhere? A theme that any character articulates aloud is a message, not a theme. Check: can you name the question in one sentence without using a word from the manuscript?
+- temporal_grounding — When is this, and does that matter? Period, season, duration, and the pace at which the story's world changes. A novel that could happen in any decade usually loses something specific.
+
+## Genre Contract
+
+- The novel's central question is posed in the first quarter and answered — or explicitly refused — by the end.
+- No speculative element is introduced that the book has not established as part of its world.
+
+## World Sections
+
+- Setting & Place
+- Society & Institutions
+- Work, Money, Class
+- Time & Period
+- Cultural Details
+- Internal Consistency Rules
+
+## Cast Requirements
+
+- The protagonist, with a full ghost/wound/lie/want/need chain, three sliders, arc type, all eight speech dimensions, and at least two secrets.
+- The person closest to the protagonist's central conflict, at the same depth.
+- An antagonist — not a villain. Someone whose legitimate interests collide with the protagonist's, with their own full chain.
+- At least two further characters the story needs, with the depth their page time earns.
+
+## Canon Categories
+
+- Geography — "The Halloran house is four blocks from the river. (world.md)"
+- Timeline — "Ada is 41 when the novel opens. (characters.md)"
+- Character Facts — "Ada has not driven since the accident. (ch_02)"
+- Social & Institutional — "The mill closed in 1998 and was never sold. (world.md)"
+- Cultural — "In this town, funerals are held on Saturdays. (world.md)"
+- Established In-Story — "Ada told Peter the truth in ch_09. It cannot be untold."
+
+## Drafting Rules
+
+25. Ground every scene in material specifics — what things cost, who pays, who is owed. Abstraction is where general fiction goes to die.
+````
+
+- [ ] **Step 2: Validate the pack**
+
+Run:
+```bash
+uv run python plugin/autonovel/shared/scripts/validate_genre_pack.py plugin/autonovel/shared/genres/general.md
+```
+Expected: `OK   plugin/autonovel/shared/genres/general.md`
+
+- [ ] **Step 3: Run the resolver test that needed it**
+
+Run: `uv run pytest tests/test_resolve_genre.py::test_missing_genre_resolves_to_general -v`
+Expected: PASS
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add plugin/autonovel/shared/genres/general.md
+git commit -m "feat: general genre pack (neutral default)"
+```
+
+---
+
+## Task 8: The `fantasy` pack
+
+**Files:**
+- Create: `plugin/autonovel/shared/genres/fantasy.md`
+
+This is a **lossless port**: the content moves out of the base files, it does
+not get rewritten. Source line ranges are given so nothing is paraphrased
+away. Read each source before writing the corresponding pack section.
+
+**Sources to port from:**
+
+| Source | Lines | Goes to |
+|---|---|---|
+| `shared/rubrics/foundation.md` | 87–110 (the five lore dimensions) | `## Pillar Dimensions` |
+| `shared/craft/CRAFT.md` | 175–199 (Sanderson's Three Laws of Magic) | `## Pillar Dimensions` supporting detail |
+| `shared/craft/CRAFT.md` | 281–285 (Le Guin's Core Insight) | `## Drafting Rules` |
+| `shared/craft/CRAFT.md` | 351–356 (Magic System rubric summary) | `## Pillar Dimensions` |
+| `skills/novel-foundation/references/layer-guides.md` | 20–30, 39–78 (world.md craft requirements and sections) | `## World Sections` |
+| `skills/novel-foundation/references/layer-guides.md` | 137–171 (cast roster) | `## Cast Requirements` |
+| `skills/novel-seed/references/seed-prompts.md` | 5–10, 22–49 (persona, fields, DO-NOT list) | `## Seed Prompt` |
+| `skills/novel-draft/references/drafting-rules.md` | 27–29 (rule 6, magic as physical sensation) | `## Drafting Rules` |
+| `shared/templates/canon.md` | 19–68 (example entries) | `## Canon Categories` |
+
+- [ ] **Step 1: Write the frontmatter and Framing**
+
+Create `plugin/autonovel/shared/genres/fantasy.md` starting with:
+
+````markdown
+---
+{
+  "name": "fantasy",
+  "label": "Fantasy",
+  "role": ["primary", "secondary"],
+  "pillar_label": "Lore & Worldbuilding",
+  "weights": {"pillar": 40, "character": 30, "structure": 20, "craft": 10},
+  "beat_system": "save-the-cat",
+  "content_register": {},
+  "conflicts_with": [],
+  "shape": {
+    "chapters": [22, 26],
+    "words": [80000, 95000],
+    "chapter_words": 3200,
+    "pov_default": "third limited past"
+  },
+  "artifacts": []
+}
+---
+
+## Framing
+
+- genre_noun — "fantasy novel"
+- pillar_noun — "magic system"
+- comps — Sanderson, Le Guin, Jemisin, Rothfuss, Hobb
+- seed_persona — a fantasy novelist with deep knowledge of the genre's best works — Tolkien, Le Guin, Rothfuss, Wolfe, Jemisin, Peake, Susanna Clarke, Andrew Peterson, Sofia Samatar — who never proposes generic medieval Europe plus elves
+- reader_persona — an avid fantasy reader who reads 50+ novels a year, cares about pacing, mystery, and worldbuilding payoff, and gets bored by beautiful prose that doesn't go anywhere
+- writer_persona — a published fantasy author with five novels and a Hugo nomination, who reads as a craftsperson and notices where the beats fall
+````
+
+- [ ] **Step 2: Port the pillar dimensions**
+
+Append the five dimensions, moving the criteria text verbatim from
+`foundation.md:87–110`. Each bullet must use an em dash after the key:
+
+````markdown
+## Pillar Dimensions
+
+- magic_system — Hard rules with COSTS and LIMITATIONS per Sanderson's Second Law. Could a writer resolve the CLIMACTIC CONFLICT using only rules already established? Are costs plot-driving, not decorative? Are there at least 3 societal implications explored with specificity? Is the system TESTABLE — could you write a courtroom scene, a contract negotiation, and a magical confrontation without inventing new rules? Also check First Law compliance (foreshadowed solutions over total magic solutions), that limitations are at least as prominent as powers, and that no new unforeshadowed powers appear in the final 25%.
+- world_history — Timeline of events creating PRESENT-DAY tensions. Each historical event should map to a current faction conflict or character motivation. Decorative history (cool but plot-irrelevant) counts against the score, not for it.
+- geography_and_culture — Locations distinct with sensory signatures. Cultures with specific customs that GENERATE CONFLICT. Economy that creates class tension. Check: could two different scenes set in two different locations feel meaningfully different based on what's here?
+- lore_interconnection — Does changing one element force changes in at least two others? Test by mentally removing the magic system — does the political structure collapse? Does the class system change? If elements are modular and detachable, score low.
+- iceberg_depth — Implied depth versus stated depth. But CHECK: does the author actually know the answers to the mysteries, or are they handwaving? If a planning doc says "the answer will be revealed" without specifying WHAT the answer is, that's a gap wearing an iceberg costume.
+````
+
+- [ ] **Step 3: Port the remaining sections**
+
+Append `## Genre Contract`, `## World Sections`, `## Cast Requirements`,
+`## Canon Categories`, `## Drafting Rules`, and `## Seed Prompt`, moving the
+text from the sources in the table above. Do **not** add a
+`## Plot Architecture` section — the investigation-driven architecture
+currently in `layer-guides.md:242–271` is mystery content, not fantasy
+content, and Task 13 deletes it rather than moving it here.
+
+Key content, in order:
+
+```markdown
+## Genre Contract
+
+- The climax resolves using rules established before the final quarter. No new powers appear unforeshadowed.
+- Every prominently introduced speculative element serves a narrative purpose later, or is an explained red herring.
+
+## World Sections
+
+- Cosmology & History
+- Magic System — Hard Rules
+- Magic System — Soft Magic / The Protagonist's Exception
+- Magic System — Societal Implications
+- Geography
+- Factions & Politics
+- Bestiary / Flora / Natural World
+- Cultural Details
+- Internal Consistency Rules
+```
+
+For `## Cast Requirements`, move `layer-guides.md:137–171` verbatim,
+including the institutional antagonist and the absent-but-plot-critical
+character. For `## Canon Categories`, move the seven categories and their
+example entries from `templates/canon.md:19–68` — the Vael/Tasren/Kael
+examples belong here, not in the neutral template. For `## Drafting Rules`,
+start at 25 with the ported rule 6 and Le Guin's insight:
+
+```markdown
+## Drafting Rules
+
+25. Magic and its costs manifest as SPECIFIC physical sensation defined in world.md — never vague discomfort. Use the exact established sensations.
+26. Style is not ornament — it IS the fantasy. The language does not describe the world, it creates it. If the world sounds like a bus schedule, the register is wrong.
+```
+
+For `## Seed Prompt`, move the persona, the required fields (including
+`MAGIC/COST`), the diversity requirements, and the full DO-NOT list from
+`seed-prompts.md:22–49`.
+
+- [ ] **Step 4: Validate**
+
+Run:
+```bash
+uv run python plugin/autonovel/shared/scripts/validate_genre_pack.py plugin/autonovel/shared/genres/*.md
+```
+Expected: `OK` for both `fantasy.md` and `general.md`
+
+- [ ] **Step 5: Run the full script test suite**
+
+Run: `uv run pytest tests/test_genre_pack.py tests/test_resolve_genre.py -v`
+Expected: all pass, including `test_cli_validates_all_shipped_packs` and `test_resolves_shipped_plugin_pack`
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add plugin/autonovel/shared/genres/fantasy.md
+git commit -m "feat: fantasy genre pack (lossless port of existing content)"
+```
+
+---
+
+## Task 9: Neutralize the foundation rubric
+
+**Files:**
+- Modify: `plugin/autonovel/shared/rubrics/foundation.md`
+
+- [ ] **Step 1: Add the genre pack to the input list**
+
+Replace lines 8–14:
+
+```markdown
+INPUT FILES (read all of them from the project directory you were given):
+- voice.md
+- world.md
+- characters.md
+- outline.md
+- canon.md
+```
+
+with:
+
+```markdown
+INPUT FILES (read all of them from the project directory you were given):
+- voice.md
+- world.md
+- characters.md
+- outline.md
+- canon.md
+
+GENRE PACKS: the dispatching prompt gives you the absolute path of one
+primary genre pack and, optionally, a secondary pack and any number of
+modifier packs. Read them all. They define the pillar dimensions you score,
+the category weights you apply, and the genre contract you check. If no pack
+path was given, return exactly
+{"error": "no genre pack supplied — the invoking skill must resolve one"}
+and nothing else.
+```
+
+- [ ] **Step 2: Neutralize the framing line**
+
+Replace line 20 `Evaluate these fantasy novel planning documents.` with:
+
+```markdown
+Evaluate these planning documents for a novel in the genre named by the
+primary pack's `genre_noun`.
+```
+
+- [ ] **Step 3: Neutralize the cross-checks**
+
+In the CROSS-CHECKS block, replace the two genre-specific bullets at
+lines 67 and 81:
+
+- `- Are there gaps in the magic system that would block a specific` → `- Are there gaps in the pillar system (as the pack defines it) that would block a specific`
+- `   - Check if character abilities match magic system rules` → `   - Check that character capabilities match the rules the pack's pillar dimensions govern`
+
+- [ ] **Step 4: Replace the lore dimension block with a pack hook**
+
+Delete lines 86–110 (the `LORE & WORLDBUILDING:` heading and its five
+hardcoded dimensions) and replace with:
+
+```markdown
+PILLAR (the genre's own category — the primary pack names it in
+`pillar_label` and defines its dimensions under `## Pillar Dimensions`):
+
+Score every dimension the primary pack declares, using that pack's stated
+criteria. If a secondary pack is loaded, also score its pillar dimensions;
+on a key collision the primary's definition wins. Ignore any modifier pack's
+pillar dimensions — modifiers do not contribute scored dimensions.
+```
+
+- [ ] **Step 5: Add the genre contract check**
+
+After the `CRAFT:` dimension block (ending at line 153), add:
+
+```markdown
+GENRE CONTRACT:
+Read every loaded pack's `## Genre Contract` section. These are binary
+promises, not scored dimensions. Check each one against the OUTLINE — does
+the planned ending satisfy it, does the planned structure make it reachable?
+List every promise the plan would breach. A breach caps overall_score at 6.
+```
+
+- [ ] **Step 6: Replace the output schema**
+
+Replace the JSON block at lines 155–176 with the nested schema:
+
+```markdown
+Respond with JSON:
+{
+  "pillar": {
+    "<each dimension key the pack declares>": {"score": N, "gap": "biggest weakness", "fix": "specific improvement", "note": "..."}
+  },
+  "character": {
+    "character_depth": {"score": N, "gap": "...", "fix": "...", "note": "..."},
+    "character_distinctiveness": {"score": N, "gap": "...", "fix": "...", "note": "..."},
+    "character_secrets": {"score": N, "gap": "...", "fix": "...", "note": "..."}
+  },
+  "structure": {
+    "outline_completeness": {"score": N, "gap": "...", "fix": "...", "note": "..."},
+    "foreshadowing_balance": {"score": N, "gap": "...", "fix": "...", "note": "..."}
+  },
+  "craft": {
+    "internal_consistency": {"score": N, "gap": "...", "fix": "...", "note": "..."},
+    "voice_clarity": {"score": N, "gap": "...", "fix": "...", "note": "..."},
+    "canon_coverage": {"score": N, "gap": "...", "fix": "...", "note": "..."}
+  },
+  "genre_contract": {"violations": ["list any promises the plan would breach"], "note": "..."},
+  "slop_in_planning_docs": {"found": ["list any AI slop patterns found in exemplar dialogue, voice examples, or character descriptions"], "note": "..."},
+  "contradictions_found": ["list any factual contradictions between documents"],
+  "overall_score": N,
+  "pillar_score": N,
+  "weakest_dimension": "...",
+  "top_3_improvements": ["ranked list of the 3 highest-leverage improvements"]
+}
+
+`pillar_score` is the mean of the pillar category's dimension scores.
+`weakest_dimension` is a bare dimension key from any category.
+```
+
+- [ ] **Step 7: Replace the hardcoded weighting**
+
+Replace lines 178–180:
+
+```markdown
+WEIGHTING: lore/worldbuilding 40%, character 30%, structure 20%, craft 10%.
+A novel with thin worldbuilding but a complete outline is WORSE than deep
+worldbuilding with an incomplete outline.
+```
+
+with:
+
+```markdown
+WEIGHTING: use the `weights` object in the primary pack's frontmatter —
+pillar, character, structure, and craft, summing to 100. Ignore any
+secondary or modifier pack's weights; only the primary's apply.
+overall_score is the weighted mean of the four category means.
+```
+
+- [ ] **Step 8: Verify no fantasy terms remain**
+
+Run:
+```bash
+grep -niE 'fantasy|magic|sanderson' plugin/autonovel/shared/rubrics/foundation.md
+```
+Expected: no output
+
+- [ ] **Step 9: Commit**
+
+```bash
+git add plugin/autonovel/shared/rubrics/foundation.md
+git commit -m "refactor: foundation rubric reads pillar dimensions from genre pack"
+```
+
+---
+
+## Task 10: Neutralize the remaining rubrics
+
+**Files:**
+- Modify: `plugin/autonovel/shared/rubrics/chapter.md`
+- Modify: `plugin/autonovel/shared/rubrics/full-novel.md`
+- Modify: `plugin/autonovel/shared/rubrics/adversarial-edit.md`
+- Modify: `plugin/autonovel/shared/rubrics/reader-panel.md`
+- Modify: `plugin/autonovel/shared/rubrics/manuscript-review.md`
+
+Each of these gets the same genre-pack input block added after its existing
+INPUT FILES list. Use this exact wording in all five:
+
+```markdown
+GENRE PACKS: the dispatching prompt gives you the absolute path of one
+primary genre pack and, optionally, a secondary pack and modifier packs.
+Read them. Use each pack's `## Framing` values wherever this rubric refers
+to the genre, the pillar, or comparable authors.
+```
+
+- [ ] **Step 1: chapter.md**
+
+- Line 36: `Evaluate this fantasy novel chapter against the planning docs.` → `Evaluate this chapter against the planning docs. The primary pack's genre_noun names the genre.`
+- Line 39: `9-10: Among the best chapters you've read in published fantasy. Name` → `9-10: Among the best chapters you've read in the pack's genre. Name`
+- Lines 113–115: `Does ANY passage sound like generic fantasy prose that could appear in any novel? If yes, score 7 max.` → `Does ANY passage sound like generic genre prose that could appear in any novel of this kind? If yes, score 7 max.`
+- Line 147: `magic system rules, timeline, established events, physical descriptions.` → `the pillar system's rules, timeline, established events, physical descriptions.`
+- Rename the `lore_integration` dimension to `pillar_integration` at lines 149–151 and in the JSON schema at line 167, and replace its criteria with: `Does the world do WORK in this chapter, or is it set dressing? Judge against what the primary pack's pillar dimensions say matters. A scene that could happen anywhere in the genre with find-and-replace on proper nouns scores 5 max.`
+
+- [ ] **Step 2: full-novel.md**
+
+- Line 24: `Evaluate this complete fantasy novel holistically.` → `Evaluate this complete novel holistically.`
+- Line 53: `- world_consistency: Any lore contradictions across chapters?` → `- pillar_consistency: Any contradictions across chapters in the systems the primary pack's pillar dimensions govern?`
+- Update the JSON key at line 63 from `world_consistency` to `pillar_consistency`.
+- Add a genre-contract dimension after line 55: `- genre_contract: Read every loaded pack's ## Genre Contract. These are binary promises checked against the finished manuscript, not scored dimensions. A breach caps novel_score at 6.`
+- Add to the JSON schema: `"genre_contract": {"violations": ["..."], "note": "..."},`
+
+- [ ] **Step 3: adversarial-edit.md**
+
+Line 20: `You are editing a fantasy novel chapter. Your job: identify exactly` → `You are editing a novel chapter. Your job: identify exactly`
+
+- [ ] **Step 4: reader-panel.md**
+
+- Lines 29–38 (Persona: The Genre Reader): replace the fantasy-specific body with `You are the reader the primary pack's `reader_persona` describes. Adopt that persona exactly. You compare everything to the authors in the pack's `comps`. You are generous with what you love and blunt about what bores you.`
+- Lines 40–48 (Persona: The Writer): replace the first sentence with `You are the writer the primary pack's `writer_persona` describes.` Keep the rest of the persona (structure, beats, "I forgot I was reading") — it is genre-neutral craft.
+- Line 63: `You have just read a complete fantasy novel in summary form. The` → `You have just read a complete novel in summary form. The`
+- Leave the Editor and First Reader personas untouched; they are already neutral.
+
+- [ ] **Step 5: manuscript-review.md**
+
+After line 18 (`honest. You don't *have* to find defects.`), add:
+
+```markdown
+Before the two reviews, check every loaded pack's `## Genre Contract`
+against the manuscript. Report any breach as the first numbered item in the
+professor's review, tagged `[severity: major]`.
+```
+
+- [ ] **Step 6: Verify**
+
+Run:
+```bash
+grep -rniE 'fantasy|sanderson|jemisin|rothfuss|hobb|hugo' plugin/autonovel/shared/rubrics/
+```
+Expected: no output
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add plugin/autonovel/shared/rubrics/
+git commit -m "refactor: neutralize chapter, full-novel, adversarial, panel, and review rubrics"
+```
+
+---
+
+## Task 11: Extract fantasy craft from CRAFT.md
+
+**Files:**
+- Modify: `plugin/autonovel/shared/craft/CRAFT.md`
+
+The content being removed was already ported into the fantasy pack in Task 8.
+Verify it is there before deleting.
+
+- [ ] **Step 1: Confirm the fantasy pack has the content**
+
+Run:
+```bash
+grep -c "Second Law\|Le Guin" plugin/autonovel/shared/genres/fantasy.md
+```
+Expected: at least 2
+
+- [ ] **Step 2: Delete Sanderson's Three Laws**
+
+Delete lines 175–199 (`### Sanderson's Three Laws of Magic` through the
+THIRD LAW block). Replace with:
+
+```markdown
+### The Genre's Own System Laws
+
+The primary genre pack's pillar dimensions define what rigor the speculative
+or central system requires — and how much. Some genres demand hard,
+legible rules with stated costs; others are undermined by that legibility.
+Do not import one genre's expectations into another.
+```
+
+- [ ] **Step 3: Neutralize the worldbuilding pillars**
+
+Line 206: `  - MAGICAL: the speculative element(s)` → `  - SPECULATIVE: the genre's central non-realist element, if it has one`
+
+Lines 212–213: replace the magic-specific interconnection rule with:
+```markdown
+Interconnection: If the world has a central system, trace its implications
+  through society, economy, warfare, religion. A system with zero cultural
+  impact is shallow.
+```
+
+- [ ] **Step 4: Neutralize the prose section**
+
+Delete lines 281–285 (`### Le Guin's Core Insight` and its body) — this is in
+the fantasy pack now. Retitle line 287 from `### What the best fantasy prose does` to `### What the best prose does`. Leave lines 287–304 (the eight
+qualities and the Le Guin Exercise) intact; they are genre-neutral craft.
+
+- [ ] **Step 5: Neutralize the rubric summary**
+
+Replace lines 351–356 (`### Magic System` and its five bullets) with:
+
+```markdown
+### The Genre Pillar
+  - Scored against the primary pack's `## Pillar Dimensions`, not against
+    any fixed list here.
+```
+
+- [ ] **Step 6: Verify**
+
+Run:
+```bash
+grep -niE 'fantasy|magic|sanderson' plugin/autonovel/shared/craft/CRAFT.md
+```
+Expected: no output
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add plugin/autonovel/shared/craft/CRAFT.md
+git commit -m "refactor: move fantasy-specific craft out of CRAFT.md"
+```
+
+---
+
+## Task 12: Neutralize the templates
+
+**Files:**
+- Modify: `plugin/autonovel/shared/templates/world.md`
+- Modify: `plugin/autonovel/shared/templates/canon.md`
+- Modify: `plugin/autonovel/shared/templates/voice.md`
+- Modify: `plugin/autonovel/shared/templates/state.json`
+
+- [ ] **Step 1: Replace world.md wholesale**
+
+```markdown
+# World Bible
+
+<!-- Section headings are written at project init from the resolved genre
+     pack's `## World Sections`. If this file still shows this comment, the
+     foundation loop has not run its world pass yet. -->
+```
+
+- [ ] **Step 2: Replace canon.md's fantasy examples**
+
+Keep lines 1–17 (the header and "How to use" block) verbatim. Replace
+everything from line 19 to the end with:
+
+```markdown
+<!-- Categories and example entries are written at project init from the
+     resolved genre pack's `## Canon Categories`. One fact per bullet,
+     short, specific, checkable, with its source in parentheses. -->
+```
+
+- [ ] **Step 3: Neutralize voice.md**
+
+Line 102: `(a merchant's inventory, a spell's components), earn it. Don't` → `(a merchant's inventory, a recipe's ingredients), earn it. Don't`
+
+- [ ] **Step 4: Add genre fields to state.json**
+
+```json
+{
+  "phase": "foundation",
+  "current_focus": null,
+  "genre": null,
+  "genre_secondary": null,
+  "genre_modifiers": [],
+  "iteration": 0,
+  "foundation_score": 0.0,
+  "pillar_score": 0.0,
+  "chapters_drafted": 0,
+  "chapters_total": 0,
+  "novel_score": 0.0,
+  "revision_cycle": 0,
+  "review_round": 0,
+  "debts": []
+}
+```
+
+- [ ] **Step 5: Verify**
+
+Run:
+```bash
+grep -rniE 'magic|bestiary|vael|tasren|kael|vessa|moren|ashenmoor|drennan|spell' plugin/autonovel/shared/templates/
+```
+Expected: no output
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add plugin/autonovel/shared/templates/
+git commit -m "refactor: neutralize world, canon, voice templates; add genre fields to state"
+```
+
+---
+
+## Task 13: Rewrite layer-guides.md
+
+**Files:**
+- Modify: `plugin/autonovel/skills/novel-foundation/references/layer-guides.md`
+
+The heaviest file. Three kinds of change: defer to the pack, delete leaked
+mystery content, and remove hardcoded book shape.
+
+- [ ] **Step 1: Add a preamble**
+
+After line 7 (the `---` following the intro), insert:
+
+```markdown
+## Genre packs
+
+Before filling any layer, run the resolver from the project directory:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py"
+```
+
+Read every pack path it reports. The packs define this novel's world
+sections, cast requirements, plot architecture, canon categories, book
+shape, and any extra artifacts. Where a section below says "from the pack,"
+the pack's content governs and this guide only states the standard of depth.
+
+---
+```
+
+- [ ] **Step 2: Replace the world.md craft requirements**
+
+Replace lines 18–30 (from `belongs to THIS story, not a generic fantasy setting.` through the CRAFT REQUIREMENTS bullet list) with:
+
+```markdown
+belongs to THIS story, not a generic setting for its genre.
+
+CRAFT REQUIREMENTS:
+- Whatever central system the pack's pillar dimensions govern must meet the
+  rigor those dimensions demand — read them before writing.
+- Trace the system's implications through society, economy, law, religion.
+- At least 2-3 societal implications explored in depth.
+- History must create PRESENT-DAY TENSIONS that drive the plot, not just
+  backdrop.
+- Geography must be specific and sensory, not generic for the genre.
+- Iceberg principle: imply more than you state.
+- Interconnection: pulling one thread should move everything.
+```
+
+- [ ] **Step 3: Replace the hardcoded world.md sections**
+
+Replace lines 32–79 (`STRUCTURE THE DOCUMENT WITH THESE SECTIONS:` through
+the `### Internal Consistency Rules` body) with:
+
+```markdown
+STRUCTURE THE DOCUMENT WITH THE SECTIONS LISTED IN THE PACK'S
+`## World Sections`, in that order. For each, be specific: named, sensory,
+and consequential. Every rule gets a COST or LIMITATION stated alongside it.
+Include 2-3 unexplained-but-intriguing facts per section for iceberg depth.
+```
+
+Keep lines 80–94 (the IMPORTANT block and word target) except replace the
+`~3000-4000 words` target with `Target the word count the pack's shape
+implies for a world bible — dense, not padded, roughly 3-4% of the novel's
+target length.`
+
+- [ ] **Step 4: Replace the cast roster with a pack hook**
+
+Replace lines 137–171 (`BUILD THE REGISTRY WITH ROLES THE STORY NEEDS.`
+through item 7) with:
+
+```markdown
+BUILD THE REGISTRY WITH THE ROLES LISTED IN THE PACK'S
+`## Cast Requirements`, at the depth each entry specifies. Add any further
+characters the seed's plot demands.
+```
+
+Leave lines 173–198 (FOR EACH CHARACTER INCLUDE, and the IMPORTANT block)
+intact — they are genre-neutral.
+
+- [ ] **Step 5: Remove the hardcoded book shape**
+
+Line 204: `Build a complete chapter outline. Target: 22-26 chapters, ~80,000 words total (~3,000-4,000 words per chapter).` → `Build a complete chapter outline. Use the chapter count, total word count, and per-chapter target from the resolved pack's `shape`.`
+
+- [ ] **Step 6: Make the beat field pack-driven**
+
+Line 223: `- **Save the Cat beat:** which beat this chapter serves (Opening Image, Setup, Catalyst, etc.)` → `- **Beat:** which beat this chapter serves, in the vocabulary of the pack's `beat_system` (for `save-the-cat`: Opening Image, Setup, Catalyst, etc.)`
+
+- [ ] **Step 7: Delete the leaked mystery architecture**
+
+Delete lines 242–263 (`KEY PLOT ARCHITECTURE` and its four act bullets)
+entirely. This is mystery content that leaked from the first novel — it is
+**not** moved to the fantasy pack. Replace with:
+
+```markdown
+KEY PLOT ARCHITECTURE: follow the pack's `## Plot Architecture` if it
+declares one. If it does not, use the base act structure from CRAFT.md:
+Act I 0-23%, Act II 23-77%, Act III 77-100%, with Save the Cat beats at
+their stated percentage marks.
+```
+
+In the CONSTRAINTS block that follows, delete line 268–271 (`The
+investigation should feel like a mystery plot overlaid on whatever the
+protagonist's personal arc is`) — same reason. Keep every other constraint.
+
+- [ ] **Step 8: Add artifacts and genre contract to the fill order**
+
+At the end of the file, after the `canon.md` section, add:
+
+```markdown
+---
+
+## Genre artifacts
+
+If the resolved pack declares `artifacts`, create and fill each one
+following the pack's `## Artifacts` section. Fill them after canon.md, and
+re-check them whenever the layer they draw on changes. They are scored:
+the pack's pillar dimensions reference them.
+
+---
+
+## Genre contract
+
+Before exiting foundation, read every loaded pack's `## Genre Contract` and
+confirm the OUTLINE satisfies each promise. A plan that cannot keep the
+contract is a plan to write the wrong book — fix the outline, not the
+contract.
+```
+
+- [ ] **Step 9: Verify**
+
+Run:
+```bash
+grep -niE 'fantasy|magic|sanderson|investigation|22-26' plugin/autonovel/skills/novel-foundation/references/layer-guides.md
+```
+Expected: no output
+
+- [ ] **Step 10: Commit**
+
+```bash
+git add plugin/autonovel/skills/novel-foundation/references/layer-guides.md
+git commit -m "refactor: layer-guides defers to genre pack; drop leaked mystery architecture"
+```
+
+---
+
+## Task 14: Neutralize seed generation
+
+**Files:**
+- Modify: `plugin/autonovel/skills/novel-seed/references/seed-prompts.md`
+- Modify: `plugin/autonovel/skills/novel-seed/SKILL.md`
+
+- [ ] **Step 1: Replace seed-prompts.md wholesale**
+
+```markdown
+# Seed Generation Prompts
+
+The resolved genre pack supplies the persona, the required concept fields,
+the DO-NOT list, and the diversity requirements. This file is the neutral
+scaffold around them.
+
+## Persona (adopt while generating)
+
+Adopt the primary pack's `seed_persona`. You generate novel concepts that
+are SPECIFIC, SURPRISING, and STRUCTURALLY SOUND. Each concept should make a
+reader think 'I've never seen THAT before.'
+
+## Generating fresh concepts
+
+Generate ten seed concepts in the pack's genre. Each should be a complete
+premise you could build a novel from.
+
+For EACH concept provide, in this order:
+
+NUMBER. TITLE (a working title, evocative, not generic)
+HOOK: One sentence that would make someone pick up the book. Specific and
+  surprising, not "In a world where..."
+WORLD: What makes this world different? Be concrete and SENSORY.
+<the pack's required fields from its `## Seed Prompt`, in the order it lists
+ them — e.g. MAGIC/COST for fantasy, THE CRIME for mystery>
+TENSION: What's the central conflict? It must be both PERSONAL (one
+  character's specific problem) and LARGER (affects more than one life).
+  These two must be in tension with each other.
+THEME: What question does this story explore? Not a message — a genuine
+  question with no easy answer.
+WHY IT'S NOT GENERIC: One sentence on what makes this different from
+  standard fare in this genre.
+
+Aim for DIVERSITY across the ten concepts, following the pack's diversity
+requirements. In every genre: mix tones (dark, warm, weird, melancholy,
+whimsical), include at least one that is quieter and more literary than the
+genre's default, and at least one with an unusual narrative structure idea.
+
+DO NOT generate anything on the pack's DO-NOT list.
+
+## Riffing on a user idea
+
+The user's seed idea is quoted below.
+
+Generate 5 variations on this concept. Keep what's interesting about the core
+idea but push it in different directions. For each variation:
+
+NUMBER. TITLE
+HOOK: One sentence.
+HOW IT DIFFERS: What did you change from the original seed and why?
+WORLD: Concrete, sensory world details.
+<the pack's required fields>
+TENSION: Personal + larger conflict.
+THEME: The question it explores.
+
+Make the variations genuinely different from each other — don't just tweak
+surface details. Change the protagonist, the setting, the tone, the
+structure, the thematic focus.
+```
+
+- [ ] **Step 2: Add genre selection to novel-seed/SKILL.md**
+
+Insert a new step between the current steps 2 and 3:
+
+```markdown
+3. **Choose the genre.** List the packs in
+   `"${CLAUDE_PLUGIN_ROOT}/shared/genres/"` (excluding TEMPLATE.md) with
+   their `label`, and ask the user to pick a primary. Offer an optional
+   secondary and any modifiers, explaining that a secondary contributes
+   additively (a romance subplot in a fantasy) and a modifier is an
+   orthogonal axis (YA, cozy, heat level). If the user declines to choose,
+   use `general`. Write `genre`, `genre_secondary`, and `genre_modifiers`
+   into state.json, then verify the stack resolves:
+
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py"
+   ```
+
+   If it exits non-zero, fix the selection before continuing — a conflicting
+   stack (for example `ya` with `erotica`) is rejected here rather than
+   producing an incoherent book.
+```
+
+- [ ] **Step 3: Render the pack-driven templates at init**
+
+In step 2's template-copy bullet, after the `cp` line, add:
+
+```markdown
+   - Write `world.md`'s section headings from the resolved pack's
+     `## World Sections`, and `canon.md`'s category headings and one example
+     entry each from its `## Canon Categories`. Create any file named in the
+     pack's `artifacts` from its `## Artifacts` template.
+```
+
+- [ ] **Step 4: Replace the MAGIC/COST validation**
+
+In the current step 4 (Selection), replace `Present the concepts compactly
+(TITLE + HOOK + MAGIC/COST, matching the field names in seed-prompts.md)`
+with `Present the concepts compactly (TITLE + HOOK + the pack's first
+required field)`.
+
+In the current step 5, replace the four required elements with:
+
+```markdown
+5. **Write `seed.txt`** with the full chosen concept. Verify it contains a
+   world-differentiator (the WORLD field), a central tension (TENSION), a
+   concrete sensory anchor in the WORLD field, and every field the pack's
+   `## Seed Prompt` marks required — and strengthen any that are missing
+   before saving.
+```
+
+- [ ] **Step 5: Verify**
+
+Run:
+```bash
+grep -rniE 'fantasy|magic|tolkien|elves|dwarves|orcs' plugin/autonovel/skills/novel-seed/
+```
+Expected: no output
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add plugin/autonovel/skills/novel-seed/
+git commit -m "refactor: genre selection in novel-seed; neutral seed prompts"
+```
+
+---
+
+## Task 15: Neutralize drafting
+
+**Files:**
+- Modify: `plugin/autonovel/skills/novel-draft/references/drafting-rules.md`
+- Modify: `plugin/autonovel/skills/novel-draft/SKILL.md`
+
+- [ ] **Step 1: Neutralize the writer's stance**
+
+Replace lines 6–15 with:
+
+```markdown
+## Writer's stance
+
+You are a literary fiction writer drafting a chapter of a novel in the genre
+the resolved pack names. You write in the POV and tense the pack's
+`shape.pov_default` specifies unless voice.md Part 2 overrides it — voice.md
+wins on any conflict. You follow the voice definition exactly. You hit every
+beat in the outline. You never use words from the banned list. You show,
+never tell emotions. Your prose is specific, sensory, grounded. Metaphors
+come from the character's experience. You vary sentence length. You trust the
+reader. You write the FULL chapter — do not truncate, summarize, or skip
+ahead.
+```
+
+- [ ] **Step 2: Make the word target pack-driven**
+
+Rule 1 (line 19): `1. Write the COMPLETE chapter. Target ~3,200 words. Do not truncate or summarize.` → `1. Write the COMPLETE chapter. Target the pack's `shape.chapter_words`. Do not truncate or summarize.`
+
+Rule 2 (line 21): replace `Third-person limited, past tense, locked to the chapter's designated POV character (from the outline).` with `The POV and tense established in voice.md Part 2, locked to the chapter's designated POV character (from the outline).`
+
+- [ ] **Step 3: Replace rule 6**
+
+Replace lines 27–29 (rule 6, magic and its costs) with:
+
+```markdown
+6. The genre's central system, where it appears, manifests as SPECIFIC
+   physical or concrete detail defined in world.md — never vague. Use the
+   exact established specifics.
+```
+
+- [ ] **Step 4: Add the pack rules hook**
+
+At the end of the file, add:
+
+```markdown
+## Genre rules (25+)
+
+Read every loaded pack's `## Drafting Rules` and follow them alongside the
+24 above. Where a pack supplies a banned-phrase list, treat it with the same
+force as voice.md Part 1's Tier 1 list.
+```
+
+- [ ] **Step 5: Wire the skill**
+
+In `novel-draft/SKILL.md`, add to the required-reading block (after line 24):
+
+```markdown
+   - every genre pack path reported by
+     `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py"`
+```
+
+And in the judge dispatch at line 47, add the pack paths to the prompt:
+
+```markdown
+   "Read the rubric at `<absolute plugin path>/shared/rubrics/chapter.md`
+   and the genre pack(s) at `<resolved pack paths, primary first>`, and
+   follow the rubric exactly.
+```
+
+- [ ] **Step 6: Verify**
+
+Run:
+```bash
+grep -rniE 'fantasy|magic' plugin/autonovel/skills/novel-draft/
+```
+Expected: no output
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add plugin/autonovel/skills/novel-draft/
+git commit -m "refactor: drafting rules read POV, word target, and genre rules from pack"
+```
+
+---
+
+## Task 16: Wire novel-foundation
+
+**Files:**
+- Modify: `plugin/autonovel/skills/novel-foundation/SKILL.md`
+
+- [ ] **Step 1: Update the gate in the intro**
+
+Line 9: `foundation_score > 7.5 AND lore_score > 7.0` → `foundation_score > 7.5 AND pillar_score > 7.0`
+
+- [ ] **Step 2: Resolve the genre in setup**
+
+Add to the Setup block as a new item after item 1:
+
+```markdown
+2. **Resolve the genre.** Run from the project directory:
+
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py"
+   ```
+
+   If it exits non-zero, STOP and report — an unresolvable or conflicting
+   genre stack must be fixed before any layer work. Keep the reported pack
+   paths; every judge dispatch below needs them. If `state.json` has no
+   `genre` field at all, STOP and run the migration in `novel/SKILL.md`
+   first.
+```
+
+Renumber the following items, and add the pack paths to the required
+reading list.
+
+- [ ] **Step 3: Add packs to the judge dispatch**
+
+Replace the dispatch prompt at lines 54–60 with:
+
+```markdown
+   "Read the rubric at `<absolute plugin path>/shared/rubrics/foundation.md`
+   and the genre pack(s) at `<resolved pack paths, primary first, each
+   labeled with its role>`, and follow the rubric exactly. The project
+   directory is `<absolute project path>`. The input files are: voice.md,
+   world.md, characters.md, outline.md, canon.md (all in the project
+   directory). Return ONLY the JSON object the rubric specifies."
+```
+
+- [ ] **Step 4: Update score handling**
+
+- Line 68–70: `The results.tsv score column takes `overall_score`; put `lore_score` in the description (e.g. `iter N: <dimension> (lore <lore_score>)`).` → `...put `pillar_score` in the description (e.g. `iter N: <dimension> (pillar <pillar_score>)`).`
+- Line 71: gate check → `overall_score > 7.5` AND `pillar_score > 7.0`
+- Line 82: `update `foundation_score`, `lore_score`, and `iteration`` → `update `foundation_score`, `pillar_score`, and `iteration``
+
+- [ ] **Step 5: Update the cross-layer check**
+
+Line 77: `character abilities match the magic rules` → `character capabilities match the rules the pack's pillar dimensions govern; every genre artifact the pack declares is filled and current`
+
+- [ ] **Step 6: Add the genre-change baseline reset**
+
+In the Keep/discard item, after the resume sentence, add:
+
+```markdown
+   If the project's genre changed since the last scored iteration (compare
+   `genre`/`genre_secondary`/`genre_modifiers` against the most recent
+   `genre-change` marker row in results.tsv), do NOT compare against the old
+   best score — the weights differ, so the numbers are not comparable.
+   Treat the next scored iteration as the first one.
+```
+
+- [ ] **Step 7: Add the genre contract to Exit**
+
+In the Exit block, before the state.json write, add:
+
+```markdown
+Do not exit while any loaded pack's `## Genre Contract` is unsatisfiable by
+the outline — the judge reports these under `genre_contract.violations`.
+Fix the outline first.
+```
+
+- [ ] **Step 8: Commit**
+
+```bash
+git add plugin/autonovel/skills/novel-foundation/SKILL.md
+git commit -m "refactor: novel-foundation resolves genre, gates on pillar_score"
+```
+
+---
+
+## Task 17: Wire the remaining skills
+
+**Files:**
+- Modify: `plugin/autonovel/skills/novel-revise/SKILL.md`
+- Modify: `plugin/autonovel/skills/novel-review/SKILL.md`
+- Modify: `plugin/autonovel/skills/novel-export/SKILL.md`
+- Modify: `plugin/autonovel/skills/novel/SKILL.md`
+
+- [ ] **Step 1: novel-revise — three judge dispatches**
+
+At lines 46 (adversarial-edit), 124 (reader-panel), and 281 (full-novel), add
+the pack paths to each prompt using the same phrasing as Task 16 step 3:
+`and the genre pack(s) at <resolved pack paths, primary first>`.
+
+Add a resolver call to the skill's setup so the paths are available.
+
+- [ ] **Step 2: novel-review — one dispatch**
+
+At line 37, add the pack paths to the manuscript-review prompt the same way,
+plus a resolver call in setup.
+
+- [ ] **Step 3: novel-export — genre from the pack**
+
+Replace the genre-sourcing clause at lines 37–39 (`genre from seed.txt or the
+...`) with:
+
+```markdown
+   genre — run `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py"`
+   and offer the `label_parts` joined with spaces as the default
+   `NOVEL-GENRE` (e.g. "Fantasy Romance"); let the user edit it, since
+   hybrid genre names are not reliably composable from pack labels.
+```
+
+- [ ] **Step 4: novel/SKILL.md — report genre and relabel the gate**
+
+In step 2 (Gather state), add:
+
+```markdown
+   - the resolved genre: run
+     `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py"` and
+     report `label_parts` and each pack's role. If it exits non-zero,
+     report the error — do not attempt to fix it (this skill is read-only).
+```
+
+In step 3 (Report), change `foundation > 7.5 AND lore > 7.0` to
+`foundation > 7.5 AND pillar > 7.0`, and add genre to the reported table.
+
+- [ ] **Step 5: Verify**
+
+Run:
+```bash
+grep -rniE '\blore_score\b|\blore >' plugin/autonovel/
+```
+Expected: no output
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add plugin/autonovel/skills/
+git commit -m "refactor: pass genre packs to revise, review, export, and router skills"
+```
+
+---
+
+## Task 18: Wire novel-import
+
+**Files:**
+- Modify: `plugin/autonovel/skills/novel-import/SKILL.md`
+- Modify: `plugin/autonovel/skills/novel-import/references/extraction-guide.md`
+
+- [ ] **Step 1: Add genre inference to SKILL.md**
+
+Insert a new step after the current step 3 (Chapter intake):
+
+```markdown
+4. **Infer the genre.** From the manuscript you have now read in full,
+   propose a primary pack, an optional secondary, and any modifiers, naming
+   the evidence for each (the speculative elements present, the shape of the
+   central conflict, the register, the content). Show the user the available
+   packs from `"${CLAUDE_PLUGIN_ROOT}/shared/genres/"` and your proposal,
+   and ask them to confirm or correct it — same shape as the MYSTERY.md
+   confirmation in the final steps. Write the choice into state.json and
+   verify with `resolve_genre.py`. In a fully autonomous run, take your own
+   inference and say so in the handoff report.
+```
+
+Renumber the steps that follow.
+
+- [ ] **Step 2: Make extraction pack-driven**
+
+In `extraction-guide.md`, replace the world.md section's hardcoded section
+list (lines 36–40) with:
+
+```markdown
+Output must contain the sections listed in the resolved genre pack's
+`## World Sections` — but every entry is reconstructed from what the prose
+actually shows, not proposed fresh. A section the manuscript gives no
+material for is recorded as `[not established in manuscript]` rather than
+invented.
+```
+
+Replace the canon categories reference (line 222) with `Output follows the
+resolved pack's `## Canon Categories`` and neutralize the "magic/speculative
+system" phrasing at lines 31 and 43 to "the genre's central system, if the
+manuscript has one".
+
+- [ ] **Step 3: Add genre fields to the state rules**
+
+In the `## state.json` section, add:
+
+```markdown
+- `genre`, `genre_secondary`, `genre_modifiers`: the confirmed inference
+  from step 4. Never leave `genre` null on an import — an imported
+  manuscript always has an observable genre, even if the answer is
+  `general`.
+```
+
+- [ ] **Step 4: Verify**
+
+Run:
+```bash
+grep -rniE 'fantasy|bestiary' plugin/autonovel/skills/novel-import/
+```
+Expected: no output
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add plugin/autonovel/skills/novel-import/
+git commit -m "refactor: novel-import infers and confirms genre"
+```
+
+---
+
+## Task 19: Wire the scripts
+
+**Files:**
+- Modify: `plugin/autonovel/shared/scripts/gen_brief.py:79`
+- Modify: `plugin/autonovel/shared/scripts/slop_score.py`
+- Test: `tests/test_gen_brief.py` (append)
+
+- [ ] **Step 1: Write the failing test**
+
+Append to `tests/test_gen_brief.py`:
+
+```python
+def test_brief_uses_genre_diction_rule_when_pack_resolves(tmp_path):
+    setup_project(tmp_path)
+    (tmp_path / "state.json").write_text(json.dumps({"genre": "fantasy"}))
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "--eval", "5"],
+        capture_output=True, text=True, cwd=tmp_path,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    content = (tmp_path / "briefs/ch05_eval.md").read_text()
+    assert "generic fantasy diction" in content
+
+
+def test_brief_falls_back_to_neutral_diction_rule(tmp_path):
+    setup_project(tmp_path)
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "--eval", "5"],
+        capture_output=True, text=True, cwd=tmp_path,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    content = (tmp_path / "briefs/ch05_eval.md").read_text()
+    assert "generic genre diction" in content
+```
+
+- [ ] **Step 2: Run to verify failure**
+
+Run: `uv run pytest tests/test_gen_brief.py -k diction -v`
+Expected: FAIL — the brief contains the hardcoded fantasy string in both cases
+
+- [ ] **Step 3: Make the rule pack-driven**
+
+In `gen_brief.py`, add near the other path constants:
+
+```python
+GENRES_DIR = Path(__file__).resolve().parent.parent / "genres"
+STATE_PATH = BASE_DIR / "state.json"
+```
+
+And replace line 79 with a lookup:
+
+```python
+    rules.append(genre_diction_rule())
+```
+
+Add the helper above `extract_voice_rules`:
+
+```python
+def genre_diction_rule() -> str:
+    """Voice rule naming the genre whose diction the prose must not default to.
+
+    Falls back to a neutral phrasing when no genre is set or the pack is
+    missing — gen_brief must never fail because of genre resolution.
+    """
+    genre = None
+    if STATE_PATH.exists():
+        try:
+            genre = json.loads(STATE_PATH.read_text(encoding="utf-8")).get("genre")
+        except (json.JSONDecodeError, OSError):
+            genre = None
+    noun = "genre"
+    if genre:
+        for base in (BASE_DIR / "genres", GENRES_DIR):
+            pack = base / f"{genre}.md"
+            if pack.exists():
+                noun = genre
+                break
+    return (f"Vocabulary from craft/trade/body wells — no generic {noun} "
+            "diction")
+```
+
+- [ ] **Step 4: Run to verify pass**
+
+Run: `uv run pytest tests/test_gen_brief.py -v`
+Expected: all pass
+
+- [ ] **Step 5: Let slop_score.py take a genre banned list**
+
+Add to `slop_score.py` after the `TIER3_FILLER` block:
+
+```python
+def load_genre_banned(path=None):
+    """Extra banned phrases from a genre pack's '## Drafting Rules' section.
+
+    The pack lists them one per line under a 'BANNED PHRASES:' marker inside
+    that section. Returns [] when no pack or no marker is present — a genre
+    without its own slop vocabulary is the normal case.
+    """
+    if path is None:
+        return []
+    try:
+        text = Path(path).read_text(encoding="utf-8")
+    except OSError:
+        return []
+    match = re.search(r"^BANNED PHRASES:\s*$(.*?)(?=^##\s|\Z)",
+                      text, re.M | re.S)
+    if not match:
+        return []
+    return [line.strip("- ").strip()
+            for line in match.group(1).splitlines() if line.strip()]
+```
+
+Then wire it into the CLI. `slop_score.py` currently reads file paths from
+`sys.argv[1:]` directly; replace that with argparse so the pack path can be
+passed alongside them:
+
+```python
+def main(argv):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("files", nargs="+", help="chapter files to score")
+    parser.add_argument("--genre-pack", default=None,
+                        help="genre pack whose banned phrases extend Tier 1")
+    args = parser.parse_args(argv)
+
+    extra_banned = load_genre_banned(args.genre_pack)
+    reports = [slop_score(Path(f).read_text(encoding="utf-8"),
+                          extra_banned=extra_banned)
+               for f in args.files]
+    ...
+```
+
+Add `import argparse` and `from pathlib import Path` at the top if absent,
+and give `slop_score()` an `extra_banned=()` keyword that its Tier 1 loop
+scans in addition to `TIER1_BANNED`:
+
+```python
+def slop_score(text, extra_banned=()):
+    ...
+    for word in list(TIER1_BANNED) + list(extra_banned):
+        ...
+```
+
+- [ ] **Step 6: Add a test for the genre banned list**
+
+Append to `tests/test_slop_score.py`:
+
+```python
+def test_genre_banned_phrases_extend_tier1(tmp_path):
+    pack = tmp_path / "testgenre.md"
+    pack.write_text(
+        "---\n{}\n---\n\n## Drafting Rules\n\nBANNED PHRASES:\n"
+        "- quivering member\n- velvet heat\n",
+        encoding="utf-8")
+    chapter = tmp_path / "ch_01.md"
+    chapter.write_text("His quivering member. " * 5, encoding="utf-8")
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), str(chapter),
+         "--genre-pack", str(pack)],
+        capture_output=True, text=True)
+    assert result.returncode == 0, result.stdout + result.stderr
+    report = json.loads(result.stdout)
+    assert report["summary"]["max_penalty"] > 0
+```
+
+Run: `uv run pytest tests/test_slop_score.py -v`
+Expected: all pass, including the existing tests — the argparse change must
+not break the positional-files invocation they use.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add plugin/autonovel/shared/scripts/ tests/test_gen_brief.py
+git commit -m "feat: gen_brief and slop_score read genre-specific rules"
+```
+
+---
+
+## Task 20: The genre leak guard
+
+**Files:**
+- Create: `tests/test_no_genre_leak.py`
+
+The enforceable successor to the De-Bells rule. This is what stops the fix
+from eroding.
+
+- [ ] **Step 1: Write the test**
+
+Create `tests/test_no_genre_leak.py`:
+
+```python
+"""Guard: no genre-specific content outside plugin/autonovel/shared/genres/.
+
+The successor to the De-Bells rule. The original plan scrubbed content from
+the first novel out of the machinery; this keeps the machinery free of any
+single genre's assumptions.
+"""
+import re
+from pathlib import Path
+
+import pytest
+
+PLUGIN = Path(__file__).parent.parent / "plugin/autonovel"
+
+SCANNED_DIRS = ["shared/rubrics", "shared/craft", "shared/templates",
+                "shared/scripts", "skills"]
+
+# Terms that name one genre's furniture. A hit outside shared/genres/ means
+# a genre assumption crept back into the base machinery.
+LEAK_RE = re.compile(
+    r"\b(fantasy|magic|magical|sorcer\w*|wizard|bestiary|elves|dwarves|orcs"
+    r"|sanderson|tolkien|jemisin|rothfuss)\b", re.I)
+
+# ANTI-SLOP.md and voice.md list 'realm' and 'tapestry' as banned slop words,
+# which is vocabulary guidance, not genre content. Nothing else is exempt.
+ALLOWED = {
+    "shared/craft/ANTI-SLOP.md",
+    "shared/templates/voice.md",
+}
+
+
+def scanned_files():
+    for directory in SCANNED_DIRS:
+        for path in sorted((PLUGIN / directory).rglob("*")):
+            if not path.is_file():
+                continue
+            if path.suffix not in {".md", ".py", ".json"}:
+                continue
+            rel = path.relative_to(PLUGIN).as_posix()
+            if rel in ALLOWED:
+                continue
+            yield rel, path
+
+
+def test_no_genre_terms_outside_genre_packs():
+    offenders = []
+    for rel, path in scanned_files():
+        for lineno, line in enumerate(
+                path.read_text(encoding="utf-8").splitlines(), start=1):
+            match = LEAK_RE.search(line)
+            if match:
+                offenders.append(f"{rel}:{lineno}: {match.group(0)!r} in {line.strip()!r}")
+    assert not offenders, (
+        "genre-specific content found outside shared/genres/:\n  "
+        + "\n  ".join(offenders))
+
+
+def test_guard_actually_scans_something():
+    """A regex guard that scans zero files always passes. Prove it doesn't."""
+    assert len(list(scanned_files())) > 20
+```
+
+- [ ] **Step 2: Run the test**
+
+Run: `uv run pytest tests/test_no_genre_leak.py -v`
+Expected: PASS. If it fails, the failure message names every remaining leak with file and line — fix each one; do not add it to `ALLOWED` unless it is genuinely vocabulary guidance rather than genre content.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add tests/test_no_genre_leak.py
+git commit -m "test: guard against genre content outside genre packs"
+```
+
+---
+
+## Task 21: Migration for existing projects
+
+**Files:**
+- Modify: `plugin/autonovel/skills/novel/SKILL.md`
+
+Existing projects have no `genre` field and were scored under fantasy
+weights. Taking the `general` default silently would both mislabel them and
+break score comparability.
+
+- [ ] **Step 1: Add migration detection**
+
+Add a new step 3 to `novel/SKILL.md`, before the Report step:
+
+```markdown
+3. **Migration check.** If `state.json` has no `genre` key, this project
+   predates genre packs. Report this and offer the migration — do NOT apply
+   it silently, and do NOT default to `general`:
+
+   - Suggest `fantasy`, because that is what the project's existing scores
+     in results.tsv were produced under. Explain that picking anything else
+     changes the rubric's weights, which resets the score baseline.
+   - On the user's confirmation, add `genre`, `genre_secondary: null`, and
+     `genre_modifiers: []` to state.json, and rename the `lore_score` key to
+     `pillar_score` in place.
+   - If the project has scored history in results.tsv AND the chosen genre
+     is anything other than `fantasy`, also append a marker row:
+     `<ISO timestamp>\t<phase>\t0\t0\tgenre-change\tgenre set to <name>; score baseline reset`
+   - This skill is otherwise read-only; the migration is the one exception,
+     and only with explicit confirmation.
+```
+
+Renumber the steps that follow.
+
+- [ ] **Step 2: Document the same rule for later genre changes**
+
+Add to the end of the migration step:
+
+```markdown
+   The same marker row and baseline reset apply any time a project's genre
+   changes later, not only at migration. `novel-foundation` reads the most
+   recent `genre-change` row to decide whether the previous best score is
+   still a valid comparison.
+```
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add plugin/autonovel/skills/novel/SKILL.md
+git commit -m "feat: genre migration for pre-pack projects with baseline reset"
+```
+
+---
+
+## Task 22: Full verification
+
+**Files:** none modified — this is the acceptance gate.
+
+- [ ] **Step 1: Run the whole test suite**
+
+Run: `uv run pytest tests/ -v`
+Expected: all pass, including the five pre-existing test files
+
+- [ ] **Step 2: Validate every shipped pack**
+
+Run:
+```bash
+uv run python plugin/autonovel/shared/scripts/validate_genre_pack.py plugin/autonovel/shared/genres/*.md
+```
+Expected: `OK` for `fantasy.md` and `general.md`, and no line for `TEMPLATE.md` (it is passed by the glob, so confirm it either validates or is excluded — if the glob picks it up and it fails, exclude `TEMPLATE.md` explicitly in the command and note it in the pack authoring guide)
+
+- [ ] **Step 3: Validate the plugin**
+
+Run: `claude plugin validate plugin/autonovel`
+Expected: no errors
+
+- [ ] **Step 4: Confirm the leak guard is green**
+
+Run: `uv run pytest tests/test_no_genre_leak.py -v`
+Expected: PASS
+
+- [ ] **Step 5: Manual smoke — the bug that motivated this**
+
+The pipeline's real behavior is model-driven and cannot be unit tested. Run
+these by hand and record the results in the commit message:
+
+1. Create a scratch project, set `genre: "general"`, and run
+   `/autonovel:novel-foundation` on a contemporary premise. Confirm the
+   judge returns a `pillar` object with the general pack's four dimensions,
+   that `pillar_score` is populated, and that the gate is reachable. **This
+   is the acceptance test for the whole plan.**
+2. Take an existing fantasy project, run the migration, and run one
+   foundation iteration. Confirm the score lands within ~0.5 of its last
+   pre-change score — the lossless-port check.
+3. Set `genre_secondary` on a fantasy project and confirm `resolve_genre.py`
+   reports both packs and that a foundation judge dispatch includes both
+   paths.
+
+- [ ] **Step 6: Commit the smoke results**
+
+```bash
+git commit --allow-empty -m "chore: genre parameterization smoke test results
+
+<paste the three results here>"
+```
+
+---
+
+## Follow-on work (not in this plan)
+
+Spec phases 3 and 4 — authoring `science-fiction`, `romance`, `mystery`,
+`thriller`, `erotica`, `ya`, and `cozy`. Each is a self-contained pack file
+validated by `validate_genre_pack.py` and covered by the existing
+`test_cli_validates_all_shipped_packs` test, so they need no further
+mechanism work. `romance` and `mystery` should come first: romance has no
+world at all, and mystery is the first pack to declare an artifact, so
+together they prove the design across its widest span.

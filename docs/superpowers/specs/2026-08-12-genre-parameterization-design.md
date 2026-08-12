@@ -52,28 +52,39 @@ presented as universal.
 
 ## Pack anatomy
 
-A pack is one markdown file: `shared/genres/<name>.md`. YAML frontmatter
+A pack is one markdown file: `shared/genres/<name>.md`. A frontmatter block
 holds structured data a validator checks; prose sections hold everything a
 model reads.
 
-```yaml
+The frontmatter body is **JSON**, not YAML. The plugin's scripts are
+stdlib-only by design and Python ships no YAML parser, so the alternative
+would be hand-rolling a YAML subset — code to maintain and test for no
+benefit. JSON parses exactly, fails loudly, and gives precise error messages.
+
+```
 ---
-name: fantasy
-label: Fantasy
-role: [primary, secondary]
-pillar_label: Lore & Worldbuilding
-weights: { pillar: 40, character: 30, structure: 20, craft: 10 }
-beat_system: save-the-cat
-content_register: {}
-conflicts_with: []
-shape:
-  chapters: [22, 26]
-  words: [80000, 95000]
-  chapter_words: 3200
-  pov_default: third limited past
-artifacts: []
+{
+  "name": "fantasy",
+  "label": "Fantasy",
+  "role": ["primary", "secondary"],
+  "pillar_label": "Lore & Worldbuilding",
+  "weights": {"pillar": 40, "character": 30, "structure": 20, "craft": 10},
+  "beat_system": "save-the-cat",
+  "content_register": {},
+  "conflicts_with": [],
+  "shape": {
+    "chapters": [22, 26],
+    "words": [80000, 95000],
+    "chapter_words": 3200,
+    "pov_default": "third limited past"
+  },
+  "artifacts": []
+}
 ---
 ```
+
+Each `## Pillar Dimensions` bullet must read `- <key> — <criteria>` (em
+dash), so the validator can extract dimension keys without parsing prose.
 
 ### Frontmatter fields
 
