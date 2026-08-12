@@ -5,12 +5,17 @@ Usage:
   python3 validate_genre_pack.py path/to/fantasy.md [more...]
   python3 validate_genre_pack.py "${CLAUDE_PLUGIN_ROOT}/shared/genres/"*.md
 
+That second form is the intended way to check a whole genres/ directory, so
+TEMPLATE.md — the authoring guide, which has no frontmatter and is not a
+pack — is skipped with a printed note rather than failing the run.
+
 Exit 0 if every pack is valid; 1 otherwise, with errors on stdout.
 """
 import sys
 from pathlib import Path
 
-from genre_pack import PackError, pack_names_in, parse_pack, validate_pack
+from genre_pack import (TEMPLATE_STEM, PackError, pack_names_in, parse_pack,
+                        validate_pack)
 
 
 def main(argv):
@@ -31,6 +36,14 @@ def main(argv):
 
     failed = False
     for path in paths:
+        # The advertised glob over a genres/ directory sweeps up TEMPLATE.md,
+        # which is an authoring guide with no frontmatter and would fail
+        # every time. Skip it — but say so, so an author who meant to
+        # validate a real pack named TEMPLATE.md isn't left thinking it
+        # passed.
+        if path.stem == TEMPLATE_STEM:
+            print(f"SKIP {path} (authoring template, not a pack)")
+            continue
         try:
             pack = parse_pack(path)
         except PackError as e:

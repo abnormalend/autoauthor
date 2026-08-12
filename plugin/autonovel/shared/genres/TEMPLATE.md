@@ -116,7 +116,21 @@ Act-by-act shape. Omit this section entirely to inherit the base structure.
 
 ## Canon Categories
 
-Categories for `canon.md`, each with one example entry in the genre.
+Categories for `canon.md`. One `###` heading per category, with two or
+three example entries as bullets beneath it — each a short, falsifiable
+statement followed by its source in parentheses (`world.md`,
+`characters.md`, `outline.md`, or `ch_NN`). `novel-seed` renders each
+`###` heading here as a `##` section of the project's `canon.md` and the
+bullets as its commented-out examples, so the headings must be usable as
+section names on their own.
+
+### <Category, e.g. Geography>
+- <e.g. "Vael is 12 days' ride north of Tasren. (world.md)">
+- <e.g. "The River Kell flows south through Tasren to the sea. (ch_02)">
+
+Most genres want at least Geography, Timeline, Character Facts, Cultural,
+and Established In-Story, plus whatever the pillar needs its own category
+for (magic system rules, clues and alibis, the relationship's beats).
 
 ## Artifacts
 

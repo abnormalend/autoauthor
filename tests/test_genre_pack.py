@@ -700,3 +700,18 @@ def test_cli_validates_all_shipped_packs():
         [sys.executable, str(VALIDATE_CLI), *[str(p) for p in packs]],
         capture_output=True, text=True)
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_cli_skips_template_so_the_bare_glob_succeeds():
+    """The docstring's advertised `genres/*.md` glob picks up TEMPLATE.md,
+    which has no frontmatter. The CLI must skip it — visibly — instead of
+    failing, since that glob is how a whole genres/ directory gets checked."""
+    genres = Path(__file__).parent.parent / "plugin/autonovel/shared/genres"
+    paths = sorted(genres.glob("*.md"))
+    assert any(p.stem == "TEMPLATE" for p in paths), "TEMPLATE.md is missing"
+    result = subprocess.run(
+        [sys.executable, str(VALIDATE_CLI), *[str(p) for p in paths]],
+        capture_output=True, text=True)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "SKIP" in result.stdout
+    assert "TEMPLATE.md" in result.stdout
