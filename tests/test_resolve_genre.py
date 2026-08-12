@@ -110,6 +110,78 @@ def test_pack_must_declare_the_role_it_is_used_in(tmp_path):
     assert "does not declare role 'primary'" in result.stderr
 
 
+def test_state_json_not_an_object_is_an_error(tmp_path):
+    (tmp_path / "state.json").write_text("[1, 2, 3]", encoding="utf-8")
+    result = run(tmp_path)
+    assert result.returncode == 1
+    assert "state.json must be a JSON object" in result.stderr
+
+
+def test_duplicate_modifier_is_rejected(tmp_path):
+    # A repeated modifier means state.json is wrong, not that the author
+    # wants it twice — silently deduping would let a doubled genre string
+    # reach the book's title page at export without anyone noticing.
+    write_state(tmp_path, genre="testprimary",
+                genre_modifiers=["testmod", "testmod"])
+    write_project_pack(tmp_path, "testprimary", primary_meta("testprimary"),
+                       PRIMARY_BODY)
+    write_project_pack(
+        tmp_path, "testmod",
+        {"name": "testmod", "label": "Test Mod", "role": ["modifier"],
+         "conflicts_with": []},
+        "## Framing\n\n- comps — Someone.\n")
+    result = run(tmp_path)
+    assert result.returncode == 1
+    assert "testmod" in result.stderr
+    assert "more than once" in result.stderr
+
+
+def test_invalid_genre_name_is_rejected(tmp_path):
+    write_state(tmp_path, genre="../outside")
+    result = run(tmp_path)
+    assert result.returncode == 1
+    assert "invalid genre pack name" in result.stderr
+
+
+def test_conflict_message_lists_names_comma_joined_not_as_a_list_repr(tmp_path):
+    write_state(tmp_path, genre="testprimary",
+                genre_modifiers=["testmod", "testya"])
+    write_project_pack(tmp_path, "testprimary", primary_meta("testprimary"),
+                       PRIMARY_BODY)
+    write_project_pack(
+        tmp_path, "testmod",
+        {"name": "testmod", "label": "Test Mod", "role": ["modifier"],
+         "conflicts_with": ["testya"]},
+        "## Framing\n\n- comps — Someone.\n")
+    write_project_pack(
+        tmp_path, "testya",
+        {"name": "testya", "label": "Test YA", "role": ["modifier"],
+         "conflicts_with": []},
+        "## Framing\n\n- comps — Someone.\n")
+    result = run(tmp_path)
+    assert result.returncode == 1
+    assert "conflicts with loaded pack(s) testya" in result.stderr
+    # The old Python-list repr ("['testya']") must be gone.
+    assert "['testya']" not in result.stderr
+
+
+def test_load_pack_reports_every_error_not_just_the_first(tmp_path):
+    # A pack with several simultaneous defects must show all of them — an
+    # author with five defects should see five, not fix one and re-run to
+    # discover the next. Pins the "\n  ".join(errors) behavior in
+    # load_pack against a future "simplification" to errors[0].
+    write_state(tmp_path, genre="broken")
+    write_project_pack(
+        tmp_path, "broken",
+        {"name": "broken", "label": "", "role": ["primary"]},
+        "## Drafting Rules\n\n25. Nothing else here.\n")
+    result = run(tmp_path)
+    assert result.returncode == 1
+    assert "frontmatter 'label' must be a non-empty string" in result.stderr
+    assert "frontmatter 'pillar_label' is required" in result.stderr
+    assert "'## Framing'" in result.stderr
+
+
 SECONDARY_META = {
     "name": "testsecond", "label": "Test Second",
     "role": ["primary", "secondary"], "pillar_label": "Second Pillar",

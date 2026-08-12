@@ -1166,7 +1166,92 @@ def test_pack_must_declare_the_role_it_is_used_in(tmp_path):
     result = run(tmp_path)
     assert result.returncode == 1
     assert "does not declare role 'primary'" in result.stderr
+
+
+def test_state_json_not_an_object_is_an_error(tmp_path):
+    (tmp_path / "state.json").write_text("[1, 2, 3]", encoding="utf-8")
+    result = run(tmp_path)
+    assert result.returncode == 1
+    assert "state.json must be a JSON object" in result.stderr
+
+
+def test_duplicate_modifier_is_rejected(tmp_path):
+    # A repeated modifier means state.json is wrong, not that the author
+    # wants it twice — silently deduping would let a doubled genre string
+    # reach the book's title page at export without anyone noticing.
+    write_state(tmp_path, genre="testprimary",
+                genre_modifiers=["testmod", "testmod"])
+    write_project_pack(tmp_path, "testprimary", primary_meta("testprimary"),
+                       PRIMARY_BODY)
+    write_project_pack(
+        tmp_path, "testmod",
+        {"name": "testmod", "label": "Test Mod", "role": ["modifier"],
+         "conflicts_with": []},
+        "## Framing\n\n- comps — Someone.\n")
+    result = run(tmp_path)
+    assert result.returncode == 1
+    assert "testmod" in result.stderr
+    assert "more than once" in result.stderr
+
+
+def test_invalid_genre_name_is_rejected(tmp_path):
+    write_state(tmp_path, genre="../outside")
+    result = run(tmp_path)
+    assert result.returncode == 1
+    assert "invalid genre pack name" in result.stderr
+
+
+def test_conflict_message_lists_names_comma_joined_not_as_a_list_repr(tmp_path):
+    write_state(tmp_path, genre="testprimary",
+                genre_modifiers=["testmod", "testya"])
+    write_project_pack(tmp_path, "testprimary", primary_meta("testprimary"),
+                       PRIMARY_BODY)
+    write_project_pack(
+        tmp_path, "testmod",
+        {"name": "testmod", "label": "Test Mod", "role": ["modifier"],
+         "conflicts_with": ["testya"]},
+        "## Framing\n\n- comps — Someone.\n")
+    write_project_pack(
+        tmp_path, "testya",
+        {"name": "testya", "label": "Test YA", "role": ["modifier"],
+         "conflicts_with": []},
+        "## Framing\n\n- comps — Someone.\n")
+    result = run(tmp_path)
+    assert result.returncode == 1
+    assert "conflicts with loaded pack(s) testya" in result.stderr
+    # The old Python-list repr ("['testya']") must be gone.
+    assert "['testya']" not in result.stderr
+
+
+def test_load_pack_reports_every_error_not_just_the_first(tmp_path):
+    # A pack with several simultaneous defects must show all of them — an
+    # author with five defects should see five, not fix one and re-run to
+    # discover the next. Pins the "\n  ".join(errors) behavior in
+    # load_pack against a future "simplification" to errors[0].
+    write_state(tmp_path, genre="broken")
+    write_project_pack(
+        tmp_path, "broken",
+        {"name": "broken", "label": "", "role": ["primary"]},
+        "## Drafting Rules\n\n25. Nothing else here.\n")
+    result = run(tmp_path)
+    assert result.returncode == 1
+    assert "frontmatter 'label' must be a non-empty string" in result.stderr
+    assert "frontmatter 'pillar_label' is required" in result.stderr
+    assert "'## Framing'" in result.stderr
 ```
+
+Note: a quality-review pass on this task's first draft found four gaps a
+novelist could actually hit: a non-object `state.json` (e.g. a JSON array)
+crashed with a raw `AttributeError` instead of a message; a duplicate name
+in `genre_modifiers` silently loaded the pack twice, doubling it in the
+merged label; a genre name containing a path separator (e.g. `../outside`)
+escaped the `genres/` lookup instead of being rejected as malformed; and
+the conflict-rejection message rendered Python's list repr
+(`['testya']`) instead of the comma-joined style established in Tasks
+1-2. The corrected resolver below fixes all four; the five tests above
+(state-not-an-object, duplicate-modifier, invalid-name, comma-joined
+message, and a pin for the existing multi-error-surfacing behavor) are
+the tests that would have caught them.
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
@@ -1194,13 +1279,22 @@ or conflict error.
 """
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
-from genre_pack import PackError, parse_pack, validate_pack
+from genre_pack import PackError, _names, parse_pack, validate_pack
 
 DEFAULT_GENRE = "general"
 PLUGIN_GENRES = Path(__file__).resolve().parent.parent / "genres"
+
+# A pack name is a bare filename stem: lowercase letters, digits, and
+# hyphens. Rejecting anything else before it reaches a path join stops a
+# name like "../outside" from escaping the genres/ directory it's looked up
+# in, and turns a state.json typo into a clear message instead of a
+# baffling "unknown genre pack" for a name that was never a real attempt at
+# one.
+NAME_RE = re.compile(r"[a-z0-9][a-z0-9-]*")
 
 
 def fail(message):
@@ -1214,9 +1308,13 @@ def load_state(project):
         fail(f"no state.json in {project} — run this from a novel project "
              "directory")
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        state = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as e:
         fail(f"state.json is not valid JSON: {e}")
+    if not isinstance(state, dict):
+        fail(f"state.json must be a JSON object, got a JSON "
+             f"{type(state).__name__}")
+    return state
 
 
 def known_names(project):
@@ -1227,6 +1325,9 @@ def known_names(project):
 
 
 def find_pack(project, name):
+    if not NAME_RE.fullmatch(name or ""):
+        fail(f"invalid genre pack name {name!r}; use lowercase letters, "
+             "digits, and hyphens only")
     for candidate in (project / "genres" / f"{name}.md",
                       PLUGIN_GENRES / f"{name}.md"):
         if candidate.exists():
@@ -1260,7 +1361,16 @@ def resolve(project):
     if state.get("genre_secondary"):
         packs.append(load_pack(project, state["genre_secondary"],
                                "secondary", names))
-    for modifier in state.get("genre_modifiers") or []:
+
+    modifiers = state.get("genre_modifiers") or []
+    # A repeated modifier means state.json is wrong, not that the author
+    # wants it applied twice — silently deduping would let a doubled genre
+    # string reach the merged label (and the book's title page at export)
+    # without anyone noticing.
+    dupes = sorted({m for m in modifiers if modifiers.count(m) > 1})
+    if dupes:
+        fail(f"genre_modifiers lists {_names(dupes)} more than once")
+    for modifier in modifiers:
         packs.append(load_pack(project, modifier, "modifier", names))
 
     check_conflicts(packs)
@@ -1274,7 +1384,8 @@ def check_conflicts(packs):
         clashes = sorted(
             set(pack["meta"].get("conflicts_with") or []) & loaded)
         if clashes:
-            fail(f"pack {name!r} conflicts with loaded pack(s) {clashes}")
+            fail(f"pack {name!r} conflicts with loaded pack(s) "
+                 f"{_names(clashes)}")
 
 
 def merge(packs):
@@ -1323,7 +1434,7 @@ if __name__ == "__main__":
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `uv run pytest tests/test_resolve_genre.py -v`
-Expected: 4 passed, 2 failed. The two that resolve `general` and `fantasy` from the plugin fail until Tasks 7 and 8 write those packs.
+Expected: 9 passed, 2 failed. The two that resolve `general` and `fantasy` from the plugin fail until Tasks 7 and 8 write those packs.
 
 - [ ] **Step 5: Commit**
 
@@ -1372,6 +1483,15 @@ def setup_stack(tmp_path):
                        PRIMARY_BODY)
     write_project_pack(tmp_path, "testsecond", SECONDARY_META, PRIMARY_BODY)
     write_project_pack(tmp_path, "testmod", MODIFIER_META, MODIFIER_BODY)
+    # testmod's conflicts_with names "testya", which must resolve to a real
+    # pack for validate_pack's conflicts_with check to pass (Task 2). It is
+    # deliberately not in genre_modifiers above, so it's known but not
+    # loaded — no conflict fires. test_conflicting_modifiers_are_rejected
+    # below is the scenario where it IS loaded and the conflict fires.
+    write_project_pack(tmp_path, "testya",
+                       {"name": "testya", "label": "Test YA",
+                        "role": ["modifier"], "conflicts_with": []},
+                       MODIFIER_BODY)
 
 
 def test_primary_owns_weights_and_shape(tmp_path):
@@ -1437,11 +1557,15 @@ def test_check_flag_prints_nothing_on_success(tmp_path):
 - [ ] **Step 2: Run the tests**
 
 Run: `uv run pytest tests/test_resolve_genre.py -v`
-Expected: the seven new tests pass; the two plugin-pack tests still fail pending Tasks 7–8.
+Expected: the seven new tests pass (16 total including Task 4's, once its five
+additional error-handling tests are in place); the two plugin-pack tests
+still fail pending Tasks 7–8.
 
 - [ ] **Step 3: Fix any merge bugs the tests expose**
 
 If `test_artifacts_union_excludes_modifier_contributions` fails, check the `pack["used_as"] != "modifier"` guard in `merge()`. If `test_conflicting_modifiers_are_rejected` fails, check that `check_conflicts` compares against every loaded name, not just the primary.
+
+Without the `testya.md` fixture added to `setup_stack` above, every test built on it fails validation instead — `MODIFIER_META`'s `conflicts_with: ["testya"]` needs a real, known pack to resolve against (Task 2's `validate_pack` rejects an unknown `conflicts_with` name), even though `testya` is never loaded via `genre_modifiers` in `setup_stack`'s scenario. Known-but-unloaded is the point: it lets `test_conflicting_modifiers_are_rejected` below be the one test that actually loads it and proves the rejection.
 
 - [ ] **Step 4: Commit**
 
