@@ -7,6 +7,21 @@ exactly these expectations.
 
 ---
 
+## Genre packs
+
+Before filling any layer, run the resolver from the project directory:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py"
+```
+
+Read every pack path it reports. The packs define this novel's world
+sections, cast requirements, plot architecture, canon categories, book
+shape, and any extra artifacts. Where a section below says "from the pack,"
+the pack's content governs and this guide only states the standard of depth.
+
+---
+
 ## world.md
 
 Build a complete world bible. This is the definitive reference for
@@ -15,67 +30,23 @@ resolve any worldbuilding question from this document alone.
 
 Ground every choice in the seed concept and the discovered voice
 (voice.md Part 2, filled first) — this document must feel like it
-belongs to THIS story, not a generic fantasy setting.
+belongs to THIS story, not a generic setting for its genre.
 
-CRAFT REQUIREMENTS (from CRAFT.md — follow these):
-- Magic system needs HARD RULES with COSTS and LIMITATIONS per
-  Sanderson's Second Law
-- Limitations >= powers in narrative prominence
-- Trace implications of magic through society, economy, law, religion
-- At least 2-3 societal implications of magic explored in depth
-- History must create PRESENT-DAY TENSIONS that drive the plot (not
-  just backdrop)
-- Geography must be specific and sensory (not generic fantasy)
-- Iceberg principle: imply more than you state
-- Interconnection: pulling one thread should move everything
+CRAFT REQUIREMENTS:
+- Whatever central system the pack's pillar dimensions govern must meet the
+  rigor those dimensions demand — read them before writing.
+- Trace the system's implications through society, economy, law, religion.
+- At least 2-3 societal implications explored in depth.
+- History must create PRESENT-DAY TENSIONS that drive the plot, not just
+  backdrop.
+- Geography must be specific and sensory, not generic for the genre.
+- Iceberg principle: imply more than you state.
+- Interconnection: pulling one thread should move everything.
 
-STRUCTURE THE DOCUMENT WITH THESE SECTIONS:
-
-### Cosmology & History
-A timeline of major events. Focus on events that create PRESENT-DAY
-tensions. Include the founding myth, key turning points, and recent
-events that matter to the plot.
-
-### Magic System
-
-#### Hard Rules
-Specific, testable rules. Name the magic system what the seed calls
-it (or coin a name consistent with the seed's world if it doesn't
-name one). What actions or elements do what. What binds or breaks.
-What happens when you break the rules. Include COSTS and LIMITATIONS
-prominently.
-
-#### Soft Magic / The Protagonist's Exception
-What the protagonist perceives or does that others can't, how it
-works, and what it costs THEM specifically. This should be mysterious
-but have consistent internal logic.
-
-#### Societal Implications
-How does the magic system shape: governance, commerce, education,
-class structure, crime, family life, childhood, aging, disability?
-
-### Geography
-The primary setting's physical layout and its distinctive physical
-property (whatever the seed implies — an acoustic quirk, a tidal
-pattern, a vertical city, whatever the world's differentiator is).
-Neighboring places (at least 2-3). Sensory signatures for each
-location.
-
-### Factions & Politics
-Who holds power, who wants it, who's being crushed by it. At least
-3-4 factions with opposing interests.
-
-### Bestiary / Flora / Natural World
-What's unique about the natural world in and around the primary
-setting?
-
-### Cultural Details
-Customs, taboos, festivals, food, clothing, coming-of-age rituals.
-Things that make daily life feel SPECIFIC.
-
-### Internal Consistency Rules
-Hard constraints a writer must not violate. The physics that govern
-the world's speculative element. What's possible and what's not.
+STRUCTURE THE DOCUMENT WITH THE SECTIONS LISTED IN THE PACK'S
+`## World Sections`, in that order. For each, be specific: named, sensory,
+and consequential. Every rule gets a COST or LIMITATION stated alongside it.
+Include 2-3 unexplained-but-intriguing facts per section for iceberg depth.
 
 IMPORTANT:
 - Be SPECIFIC. Not "the city has districts" but name them, describe
@@ -83,15 +54,16 @@ IMPORTANT:
 - Every rule should have a COST or LIMITATION stated alongside it.
 - Include 2-3 facts per section that are unexplained, hinting at
   deeper systems (iceberg depth).
-- Facts should INTERCONNECT: the magic should shape the politics, the
-  geography should shape the culture, the history should explain
-  current faction conflicts.
+- Facts should INTERCONNECT: the world's central system should shape
+  the politics, the geography should shape the culture, the history
+  should explain current faction conflicts.
 - Write in clean, direct prose. No AI slop. No "rich tapestry." No
   "delving."
 - The world should feel grounded and LIVED-IN, not imagined. Think:
   what does breakfast smell like? What do children play? How do old
   people complain?
-- Target ~3000-4000 words. Dense, not padded.
+- Target the word count the pack's shape implies for a world bible —
+  dense, not padded, roughly 3-4% of the novel's target length.
 
 ---
 
@@ -134,41 +106,9 @@ domains must not overlap between characters. Speech patterns must
 reflect background (a teenager should not sound like an elderly
 merchant).
 
-BUILD THE REGISTRY WITH ROLES THE STORY NEEDS. At minimum:
-
-1. **The protagonist / POV character** — derived from the seed.
-   - Full wound/want/need/lie chain
-   - Three sliders with justification
-   - Arc type (positive/negative/flat)
-   - Detailed speech pattern (8 dimensions, with example lines)
-   - Physical habits and tells connected to their specific
-     circumstances (their gift, their trade, their wound)
-   - At least 2 secrets
-   - Key relationships mapped
-
-2. **Close family or household members implicated in the central
-   secret** — whoever the seed's premise puts closest to the
-   protagonist and the mystery. Same depth as the protagonist. What
-   they know and what they're hiding.
-
-3. **A character who is absent for much of the story but whose fate
-   drives the plot** (if the seed implies one) — needs full depth
-   even though off-page. Their presence through absence.
-
-4. **An antagonist** — not a villain. Someone whose interests conflict
-   with the protagonist's. Their own wound/want/need/lie chain; they
-   should be understandable, not eviI-for-evil's-sake.
-
-5. **An institutional antagonist**, if the seed's world has an
-   institution with power over the protagonist — the system
-   personified. They believe they're protecting something legitimate.
-
-6. **An outsider perspective** on the protagonist's world or system,
-   representing something thematically load-bearing.
-
-7. **At least 1-2 additional characters** the story needs — a peer or
-   friend, someone connected to the absent character, an ally with
-   divided loyalties. Whatever specific gaps the seed's plot leaves.
+BUILD THE REGISTRY WITH THE ROLES LISTED IN THE PACK'S
+`## Cast Requirements`, at the depth each entry specifies. Add any further
+characters the seed's plot demands.
 
 FOR EACH CHARACTER INCLUDE:
 - Name, age, role
@@ -201,8 +141,9 @@ IMPORTANT:
 
 ## outline.md part 1
 
-Build a complete chapter outline. Target: 22-26 chapters, ~80,000
-words total (~3,000-4,000 words per chapter). Draw on world.md,
+Build a complete chapter outline. Use the chapter count, total word
+count, and per-chapter target from the resolved pack's `shape`. Draw on
+world.md,
 characters.md, the discovered voice (voice.md Part 2), and the
 central mystery (MYSTERY.md) — all filled first — as available
 inputs; the outline is the layer that turns them into a sequence of
@@ -220,8 +161,9 @@ For EACH chapter, provide:
 - **POV:** which character, and narrative mode (third limited, first,
   etc. — must match voice.md Part 2)
 - **Location:** where the chapter is set
-- **Save the Cat beat:** which beat this chapter serves (Opening
-  Image, Setup, Catalyst, etc.)
+- **Beat:** which beat this chapter serves, in the vocabulary of the
+  pack's `beat_system` (for `save-the-cat`: Opening Image, Setup,
+  Catalyst, etc.)
 - **% mark:** where this falls in the novel
 - **Emotional arc:** starting emotion -> ending emotion
 - **Try-fail cycle:** Yes-but / No-and / No-but / Yes-and
@@ -239,36 +181,15 @@ Identify the MICE threads at work (Milieu / Inquiry / Character /
 Event) and note which chapters open and close each one. Nest them —
 plan them to close in the reverse order they opened.
 
-KEY PLOT ARCHITECTURE (adapt the exact chapter numbers to the seed,
-these are proportional guideposts across a 22-26 chapter novel):
-
-- **Act I** (roughly the first quarter): establish the protagonist's
-  world, their wound, their gift/skill, their institution, their
-  family. Plant the central mystery early. Catalyst: something forces
-  the protagonist to investigate.
-- **Act II Part 1** (roughly 23-50%): investigation. The protagonist
-  digs into the inciting secret, encounters the antagonist, allies
-  with supporting characters, sharpens their skill. Midpoint: the
-  protagonist learns a partial truth that changes their approach
-  (false victory or false defeat).
-- **Act II Part 2** (roughly 50-77%): pressure mounts. The antagonist
-  moves against the protagonist's circle. Hidden truths begin to
-  surface. The protagonist's lie is increasingly unsustainable. All
-  Is Lost: the protagonist confronts the person closest to the secret
-  and learns the full truth.
-- **Act III** (roughly 77-100%): the protagonist understands the real
-  question and must choose how to answer it. The climax must be
-  mechanically resolvable using rules already established in world.md
-  — no new powers invented at the last minute. The resolution shows
-  the aftermath of the protagonist's choice.
+KEY PLOT ARCHITECTURE: follow the pack's `## Plot Architecture` if it
+declares one. If it does not, use the base act structure from CRAFT.md:
+Act I 0-23%, Act II 23-77%, Act III 77-100%, with Save the Cat beats at
+their stated percentage marks.
 
 CONSTRAINTS:
 - The climax must be mechanically resolvable using established world
   rules — a reader should be able to see, in hindsight, that the
   pieces were already on the board.
-- The investigation should feel like a mystery plot overlaid on
-  whatever the protagonist's personal arc is (coming-of-age, redemption,
-  etc.).
 - The Stability Trap: bad things must stay bad. Not everything
   resolves cleanly.
 - Any character established as "absent but plot-critical" must appear
@@ -329,7 +250,9 @@ During foundation, the agent must DISCOVER the voice for this novel:
 5. Fill in voice.md Part 2 with the discovered voice
 
 The voice should feel like it BELONGS in the world (Le Guin's insight:
-in fantasy, the language creates the world, not just describes it).
+the language creates the world, it does not merely describe it). Where a
+loaded pack states its own voice or register expectations, honor them —
+the pack governs, this guide only sets the standard of rigor.
 
 After filling voice.md Part 2, also write `voice_wells.json` in the
 project root:
@@ -369,8 +292,8 @@ characters in the prose; it is not stated explicitly until the reveal.
 
 Extract EVERY hard fact from the other layers into a structured canon
 database. A "hard fact" is anything a writer must not contradict:
-names, ages, dates, physical descriptions, rules of the magic system,
-geography, relationships, established events.
+names, ages, dates, physical descriptions, the rules of whatever central
+system the world runs on, geography, relationships, established events.
 
 SOURCE DOCUMENTS: seed.txt, world.md, characters.md (and outline.md
 once it exists — re-run this extraction whenever any layer changes).
@@ -382,31 +305,10 @@ exist in veiled form in world.md or characters.md (state what is
 observably true without revealing why); cite that visible source. The
 full secret stays in MYSTERY.md, author-eyes-only.
 
-FORMAT THE OUTPUT AS canon.md WITH THESE CATEGORIES:
-
-### Geography
-Specific facts about locations, distances, physical properties.
-
-### Timeline
-Dated events, ages, durations.
-
-### Magic System Rules
-Hard rules of the magic system (mechanisms, costs, limitations). The
-protagonist's specific exception/gift.
-
-### Character Facts
-Ages, physical descriptions, habits, relationships. One entry per
-fact (not paragraphs).
-
-### Political / Factional
-Who controls what, alliances, conflicts, contracts.
-
-### Cultural
-Customs, taboos, laws, festivals, food, clothing.
-
-### Established In-Story
-Events that have already happened in the story's past — the origin
-of the central secret, precipitating incidents, prior conflicts.
+FORMAT THE OUTPUT AS canon.md WITH THE CATEGORIES LISTED IN THE PACK'S
+`## Canon Categories`, using its example entries as the model for
+granularity and sourcing. Every category the pack lists gets a heading,
+even if thin on the first pass.
 
 RULES:
 - One fact per bullet point. Short. Specific. Checkable.
@@ -419,3 +321,21 @@ RULES:
   discrepancy instead of silently picking one — that's a contradiction
   for the next iteration to resolve.
 - DO NOT invent facts. Only record what's explicitly stated.
+
+---
+
+## Genre artifacts
+
+If the resolved pack declares `artifacts`, create and fill each one
+following the pack's `## Artifacts` section. Fill them after canon.md, and
+re-check them whenever the layer they draw on changes. They are scored:
+the pack's pillar dimensions reference them.
+
+---
+
+## Genre contract
+
+Before exiting foundation, read every loaded pack's `## Genre Contract` and
+confirm the OUTLINE satisfies each promise. A plan that cannot keep the
+contract is a plan to write the wrong book — fix the outline, not the
+contract.
