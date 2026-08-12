@@ -734,3 +734,42 @@ def test_cli_skips_template_so_the_bare_glob_succeeds():
     assert result.returncode == 0, result.stdout + result.stderr
     assert "SKIP" in result.stdout
     assert "TEMPLATE.md" in result.stdout
+
+
+# --- shape is required on primaries ---------------------------------------
+# layer-guides.md and drafting-rules.md read their chapter and word targets
+# from `shape`. A primary without it leaves those instructions pointing at
+# nothing, so the validator must catch it at authoring time.
+
+def test_primary_requires_shape(tmp_path):
+    meta = {k: v for k, v in VALID_PRIMARY_META.items() if k != "shape"}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("'shape' is required for primary packs" in e for e in errors)
+
+
+def test_primary_requires_each_shape_key(tmp_path):
+    meta = {**VALID_PRIMARY_META, "shape": {"chapters": [22, 26]}}
+    errors = validate(tmp_path, "testgenre", meta)
+    for key in ("words", "chapter_words", "pov_default"):
+        assert any(f"shape.{key} is required" in e for e in errors), key
+
+
+def test_chapter_words_must_be_a_positive_integer(tmp_path):
+    meta = {**VALID_PRIMARY_META,
+            "shape": {**VALID_PRIMARY_META["shape"], "chapter_words": 0}}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("chapter_words must be a positive integer" in e for e in errors)
+
+
+def test_pov_default_must_be_non_empty(tmp_path):
+    meta = {**VALID_PRIMARY_META,
+            "shape": {**VALID_PRIMARY_META["shape"], "pov_default": "  "}}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("pov_default must be a non-empty string" in e for e in errors)
+
+
+def test_modifier_still_needs_no_shape(tmp_path):
+    meta = {"name": "testmod", "label": "Test Mod", "role": ["modifier"],
+            "conflicts_with": []}
+    body = "## Framing\n\n- comps — Someone.\n"
+    assert validate(tmp_path, "testmod", meta, body=body) == []

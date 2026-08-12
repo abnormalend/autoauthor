@@ -186,6 +186,10 @@ SECONDARY_META = {
     "name": "testsecond", "label": "Test Second",
     "role": ["primary", "secondary"], "pillar_label": "Second Pillar",
     "weights": {"pillar": 20, "character": 40, "structure": 25, "craft": 15},
+    # Declares "primary", so it must carry a usable `shape` even though these
+    # tests only ever load it in the secondary slot.
+    "shape": {"chapters": [18, 24], "words": [70000, 85000],
+              "chapter_words": 3000, "pov_default": "first person present"},
     "conflicts_with": [], "artifacts": ["second_ledger.md"],
 }
 

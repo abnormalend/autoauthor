@@ -300,7 +300,7 @@ def validate_pack(pack, known_names=None):
                 f"frontmatter 'conflicts_with' names unknown pack(s) "
                 f"{format_names(unknown)}; known packs: {format_names(sorted(known_names))}")
 
-    errors.extend(_validate_shape(meta.get("shape")))
+    errors.extend(_validate_shape(meta.get("shape"), required=is_primary))
 
     # meta.get("artifacts", []) rather than `or []` — an explicit
     # "artifacts": null must fail loudly the same way conflicts_with does,
@@ -401,12 +401,37 @@ def _validate_dimensions(dimensions, malformed_dimensions, has_section):
     return errors
 
 
-def _validate_shape(shape):
+def _validate_shape(shape, required=False):
+    """Validate a pack's `shape`.
+
+    Required on primaries: layer-guides.md tells the outliner to take its
+    chapter count and word targets from `shape`, and drafting-rules.md
+    takes its per-chapter target from `shape.chapter_words`. A primary
+    without `shape` leaves both instructions pointing at nothing, so this
+    fails at authoring time rather than mid-draft.
+    """
     if shape is None:
+        if required:
+            return ["frontmatter 'shape' is required for primary packs "
+                    "(chapters, words, chapter_words, pov_default) — the "
+                    "outline and drafting steps read their targets from it"]
         return []
     if not isinstance(shape, dict):
         return ["'shape' must be a JSON object"]
     errors = []
+    if required:
+        for key in ("chapters", "words", "chapter_words", "pov_default"):
+            if key not in shape:
+                errors.append(f"shape.{key} is required for primary packs")
+    if "chapter_words" in shape and not (
+            isinstance(shape["chapter_words"], int)
+            and not isinstance(shape["chapter_words"], bool)
+            and shape["chapter_words"] > 0):
+        errors.append("shape.chapter_words must be a positive integer")
+    if "pov_default" in shape and not (
+            isinstance(shape.get("pov_default"), str)
+            and shape["pov_default"].strip()):
+        errors.append("shape.pov_default must be a non-empty string")
     for key in ("chapters", "words"):
         rng = shape.get(key)
         if rng is None:

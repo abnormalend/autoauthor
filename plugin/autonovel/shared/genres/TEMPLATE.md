@@ -110,6 +110,11 @@ with a letter or digit — `cozy-mystery`, not `Cozy_Mystery` — and must
 match the filename stem exactly. Both rules are enforced, so rename the
 file and the `name` field together.
 
+`shape` is required on a primary and must carry all four keys — the
+outline step reads `chapters` and `words`, and the drafting step reads
+`chapter_words`, so a primary without them leaves those instructions
+pointing at nothing. A modifier needs no `shape` at all.
+
 `weights` must be integers summing to 100. The four categories it
 divides are:
 
