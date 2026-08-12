@@ -6,7 +6,7 @@ description: Use when a novel project is in the foundation phase, or the user as
 # Novel Foundation — Phase 1
 
 Builds the five planning layers and iterates until
-`foundation_score > 7.5 AND lore_score > 7.0`. No prose chapters are
+`foundation_score > 7.5 AND pillar_score > 7.0`. No prose chapters are
 written in this phase. Typical runs take 5–15 iterations.
 
 ## Setup
@@ -16,15 +16,28 @@ written in this phase. Typical runs take 5–15 iterations.
    (if dirty, STOP and ask the user before touching anything). Confirm
    `state.json` phase is `foundation` — if it's later, ask before
    re-running foundation. Use absolute paths everywhere.
-2. Required reading, in full, before writing anything:
+2. **Resolve the genre.** Run from the project directory:
+
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py"
+   ```
+
+   If it exits non-zero, STOP and report — an unresolvable or conflicting
+   genre stack must be fixed before any layer work. Keep the reported pack
+   paths; every judge dispatch below needs them. If `state.json` has no
+   `genre` field at all, STOP and run the migration in `novel/SKILL.md`
+   first.
+3. Required reading, in full, before writing anything:
    - `"${CLAUDE_PLUGIN_ROOT}/shared/craft/CRAFT.md"`
    - `"${CLAUDE_PLUGIN_ROOT}/shared/craft/ANTI-SLOP.md"`
    - the project's `voice.md` Part 1 (guardrails)
    - `references/layer-guides.md` (in this skill's directory)
+   - every genre pack path reported by
+     `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py"`
    - the project's `seed.txt` if present; otherwise derive the premise
      from whatever layer docs already exist (imported or hand-built
      projects are valid — never require seed.txt).
-3. If `chapters/` already contains prose (imported project), the
+4. If `chapters/` already contains prose (imported project), the
    manuscript is ground truth: layer revisions during iteration must
    document and deepen what the prose establishes — never contradict
    it. Cite chapters as `(ch_NN)` in canon entries you add.
@@ -54,10 +67,11 @@ chapters untouched).
 1. **Evaluate.** Dispatch a fresh judge subagent (general-purpose,
    no drafting context) with exactly this prompt shape:
    "Read the rubric at `<absolute plugin path>/shared/rubrics/foundation.md`
-   and follow it exactly. The project directory is `<absolute project
-   path>`. The input files are: voice.md, world.md, characters.md,
-   outline.md, canon.md (all in the project directory). Return ONLY the
-   JSON object the rubric specifies."
+   and the genre pack(s) at `<resolved pack paths, primary first, each
+   labeled with its role>`, and follow the rubric exactly. The project
+   directory is `<absolute project path>`. The input files are: voice.md,
+   world.md, characters.md, outline.md, canon.md (all in the project
+   directory). Return ONLY the JSON object the rubric specifies."
    Save the returned JSON verbatim to
    `eval_logs/<UTC yyyymmdd_hhmmss>_foundation.json`.
    Fence-wrapped but otherwise valid JSON is VALID — strip the fences,
@@ -66,24 +80,32 @@ chapters untouched).
    reminder; if still invalid, log the iteration as unscored in
    results.tsv (`keep_discard=noscore`) and continue.
    The results.tsv score column takes `overall_score`; put
-   `lore_score` in the description (e.g. `iter N: <dimension> (lore
-   <lore_score>)`).
-2. **Gate check.** `overall_score > 7.5` AND `lore_score > 7.0` → exit
+   `pillar_score` in the description (e.g. `iter N: <dimension> (pillar
+   <pillar_score>)`).
+2. **Gate check.** `overall_score > 7.5` AND `pillar_score > 7.0` → exit
    the loop.
 3. **Target the weakest dimension.** The eval names `weakest_dimension`
    and `top_3_improvements`. Revise THAT layer's document. While
    revising, run the cross-layer consistency checks: the outline
-   references only lore that exists in world.md; character abilities
-   match the magic rules; the foreshadowing ledger balances (every
-   plant has a payoff); canon.md captures all new facts.
+   references only lore that exists in world.md; character capabilities
+   match the rules the pack's pillar dimensions govern; every genre
+   artifact the pack declares is filled and current; the foreshadowing
+   ledger balances (every plant has a payoff); canon.md captures all new
+   facts.
 4. **Keep/discard.** Score improved over the best previous score (or
    first scored iteration) → `git add -A && git commit -m "foundation
    iter <N>: <weakest_dimension> (<score>)"`. After every KEPT
-   iteration, update `foundation_score`, `lore_score`, and `iteration:
+   iteration, update `foundation_score`, `pillar_score`, and `iteration:
    <N>` in state.json to the new best values (this is what makes the
    run resumable — the router reads `iteration`). A
    resuming session takes "best previous score" from state.json,
-   cross-checking the last `keep` row in results.tsv. Score regressed
+   cross-checking the last `keep` row in results.tsv.
+   If the project's genre changed since the last scored iteration (compare
+   `genre`/`genre_secondary`/`genre_modifiers` against the most recent
+   `genre-change` marker row in results.tsv), do NOT compare against the old
+   best score — the weights differ, so the numbers are not comparable.
+   Treat the next scored iteration as the first one.
+   Score regressed
    → discard with `git reset --hard HEAD` (resets tracked files,
    staged and unstaged, back to the last kept iteration; untracked
    files like the new eval log survive, which is what we want — the
@@ -108,11 +130,15 @@ something safer.
 Do not exit while outline.md still contains a `TO BE OUTLINED`
 marker — the outline pass must complete first, regardless of scores.
 
+Do not exit while any loaded pack's `## Genre Contract` is unsatisfiable by
+the outline — the judge reports these under `genre_contract.violations`.
+Fix the outline first.
+
 Set state.json: `chapters_total: <chapter count from outline.md>`,
 `iteration: 0`, and record the final scores. Set `phase`: if every
 outlined chapter already exists in `chapters/` (imported finished
 manuscript), set `"revision"`; otherwise set `"drafting"`. Commit
-`foundation complete: <overall>/<lore>`. Send a Pushover notification
+`foundation complete: <overall>/<pillar>`. Send a Pushover notification
 (pushover skill): title "autonovel: foundation", message with final
 scores, iterations used, and next step `/autonovel:novel-draft` (or
 `/autonovel:novel-revise` when exiting to revision). Then report the
