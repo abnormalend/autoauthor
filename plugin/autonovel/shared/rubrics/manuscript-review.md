@@ -11,11 +11,20 @@ empty, return exactly:
 {"error": "manuscript.md missing — the invoking skill must build it first"}
 and nothing else.
 
+GENRE PACKS: the dispatching prompt gives you the absolute path of one
+primary genre pack and, optionally, a secondary pack and modifier packs.
+Read them. Use each pack's `## Framing` values wherever this rubric refers
+to the genre, the pillar, or comparable authors.
+
 Read the novel in manuscript.md (the input file above). Review it first as a literary critic (like a
 newspaper book review, including a star rating out of five) and then as
 a professor of fiction. In the later review, give specific, actionable
 suggestions for any defects you find, as a NUMBERED list. Be fair but
 honest. You don't *have* to find defects.
+
+Before the two reviews, check every loaded pack's `## Genre Contract`
+against the manuscript. Report any breach as the first numbered item in the
+professor's review, tagged `[severity: major]`.
 
 For each numbered item in the professor's review, end the item with a
 bracketed tag line in exactly this format so the review can be parsed:

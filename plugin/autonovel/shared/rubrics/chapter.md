@@ -25,6 +25,11 @@ previous-chapter read, treat the PREVIOUS CHAPTER section below as
 coherence and the effectiveness of the opening instead of cross-chapter
 flow.
 
+GENRE PACKS: the dispatching prompt gives you the absolute path of one
+primary genre pack and, optionally, a secondary pack and modifier packs.
+Read them. Use each pack's `## Framing` values wherever this rubric refers
+to the genre, the pillar, or comparable authors.
+
 OUTPUT: Return ONLY a single JSON object matching the schema at the end
 of this rubric. No markdown fences, no preamble, no commentary.
 
@@ -33,10 +38,11 @@ to compensate for it -- score the prose on its merits.
 
 ---
 
-Evaluate this fantasy novel chapter against the planning docs.
+Evaluate this chapter against the planning docs. The primary pack's
+genre_noun names the genre.
 
 SCORING CALIBRATION:
-  9-10: Among the best chapters you've read in published fantasy. Name
+  9-10: Among the best chapters you've read in the pack's genre. Name
         a specific published chapter it competes with, or don't give 9+.
   7-8:  Strong, publishable with editorial polish. Specific flaws exist
         but don't break the reading experience.
@@ -111,8 +117,8 @@ Score these dimensions:
 - voice_adherence: Does the prose match voice.md Part 2? Check: sentence
   rhythm variation, vocabulary wells, body-before-emotion principle,
   the specific tone described. Quote the strongest voice moment AND
-  the weakest. Does ANY passage sound like generic fantasy prose that
-  could appear in any novel? If yes, score 7 max.
+  the weakest. Does ANY passage sound like generic genre prose that
+  could appear in any novel of this kind? If yes, score 7 max.
 
 - beat_coverage: Did it hit every beat from the outline? Were beats
   dramatized or merely mentioned? A beat that's summarized in a sentence
@@ -144,10 +150,12 @@ Score these dimensions:
 
 - canon_compliance: Check ALL facts against canon. List violations.
   One major violation caps score at 6. Check: character names, locations,
-  magic system rules, timeline, established events, physical descriptions.
+  the pillar system's rules, timeline, established events, physical
+  descriptions.
 
-- lore_integration: Does the world do WORK in this chapter, or is it
-  set dressing? A scene that could happen in any fantasy city with
+- pillar_integration: Does the world do WORK in this chapter, or is it
+  set dressing? Judge against what the primary pack's pillar dimensions
+  say matters. A scene that could happen anywhere in the genre with
   find-and-replace on proper nouns scores 5 max.
 
 - engagement: Would a reader turn the page? Where does tension come from --
@@ -164,7 +172,7 @@ Respond with JSON:
   "prose_quality": {"score": N, "weakest_sentence": "quote it", "fix": "rewrite suggestion", "strongest_sentence": "quote it", "note": "..."},
   "continuity": {"score": N, "note": "..."},
   "canon_compliance": {"score": N, "violations": ["list any found"], "note": "..."},
-  "lore_integration": {"score": N, "weakest_moment": "...", "fix": "...", "note": "..."},
+  "pillar_integration": {"score": N, "weakest_moment": "...", "fix": "...", "note": "..."},
   "engagement": {"score": N, "weakest_moment": "...", "fix": "...", "note": "..."},
   "three_weakest_sentences": ["quote 1", "quote 2", "quote 3"],
   "three_strongest_sentences": ["quote 1", "quote 2", "quote 3"],

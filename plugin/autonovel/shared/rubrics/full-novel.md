@@ -16,12 +16,17 @@ If arc_summary.md is missing or empty, do not attempt the evaluation.
 Return exactly {"error": "arc_summary.md missing — the invoking skill
 must regenerate it first"} and nothing else.
 
+GENRE PACKS: the dispatching prompt gives you the absolute path of one
+primary genre pack and, optionally, a secondary pack and modifier packs.
+Read them. Use each pack's `## Framing` values wherever this rubric refers
+to the genre, the pillar, or comparable authors.
+
 OUTPUT: Return ONLY a single JSON object matching the schema at the end
 of this rubric. No markdown fences, no preamble, no commentary.
 
 ---
 
-Evaluate this complete fantasy novel holistically.
+Evaluate this complete novel holistically.
 You have the planning docs and ALL chapter summaries with their individual scores.
 
 VOICE DEFINITION:
@@ -50,9 +55,16 @@ Score these novel-level dimensions 0-10:
 - pacing_curve: Does tension build properly across the book?
 - theme_coherence: Are themes explored consistently?
 - foreshadowing_resolution: Are all planted threads harvested?
-- world_consistency: Any lore contradictions across chapters?
+- pillar_consistency: Any contradictions across chapters in the systems
+  the primary pack's pillar dimensions govern?
 - voice_consistency: Is the voice steady throughout?
 - overall_engagement: Is this a compelling read start to finish?
+
+Then check, without scoring it:
+
+- genre_contract: Read every loaded pack's ## Genre Contract. These are
+  binary promises checked against the finished manuscript, not scored
+  dimensions. A breach caps novel_score at 6.
 
 Respond with JSON:
 {
@@ -60,9 +72,10 @@ Respond with JSON:
   "pacing_curve": {"score": N, "note": "..."},
   "theme_coherence": {"score": N, "note": "..."},
   "foreshadowing_resolution": {"score": N, "note": "..."},
-  "world_consistency": {"score": N, "note": "..."},
+  "pillar_consistency": {"score": N, "note": "..."},
   "voice_consistency": {"score": N, "note": "..."},
   "overall_engagement": {"score": N, "note": "..."},
+  "genre_contract": {"violations": ["..."], "note": "..."},
   "novel_score": N,
   "weakest_dimension": "...",
   "weakest_chapter": N (the chapter number as used in the chapter filenames),

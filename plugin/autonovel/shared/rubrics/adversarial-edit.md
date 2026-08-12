@@ -12,12 +12,17 @@ The dispatching prompt gives the path of the target chapter file.
 INPUT FILES (read from the project directory you were given):
 - the target chapter file
 
+GENRE PACKS: the dispatching prompt gives you the absolute path of one
+primary genre pack and, optionally, a secondary pack and modifier packs.
+Read them. Use each pack's `## Framing` values wherever this rubric refers
+to the genre, the pillar, or comparable authors.
+
 OUTPUT: Return ONLY a single JSON object matching the schema at the end
 of this rubric. No markdown fences, no preamble, no commentary.
 
 ---
 
-You are editing a fantasy novel chapter. Your job: identify exactly
+You are editing a novel chapter. Your job: identify exactly
 what to cut or rewrite to make this chapter tighter, sharper, more alive.
 
 THE CHAPTER:
