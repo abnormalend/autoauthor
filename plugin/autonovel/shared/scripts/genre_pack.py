@@ -12,9 +12,15 @@ from pathlib import Path
 
 ROLES = {"primary", "secondary", "modifier"}
 
+# The roles that make a pack contribute to scoring (weights, pillar
+# dimensions). "modifier" is deliberately excluded — it's an orthogonal
+# axis, never a scorer.
+SCORING_ROLES = {"primary", "secondary"}
+
 # Dimensions the base rubric already scores. A pack's pillar dimensions may
 # not collide with these — that is what stops a literary pack from
 # double-counting prose against the base craft category.
+# Source of truth: plugin/autonovel/shared/rubrics/foundation.md
 RESERVED_DIMENSIONS = {
     "character_depth", "character_distinctiveness", "character_secrets",
     "outline_completeness", "foreshadowing_balance",
@@ -27,6 +33,10 @@ WEIGHT_KEYS = ("pillar", "character", "structure", "craft")
 # own structure it is not allowed to own.
 PRIMARY_ONLY_FIELDS = ("weights", "pillar_label", "beat_system", "shape")
 
+# Filenames the core autonovel pipeline (novel-foundation, novel-draft,
+# novel-revise, ...) writes into every project directory — mirrored here,
+# not read from one canonical list, because no single file enumerates them.
+# A pack's 'artifacts' list must not collide with these.
 CORE_PROJECT_FILES = {
     "seed.txt", "voice.md", "world.md", "characters.md", "outline.md",
     "canon.md", "MYSTERY.md", "state.json", "results.tsv", "arc_summary.md",
@@ -174,24 +184,40 @@ def _pillar_dimensions(body):
     return DIMENSION_RE.findall(masked), DIMENSION_LOOSE_RE.findall(masked)
 
 
+def _names(seq):
+    """Render an iterable of values for an error message: 'craft, pillar'
+    instead of the default repr "['craft', 'pillar']". Every element is
+    coerced with str() so a stray non-string value — an author guessing at
+    a richer schema, e.g. a dict where a name string belongs — still
+    renders instead of raising."""
+    return ", ".join(str(v) for v in seq)
+
+
 def validate_pack(pack, known_names=None):
     """Validate a parsed pack.
 
     Returns a list of human-readable error strings; empty means valid.
     known_names, when given, is the set of pack names that exist, used to
     check conflicts_with references.
+
+    Frontmatter-field errors are collected before section/prose errors, so
+    an author working top-to-bottom through the list fixes the JSON block
+    first and isn't bounced back to it after starting on the prose.
     """
     errors = []
     meta = pack["meta"]
     path = pack["path"]
     sections = set(pack["sections"])
 
+    # --- frontmatter -----------------------------------------------------
+
     name = meta.get("name")
     if not isinstance(name, str) or not name:
         errors.append("frontmatter 'name' must be a non-empty string")
     elif name != path.stem:
         errors.append(
-            f"'name' is {name!r} but the filename stem is {path.stem!r}")
+            f"frontmatter 'name' is {name!r} but the filename stem is "
+            f"{path.stem!r}")
 
     if not isinstance(meta.get("label"), str) or not meta.get("label"):
         errors.append("frontmatter 'label' must be a non-empty string")
@@ -201,93 +227,135 @@ def validate_pack(pack, known_names=None):
         errors.append("frontmatter 'role' must be a non-empty list")
         role = []
     else:
-        unknown = [r for r in role if r not in ROLES]
+        # Guard against non-string entries (e.g. an author passing a dict)
+        # rather than letting them reach a hash/membership test below.
+        unknown = [r for r in role if not isinstance(r, str) or r not in ROLES]
         if unknown:
             errors.append(
-                f"unknown role(s) {unknown}; valid roles are {sorted(ROLES)}")
+                f"frontmatter 'role' has unknown role(s) {_names(unknown)}; "
+                f"valid roles: {_names(sorted(ROLES))}")
 
-    scoring = any(r in ("primary", "secondary") for r in role)
-    is_primary = "primary" in role
-    modifier_only = set(role) == {"modifier"}
+    # role_strs drops any non-string junk (already reported above) before
+    # any set() is built from it — set(role) directly would raise on an
+    # unhashable element such as a dict.
+    role_strs = [r for r in role if isinstance(r, str)]
+    scoring = bool(set(role_strs) & SCORING_ROLES)
+    is_primary = "primary" in role_strs
+    modifier_only = (len(role_strs) == len(role)
+                     and set(role_strs) == {"modifier"})
 
     if scoring:
         errors.extend(_validate_weights(meta.get("weights")))
 
-    if is_primary:
-        if not meta.get("pillar_label"):
-            errors.append("'pillar_label' is required for primary packs")
-        for required in ("Framing", "Pillar Dimensions"):
-            if required not in sections:
-                errors.append(
-                    f"primary pack must have a '## {required}' section")
+    if is_primary and not meta.get("pillar_label"):
+        errors.append(
+            "frontmatter 'pillar_label' is required for primary packs")
 
     if modifier_only:
         for field in PRIMARY_ONLY_FIELDS:
             if field in meta:
-                errors.append(f"modifier pack must not declare {field!r}")
-        if "Pillar Dimensions" in sections:
-            errors.append(
-                "modifier pack must not have a '## Pillar Dimensions' section")
-
-    if scoring:
-        errors.extend(_validate_dimensions(pack["dimensions"],
-                                           pack["malformed_dimensions"]))
+                errors.append(
+                    f"modifier pack's frontmatter must not declare {field!r}")
 
     conflicts = meta.get("conflicts_with", [])
     if not isinstance(conflicts, list):
-        errors.append("'conflicts_with' must be a list")
+        errors.append("frontmatter 'conflicts_with' must be a list")
     elif known_names is not None:
-        unknown = [n for n in conflicts if n not in known_names]
+        unknown = [n for n in conflicts
+                  if not isinstance(n, str) or n not in known_names]
         if unknown:
-            errors.append(f"'conflicts_with' names unknown pack(s): {unknown}")
+            errors.append(
+                f"frontmatter 'conflicts_with' names unknown pack(s) "
+                f"{_names(unknown)}; known packs: {_names(sorted(known_names))}")
 
     errors.extend(_validate_shape(meta.get("shape")))
 
-    artifacts = meta.get("artifacts") or []
+    # meta.get("artifacts", []) rather than `or []` — an explicit
+    # "artifacts": null must fail loudly the same way conflicts_with does,
+    # not be silently treated as an empty list.
+    artifacts = meta.get("artifacts", [])
     if not isinstance(artifacts, list):
-        errors.append("'artifacts' must be a list")
+        errors.append("frontmatter 'artifacts' must be a list")
     else:
         for artifact in artifacts:
-            if artifact in CORE_PROJECT_FILES:
+            if isinstance(artifact, str) and artifact in CORE_PROJECT_FILES:
                 errors.append(
                     f"artifact {artifact!r} collides with a core project file")
+
+    # --- sections / prose --------------------------------------------------
+
+    if is_primary and "Framing" not in sections:
+        errors.append("primary pack must have a '## Framing' section")
+
+    if scoring:
+        errors.extend(_validate_dimensions(pack["dimensions"],
+                                           pack["malformed_dimensions"],
+                                           "Pillar Dimensions" in sections))
+
+    if modifier_only and "Pillar Dimensions" in sections:
+        errors.append(
+            "modifier pack must not have a '## Pillar Dimensions' section")
 
     return errors
 
 
 def _validate_weights(weights):
+    if weights is None:
+        return ["frontmatter 'weights' is required for primary and "
+                "secondary packs"]
     if not isinstance(weights, dict):
-        return ["'weights' is required for primary and secondary packs"]
+        return ["frontmatter 'weights' must be a JSON object mapping "
+                "pillar/character/structure/craft to integers"]
     missing = [k for k in WEIGHT_KEYS if k not in weights]
     if missing:
-        return [f"'weights' missing key(s): {missing}"]
-    bad = [k for k in WEIGHT_KEYS if not isinstance(weights[k], int)]
+        return [f"'weights' missing key(s): {_names(missing)}"]
+    # isinstance(v, int) alone accepts bool (bool is an int subclass in
+    # Python) — a stray "weights": {"pillar": true, ...} must be reported
+    # as a type error, not silently summed as 1 and reported as a sum
+    # mismatch instead.
+    bad = [k for k in WEIGHT_KEYS
+           if isinstance(weights[k], bool) or not isinstance(weights[k], int)]
     if bad:
-        return [f"'weights' values must be integers; non-integer key(s): {bad}"]
+        return [f"'weights' values must be integers; non-integer key(s): "
+                f"{_names(bad)}"]
     total = sum(weights[k] for k in WEIGHT_KEYS)
     if total != 100:
         return [f"'weights' sum to {total}, must sum to 100"]
     return []
 
 
-def _validate_dimensions(dimensions, malformed_dimensions=()):
+def _validate_dimensions(dimensions, malformed_dimensions, has_section):
+    """dimensions/malformed_dimensions are parse_pack's lists for a scoring
+    pack; has_section says whether a '## Pillar Dimensions' heading exists
+    at all — required so a missing section produces exactly one message
+    instead of also tripping the (contradictory) dimension-count check."""
+    if not has_section:
+        return ["add a '## Pillar Dimensions' section with 3-6 bullets, "
+                "each reading '- <key> — <criteria>' with an em dash"]
+
     errors = []
     if malformed_dimensions:
         errors.append(
-            f"pillar dimension(s) {sorted(malformed_dimensions)} use a "
-            "hyphen or en dash; an em dash (—) is required")
-    if not 3 <= len(dimensions) <= 6:
+            f"pillar dimension(s) {_names(sorted(malformed_dimensions))} "
+            "use a hyphen or en dash; an em dash (—) is required")
+    # Malformed bullets are still bullets an author sees on screen, so they
+    # count toward the range check — otherwise a 3-bullet section with one
+    # bad dash reports "has 2 dimension(s); need 3-6" right next to the
+    # em-dash message, which contradicts what's visibly there.
+    total = len(dimensions) + len(malformed_dimensions)
+    if not 3 <= total <= 6:
         errors.append(
-            f"'## Pillar Dimensions' has {len(dimensions)} dimension(s); "
+            f"'## Pillar Dimensions' has {total} dimension(s); "
             "need 3-6, and each bullet must read '- <key> — <criteria>' "
             "with an em dash")
     clash = sorted(set(dimensions) & RESERVED_DIMENSIONS)
     if clash:
         errors.append(
-            f"pillar dimension(s) {clash} collide with reserved base dimensions")
+            f"pillar dimension(s) {_names(clash)} collide with reserved "
+            f"base dimensions; reserved: {_names(sorted(RESERVED_DIMENSIONS))}")
     dupes = sorted({d for d in dimensions if dimensions.count(d) > 1})
     if dupes:
-        errors.append(f"duplicate pillar dimension key(s): {dupes}")
+        errors.append(f"duplicate pillar dimension key(s): {_names(dupes)}")
     return errors
 
 
@@ -302,7 +370,8 @@ def _validate_shape(shape):
         if rng is None:
             continue
         if (not isinstance(rng, list) or len(rng) != 2
-                or not all(isinstance(v, int) for v in rng)):
+                or not all(isinstance(v, int) and not isinstance(v, bool)
+                           for v in rng)):
             errors.append(f"shape.{key} must be a two-integer range")
         elif rng[0] > rng[1]:
             errors.append(f"shape.{key} range {rng} is not ordered low..high")
