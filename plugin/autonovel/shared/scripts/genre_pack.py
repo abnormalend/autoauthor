@@ -172,3 +172,137 @@ def _pillar_dimensions(body):
         return [], []
     masked = _mask_fences(section)
     return DIMENSION_RE.findall(masked), DIMENSION_LOOSE_RE.findall(masked)
+
+
+def validate_pack(pack, known_names=None):
+    """Validate a parsed pack.
+
+    Returns a list of human-readable error strings; empty means valid.
+    known_names, when given, is the set of pack names that exist, used to
+    check conflicts_with references.
+    """
+    errors = []
+    meta = pack["meta"]
+    path = pack["path"]
+    sections = set(pack["sections"])
+
+    name = meta.get("name")
+    if not isinstance(name, str) or not name:
+        errors.append("frontmatter 'name' must be a non-empty string")
+    elif name != path.stem:
+        errors.append(
+            f"'name' is {name!r} but the filename stem is {path.stem!r}")
+
+    if not isinstance(meta.get("label"), str) or not meta.get("label"):
+        errors.append("frontmatter 'label' must be a non-empty string")
+
+    role = meta.get("role")
+    if not isinstance(role, list) or not role:
+        errors.append("frontmatter 'role' must be a non-empty list")
+        role = []
+    else:
+        unknown = [r for r in role if r not in ROLES]
+        if unknown:
+            errors.append(
+                f"unknown role(s) {unknown}; valid roles are {sorted(ROLES)}")
+
+    scoring = any(r in ("primary", "secondary") for r in role)
+    is_primary = "primary" in role
+    modifier_only = set(role) == {"modifier"}
+
+    if scoring:
+        errors.extend(_validate_weights(meta.get("weights")))
+
+    if is_primary:
+        if not meta.get("pillar_label"):
+            errors.append("'pillar_label' is required for primary packs")
+        for required in ("Framing", "Pillar Dimensions"):
+            if required not in sections:
+                errors.append(
+                    f"primary pack must have a '## {required}' section")
+
+    if modifier_only:
+        for field in PRIMARY_ONLY_FIELDS:
+            if field in meta:
+                errors.append(f"modifier pack must not declare {field!r}")
+        if "Pillar Dimensions" in sections:
+            errors.append(
+                "modifier pack must not have a '## Pillar Dimensions' section")
+
+    if scoring:
+        errors.extend(_validate_dimensions(pack["dimensions"],
+                                           pack["malformed_dimensions"]))
+
+    conflicts = meta.get("conflicts_with", [])
+    if not isinstance(conflicts, list):
+        errors.append("'conflicts_with' must be a list")
+    elif known_names is not None:
+        unknown = [n for n in conflicts if n not in known_names]
+        if unknown:
+            errors.append(f"'conflicts_with' names unknown pack(s): {unknown}")
+
+    errors.extend(_validate_shape(meta.get("shape")))
+
+    artifacts = meta.get("artifacts") or []
+    if not isinstance(artifacts, list):
+        errors.append("'artifacts' must be a list")
+    else:
+        for artifact in artifacts:
+            if artifact in CORE_PROJECT_FILES:
+                errors.append(
+                    f"artifact {artifact!r} collides with a core project file")
+
+    return errors
+
+
+def _validate_weights(weights):
+    if not isinstance(weights, dict):
+        return ["'weights' is required for primary and secondary packs"]
+    missing = [k for k in WEIGHT_KEYS if k not in weights]
+    if missing:
+        return [f"'weights' missing key(s): {missing}"]
+    if not all(isinstance(weights[k], int) for k in WEIGHT_KEYS):
+        return ["'weights' values must be integers"]
+    total = sum(weights[k] for k in WEIGHT_KEYS)
+    if total != 100:
+        return [f"'weights' sum to {total}, must sum to 100"]
+    return []
+
+
+def _validate_dimensions(dimensions, malformed_dimensions=()):
+    errors = []
+    if malformed_dimensions:
+        errors.append(
+            f"pillar dimension(s) {sorted(malformed_dimensions)} use a "
+            "hyphen or en dash; an em dash (—) is required")
+    if not 3 <= len(dimensions) <= 6:
+        errors.append(
+            f"'## Pillar Dimensions' has {len(dimensions)} dimension(s); "
+            "need 3-6, and each bullet must read '- <key> — <criteria>' "
+            "with an em dash")
+    clash = sorted(set(dimensions) & RESERVED_DIMENSIONS)
+    if clash:
+        errors.append(
+            f"pillar dimension(s) {clash} collide with reserved base dimensions")
+    dupes = sorted({d for d in dimensions if dimensions.count(d) > 1})
+    if dupes:
+        errors.append(f"duplicate pillar dimension key(s): {dupes}")
+    return errors
+
+
+def _validate_shape(shape):
+    if shape is None:
+        return []
+    if not isinstance(shape, dict):
+        return ["'shape' must be a JSON object"]
+    errors = []
+    for key in ("chapters", "words"):
+        rng = shape.get(key)
+        if rng is None:
+            continue
+        if (not isinstance(rng, list) or len(rng) != 2
+                or not all(isinstance(v, int) for v in rng)):
+            errors.append(f"shape.{key} must be a two-integer range")
+        elif rng[0] > rng[1]:
+            errors.append(f"shape.{key} range {rng} is not ordered low..high")
+    return errors

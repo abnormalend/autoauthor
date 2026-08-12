@@ -284,3 +284,185 @@ def test_parsed_pack_carries_body_and_path(tmp_path):
     assert pack["path"] == path
     assert isinstance(pack["body"], str)
     assert "## Pillar Dimensions" in pack["body"]
+
+
+# --- validate_pack ------------------------------------------------------------
+
+def validate(tmp_path, name, meta, body=VALID_PRIMARY_BODY, known=None):
+    path = write_pack(tmp_path, name, meta, body)
+    return genre_pack.validate_pack(genre_pack.parse_pack(path),
+                                    known_names=known)
+
+
+def test_valid_primary_has_no_errors(tmp_path):
+    assert validate(tmp_path, "testgenre", VALID_PRIMARY_META) == []
+
+
+def test_name_must_match_filename(tmp_path):
+    meta = {**VALID_PRIMARY_META, "name": "mismatch"}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("filename stem" in e for e in errors)
+
+
+def test_role_must_be_known(tmp_path):
+    meta = {**VALID_PRIMARY_META, "role": ["primary", "bogus"]}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("unknown role" in e for e in errors)
+
+
+def test_role_must_be_non_empty_list(tmp_path):
+    meta = {**VALID_PRIMARY_META, "role": []}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("non-empty list" in e for e in errors)
+
+
+def test_weights_must_sum_to_100(tmp_path):
+    meta = {**VALID_PRIMARY_META,
+            "weights": {"pillar": 40, "character": 30, "structure": 20, "craft": 5}}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("must sum to 100" in e for e in errors)
+
+
+def test_primary_requires_pillar_label(tmp_path):
+    meta = {k: v for k, v in VALID_PRIMARY_META.items() if k != "pillar_label"}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("pillar_label" in e for e in errors)
+
+
+def test_primary_requires_framing_and_pillar_sections(tmp_path):
+    errors = validate(tmp_path, "testgenre", VALID_PRIMARY_META,
+                      body="## Drafting Rules\n\n25. Something.\n")
+    assert any("'## Framing'" in e for e in errors)
+    assert any("'## Pillar Dimensions'" in e for e in errors)
+
+
+def test_modifier_may_not_declare_weights(tmp_path):
+    meta = {"name": "testmod", "label": "Test Mod", "role": ["modifier"],
+            "weights": {"pillar": 40, "character": 30, "structure": 20, "craft": 10}}
+    errors = validate(tmp_path, "testmod", meta,
+                      body="## Framing\n\n- comps — Someone.\n")
+    assert any("must not declare 'weights'" in e for e in errors)
+
+
+def test_modifier_may_not_have_pillar_dimensions(tmp_path):
+    meta = {"name": "testmod", "label": "Test Mod", "role": ["modifier"]}
+    errors = validate(tmp_path, "testmod", meta, body=VALID_PRIMARY_BODY)
+    assert any("must not have a '## Pillar Dimensions'" in e for e in errors)
+
+
+def test_valid_modifier_has_no_errors(tmp_path):
+    meta = {"name": "testmod", "label": "Test Mod", "role": ["modifier"],
+            "content_register": {"heat": "explicit"},
+            "conflicts_with": []}
+    body = "## Framing\n\n- comps — Someone.\n\n## Genre Contract\n\n- Something binary.\n"
+    assert validate(tmp_path, "testmod", meta, body=body) == []
+
+
+def test_dimension_count_must_be_three_to_six(tmp_path):
+    body = VALID_PRIMARY_BODY.replace("- gamma_dim — Third criteria.\n", "")
+    errors = validate(tmp_path, "testgenre", VALID_PRIMARY_META, body=body)
+    assert any("need 3-6" in e for e in errors)
+
+
+def test_dimensions_may_not_collide_with_reserved(tmp_path):
+    body = VALID_PRIMARY_BODY.replace("- alpha_dim — First criteria.",
+                                      "- voice_clarity — Colliding.")
+    errors = validate(tmp_path, "testgenre", VALID_PRIMARY_META, body=body)
+    assert any("collide with reserved" in e for e in errors)
+
+
+def test_conflicts_with_must_resolve(tmp_path):
+    meta = {**VALID_PRIMARY_META, "conflicts_with": ["nosuchpack"]}
+    errors = validate(tmp_path, "testgenre", meta, known={"testgenre", "general"})
+    assert any("unknown pack" in e for e in errors)
+
+
+def test_shape_range_must_be_ordered(tmp_path):
+    meta = {**VALID_PRIMARY_META,
+            "shape": {**VALID_PRIMARY_META["shape"], "chapters": [26, 22]}}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("not ordered" in e for e in errors)
+
+
+def test_artifact_may_not_collide_with_core_file(tmp_path):
+    meta = {**VALID_PRIMARY_META, "artifacts": ["canon.md"]}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("collides with a core project file" in e for e in errors)
+
+
+# --- Additional coverage: branches the plan's test block leaves untested ------
+
+def test_malformed_dimension_dash_reports_em_dash_requirement(tmp_path):
+    # Editors autocorrect '—' to '-' or '–'; the validator must call this out
+    # by name rather than just reporting "need 3-6" while dimensions are
+    # visibly present on screen.
+    body = VALID_PRIMARY_BODY.replace("- alpha_dim — First criteria.",
+                                      "- alpha_dim - First criteria.")
+    errors = validate(tmp_path, "testgenre", VALID_PRIMARY_META, body=body)
+    assert any("alpha_dim" in e and "em dash" in e for e in errors)
+
+
+def test_duplicate_dimension_keys_report_dupes(tmp_path):
+    body = VALID_PRIMARY_BODY.replace("- gamma_dim — Third criteria.",
+                                      "- alpha_dim — Third criteria.")
+    errors = validate(tmp_path, "testgenre", VALID_PRIMARY_META, body=body)
+    assert any("duplicate pillar dimension" in e and "alpha_dim" in e
+               for e in errors)
+
+
+def test_weights_missing_key(tmp_path):
+    meta = {**VALID_PRIMARY_META,
+            "weights": {"pillar": 40, "character": 30, "structure": 30}}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("missing key" in e and "craft" in e for e in errors)
+
+
+def test_weights_non_integer_value(tmp_path):
+    meta = {**VALID_PRIMARY_META,
+            "weights": {"pillar": 40.5, "character": 30, "structure": 20,
+                        "craft": 9.5}}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("must be integers" in e for e in errors)
+
+
+def test_shape_must_be_json_object(tmp_path):
+    meta = {**VALID_PRIMARY_META, "shape": [22, 26]}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("'shape' must be a JSON object" in e for e in errors)
+
+
+def test_shape_words_range_must_be_ordered(tmp_path):
+    meta = {**VALID_PRIMARY_META,
+            "shape": {**VALID_PRIMARY_META["shape"], "words": [95000, 80000]}}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("shape.words" in e and "not ordered" in e for e in errors)
+
+
+def test_conflicts_with_must_be_list(tmp_path):
+    meta = {**VALID_PRIMARY_META, "conflicts_with": "nosuchpack"}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("'conflicts_with' must be a list" in e for e in errors)
+
+
+def test_artifacts_must_be_list(tmp_path):
+    meta = {**VALID_PRIMARY_META, "artifacts": "canon.md"}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("'artifacts' must be a list" in e for e in errors)
+
+
+def test_label_missing_is_reported(tmp_path):
+    meta = {k: v for k, v in VALID_PRIMARY_META.items() if k != "label"}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("'label' must be a non-empty string" in e for e in errors)
+
+
+def test_label_empty_is_reported(tmp_path):
+    meta = {**VALID_PRIMARY_META, "label": ""}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("'label' must be a non-empty string" in e for e in errors)
+
+
+def test_name_non_string_is_reported(tmp_path):
+    meta = {**VALID_PRIMARY_META, "name": 123}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("'name' must be a non-empty string" in e for e in errors)
