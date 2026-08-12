@@ -158,6 +158,143 @@ def test_dimensions_only_read_from_pillar_section(tmp_path):
     path = write_pack(tmp_path, "testgenre", VALID_PRIMARY_META, body)
     pack = genre_pack.parse_pack(path)
     assert pack["dimensions"] == ["alpha_dim", "beta_dim", "gamma_dim"]
+
+
+# --- Fenced code blocks must not corrupt structural parsing -----------------
+
+FENCED_FAKE_SECTION_BODY = """
+## Framing
+
+- genre_noun — "test novel"
+
+## Artifacts
+
+Example format:
+
+```
+## Pillar Dimensions
+
+- fake_dim — not real.
+```
+
+## Pillar Dimensions
+
+- alpha_dim — First criteria.
+- beta_dim — Second criteria.
+- gamma_dim — Third criteria.
+
+## Drafting Rules
+
+25. Something genre-specific.
+"""
+
+
+def test_fenced_block_does_not_corrupt_sections_or_dimensions(tmp_path):
+    path = write_pack(tmp_path, "testgenre", VALID_PRIMARY_META,
+                      FENCED_FAKE_SECTION_BODY)
+    pack = genre_pack.parse_pack(path)
+    assert pack["sections"] == ["Framing", "Artifacts", "Pillar Dimensions",
+                                "Drafting Rules"]
+    assert pack["dimensions"] == ["alpha_dim", "beta_dim", "gamma_dim"]
+    assert "fake_dim" not in pack["dimensions"]
+    # The fenced example is still there for humans/LLM judges to read —
+    # masking must not leak into the returned body.
+    assert "fake_dim" in pack["body"]
+
+
+# --- A hyphen or en dash instead of an em dash must be surfaced, not dropped
+
+def test_malformed_dimension_dash_is_reported_not_silently_dropped(tmp_path):
+    body = """
+## Framing
+
+- genre_noun — "test novel"
+
+## Pillar Dimensions
+
+- alpha_dim — First criteria.
+- beta_dim - Second criteria.
+- gamma_dim – Third criteria.
+
+## Drafting Rules
+
+25. Something genre-specific.
+"""
+    path = write_pack(tmp_path, "testgenre", VALID_PRIMARY_META, body)
+    pack = genre_pack.parse_pack(path)
+    assert pack["dimensions"] == ["alpha_dim"]
+    assert pack["malformed_dimensions"] == ["beta_dim", "gamma_dim"]
+
+
+# --- JSON frontmatter errors must point at the real file line ---------------
+
+def test_json_error_reports_correct_file_line(tmp_path):
+    path = tmp_path / "broken.md"
+    # The bad, unquoted token "bad" sits on file line 4 (1-indexed).
+    path.write_text('---\n{\n  "name": "x",\n  bad\n}\n---\n', encoding="utf-8")
+    with pytest.raises(genre_pack.PackError) as exc_info:
+        genre_pack.parse_pack(path)
+    assert f"{path}:4:" in str(exc_info.value)
+
+
+# --- Cheap correctness/hygiene fixes -----------------------------------------
+
+def test_parses_pack_with_utf8_bom(tmp_path):
+    path = tmp_path / "testgenre.md"
+    content = ("---\n" + json.dumps(VALID_PRIMARY_META, indent=2) + "\n---\n"
+              + VALID_PRIMARY_BODY)
+    path.write_bytes(b"\xef\xbb\xbf" + content.encode("utf-8"))
+    pack = genre_pack.parse_pack(path)
+    assert pack["meta"]["name"] == "testgenre"
+
+
+def test_parse_rejects_non_dict_frontmatter(tmp_path):
+    path = tmp_path / "broken.md"
+    path.write_text("---\n[1, 2]\n---\n", encoding="utf-8")
+    with pytest.raises(genre_pack.PackError, match="must be a JSON object"):
+        genre_pack.parse_pack(path)
+
+
+# --- Untested branches --------------------------------------------------------
+
+def test_section_body_returns_none_for_absent_heading():
+    assert genre_pack.section_body("## Foo\n\nbar\n", "Nonexistent") is None
+
+
+def test_section_body_returns_text_up_to_next_heading():
+    body = "## Foo\n\nfoo text\n\n## Bar\n\nbar text\n"
+    result = genre_pack.section_body(body, "Foo")
+    assert result == "\nfoo text\n\n"
+    assert "bar text" not in result
+
+
+def test_section_body_returns_to_end_of_body_when_no_next_heading():
+    body = "## Foo\n\nfoo text to the end\n"
+    result = genre_pack.section_body(body, "Foo")
+    assert result == "\nfoo text to the end\n"
+
+
+def test_parse_pack_on_missing_file_reports_cannot_read(tmp_path):
+    path = tmp_path / "does_not_exist.md"
+    with pytest.raises(genre_pack.PackError, match="cannot read"):
+        genre_pack.parse_pack(path)
+
+
+def test_missing_pillar_dimensions_section_yields_empty_list(tmp_path):
+    body = '## Framing\n\n- genre_noun — "test novel"\n'
+    path = write_pack(tmp_path, "testgenre", VALID_PRIMARY_META, body)
+    pack = genre_pack.parse_pack(path)
+    assert pack["dimensions"] == []
+    assert pack["malformed_dimensions"] == []
+
+
+def test_parsed_pack_carries_body_and_path(tmp_path):
+    path = write_pack(tmp_path, "testgenre", VALID_PRIMARY_META,
+                      VALID_PRIMARY_BODY)
+    pack = genre_pack.parse_pack(path)
+    assert pack["path"] == path
+    assert isinstance(pack["body"], str)
+    assert "## Pillar Dimensions" in pack["body"]
 ```
 
 - [ ] **Step 2: Run the tests to verify they fail**
@@ -170,7 +307,6 @@ Expected: collection error — `ModuleNotFoundError: No module named 'genre_pack
 Create `plugin/autonovel/shared/scripts/genre_pack.py`:
 
 ```python
-#!/usr/bin/env python3
 """Genre pack parsing and validation. Library module — no CLI.
 
 A genre pack is a markdown file whose first block is JSON frontmatter
@@ -206,8 +342,19 @@ CORE_PROJECT_FILES = {
     "manuscript.md", "voice_wells.json", "import_source.md",
 }
 
+# A fenced block, ``` or ~~~ (3+), opened and closed by matching markers.
+# Used to blank fenced regions before structural matching so a pack author
+# showing example syntax in a fence (e.g. under '## Artifacts') can't be
+# mistaken for a real heading or dimension line. An unclosed fence simply
+# doesn't match and masks nothing — that is an acceptable, safe failure.
+FENCE_RE = re.compile(r"^(?P<f>```+|~~~+).*?^(?P=f)[ \t]*$", re.M | re.S)
+
 # '- <key> — <criteria>'  (em dash, not hyphen)
 DIMENSION_RE = re.compile(r"^-\s+([a-z][a-z0-9_]*)\s+—", re.M)
+# Same shape but with a hyphen or en dash where an em dash belongs — the
+# typo autocorrect produces. Never matches a line DIMENSION_RE also matches,
+# since the two require different characters in the same position.
+DIMENSION_LOOSE_RE = re.compile(r"^-\s+([a-z][a-z0-9_]*)\s+[–-]\s", re.M)
 SECTION_RE = re.compile(r"^##\s+(.+?)\s*$", re.M)
 
 
@@ -215,23 +362,49 @@ class PackError(Exception):
     """Malformed pack. The message is user-facing."""
 
 
+def _mask_fences(text):
+    """Same-length copy of text with fenced blocks blanked to spaces
+    (newlines preserved), so structural regexes skip fenced content while
+    offsets into the mask still index the corresponding original text."""
+    return FENCE_RE.sub(lambda m: re.sub(r"[^\n]", " ", m.group(0)), text)
+
+
 def parse_pack(path):
     """Parse a pack file.
 
-    Returns {'meta': dict, 'sections': [str], 'dimensions': [str],
-             'path': Path, 'body': str}.
+    Returns a dict:
+      'meta'                — the frontmatter, as a dict
+      'sections'            — '## ' heading names, in order, outside fences
+      'dimensions'          — '## Pillar Dimensions' keys written with the
+                               required em dash, in order
+      'malformed_dimensions'— keys in that same section written with a
+                               hyphen or en dash instead of an em dash;
+                               Task 2's validator turns these into a
+                               specific error rather than silently
+                               undercounting real dimensions
+      'path'                — the Path passed in
+      'body'                — the file's content after the frontmatter,
+                               verbatim (not masked) — later phases feed
+                               this prose to LLM judges
+
+    Headings and dimension bullets inside fenced code blocks (``` or ~~~)
+    are ignored when locating sections and dimensions, but 'sections' and
+    'body' still return the original, unmasked text.
+
     Raises PackError if the file is unreadable or the frontmatter is broken.
     """
     path = Path(path)
     try:
-        text = path.read_text(encoding="utf-8")
+        text = path.read_text(encoding="utf-8-sig")
     except OSError as e:
-        raise PackError(f"{path}: cannot read pack file: {e}")
+        raise PackError(f"{path}: cannot read pack file: {e}") from e
     meta, body = _split_frontmatter(text, path)
+    dimensions, malformed = _pillar_dimensions(body)
     return {
         "meta": meta,
-        "sections": SECTION_RE.findall(body),
-        "dimensions": _pillar_dimensions(body),
+        "sections": SECTION_RE.findall(_mask_fences(body)),
+        "dimensions": dimensions,
+        "malformed_dimensions": malformed,
         "path": path,
         "body": body,
     }
@@ -252,33 +425,50 @@ def _split_frontmatter(text, path):
     try:
         meta = json.loads(raw)
     except json.JSONDecodeError as e:
-        raise PackError(f"{path}: frontmatter is not valid JSON: {e}")
+        raise PackError(
+            f"{path}:{e.lineno + 1}: frontmatter is not valid JSON: "
+            f"{e.msg} (column {e.colno})") from e
     if not isinstance(meta, dict):
-        raise PackError(f"{path}: frontmatter must be a JSON object")
+        raise PackError(
+            f"{path}: frontmatter must be a JSON object "
+            f"(got a JSON {type(meta).__name__})")
     return meta, "\n".join(lines[close + 1:])
 
 
 def section_body(body, heading):
-    """Text under '## <heading>' up to the next '## ', or None if absent."""
-    match = re.search(rf"^##\s+{re.escape(heading)}\s*$", body, re.M)
+    """Text under '## <heading>' up to the next '## ', or None if absent.
+
+    A '## <heading>' or '## ' line inside a fenced code block (``` or ~~~)
+    does not count as a boundary. The returned text is sliced from the
+    original body, so any fences nested inside the matched section are
+    preserved verbatim.
+    """
+    mask = _mask_fences(body)
+    match = re.search(rf"^##\s+{re.escape(heading)}\s*$", mask, re.M)
     if not match:
         return None
-    rest = body[match.end():]
-    nxt = re.search(r"^##\s+", rest, re.M)
-    return rest[:nxt.start()] if nxt else rest
+    rest_mask = mask[match.end():]
+    nxt = re.search(r"^##\s+", rest_mask, re.M)
+    end = match.end() + (nxt.start() if nxt else len(rest_mask))
+    return body[match.end():end]
 
 
 def _pillar_dimensions(body):
+    """Return (dimensions, malformed_dimensions) for the '## Pillar
+    Dimensions' section — see parse_pack's docstring for the contract.
+    Both regexes run against a fence-masked copy of the section so example
+    bullets shown inside a fence aren't parsed as real dimensions."""
     section = section_body(body, "Pillar Dimensions")
     if section is None:
-        return []
-    return DIMENSION_RE.findall(section)
+        return [], []
+    masked = _mask_fences(section)
+    return DIMENSION_RE.findall(masked), DIMENSION_LOOSE_RE.findall(masked)
 ```
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `uv run pytest tests/test_genre_pack.py -v`
-Expected: 5 passed
+Expected: 16 passed
 
 - [ ] **Step 5: Commit**
 
@@ -468,7 +658,8 @@ def validate_pack(pack, known_names=None):
                 "modifier pack must not have a '## Pillar Dimensions' section")
 
     if scoring:
-        errors.extend(_validate_dimensions(pack["dimensions"]))
+        errors.extend(_validate_dimensions(pack["dimensions"],
+                                           pack["malformed_dimensions"]))
 
     conflicts = meta.get("conflicts_with", [])
     if not isinstance(conflicts, list):
@@ -506,8 +697,12 @@ def _validate_weights(weights):
     return []
 
 
-def _validate_dimensions(dimensions):
+def _validate_dimensions(dimensions, malformed_dimensions=()):
     errors = []
+    if malformed_dimensions:
+        errors.append(
+            f"pillar dimension(s) {sorted(malformed_dimensions)} use a "
+            "hyphen or en dash; an em dash (—) is required")
     if not 3 <= len(dimensions) <= 6:
         errors.append(
             f"'## Pillar Dimensions' has {len(dimensions)} dimension(s); "
@@ -544,7 +739,7 @@ def _validate_shape(shape):
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `uv run pytest tests/test_genre_pack.py -v`
-Expected: 20 passed
+Expected: 31 passed (16 from Task 1 plus the 15 validator tests above)
 
 - [ ] **Step 5: Commit**
 
