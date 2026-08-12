@@ -410,6 +410,12 @@ def test_duplicate_dimension_keys_report_dupes(tmp_path):
                for e in errors)
 
 
+def test_primary_without_weights_is_reported(tmp_path):
+    meta = {k: v for k, v in VALID_PRIMARY_META.items() if k != "weights"}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("'weights' is required" in e for e in errors)
+
+
 def test_weights_missing_key(tmp_path):
     meta = {**VALID_PRIMARY_META,
             "weights": {"pillar": 40, "character": 30, "structure": 30}}
@@ -422,13 +428,22 @@ def test_weights_non_integer_value(tmp_path):
             "weights": {"pillar": 40.5, "character": 30, "structure": 20,
                         "craft": 9.5}}
     errors = validate(tmp_path, "testgenre", meta)
-    assert any("must be integers" in e for e in errors)
+    assert any("must be integers" in e and "pillar" in e and "craft" in e
+               for e in errors)
 
 
 def test_shape_must_be_json_object(tmp_path):
     meta = {**VALID_PRIMARY_META, "shape": [22, 26]}
     errors = validate(tmp_path, "testgenre", meta)
     assert any("'shape' must be a JSON object" in e for e in errors)
+
+
+def test_shape_range_must_be_two_integers(tmp_path):
+    meta = {**VALID_PRIMARY_META,
+            "shape": {**VALID_PRIMARY_META["shape"], "chapters": [22]}}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("shape.chapters" in e and "two-integer range" in e
+               for e in errors)
 
 
 def test_shape_words_range_must_be_ordered(tmp_path):

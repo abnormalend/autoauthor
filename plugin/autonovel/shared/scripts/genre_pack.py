@@ -261,8 +261,9 @@ def _validate_weights(weights):
     missing = [k for k in WEIGHT_KEYS if k not in weights]
     if missing:
         return [f"'weights' missing key(s): {missing}"]
-    if not all(isinstance(weights[k], int) for k in WEIGHT_KEYS):
-        return ["'weights' values must be integers"]
+    bad = [k for k in WEIGHT_KEYS if not isinstance(weights[k], int)]
+    if bad:
+        return [f"'weights' values must be integers; non-integer key(s): {bad}"]
     total = sum(weights[k] for k in WEIGHT_KEYS)
     if total != 100:
         return [f"'weights' sum to {total}, must sum to 100"]
