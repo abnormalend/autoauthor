@@ -376,7 +376,7 @@ def build_eval_brief(ch: int) -> str:
         dim_keys = [
             "voice_adherence", "beat_coverage", "character_voice",
             "plants_seeded", "prose_quality", "continuity",
-            "canon_compliance", "lore_integration", "engagement",
+            "canon_compliance", "pillar_integration", "engagement",
         ]
         for dk in dim_keys:
             dim = ch_eval.get(dk)
@@ -642,7 +642,7 @@ def build_auto_brief() -> tuple[int, str]:
     # Per-dimension notes from full eval that mention this chapter
     dim_keys = [
         "arc_completion", "pacing_curve", "theme_coherence",
-        "foreshadowing_resolution", "world_consistency", "voice_consistency",
+        "foreshadowing_resolution", "pillar_consistency", "voice_consistency",
         "overall_engagement",
     ]
     ch_re = re.compile(rf"\b(?:Chapters?|Ch\.?)\s*{ch}\b", re.I)

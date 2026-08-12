@@ -2928,9 +2928,18 @@ Replace lines 351–356 (`### Magic System` and its five bullets) with:
 
 Run:
 ```bash
-grep -niE 'fantasy|magic|sanderson' plugin/autonovel/shared/craft/CRAFT.md
+grep -niE 'fantasy|magic|bestiary' plugin/autonovel/shared/craft/CRAFT.md
 ```
 Expected: no output
+
+Do NOT also grep for `sanderson` here. Three attributions survive by
+design — `Promises, Progress, Payoff (Sanderson)`, `MICE Quotient (Orson
+Scott Card / Sanderson)`, and `The Three Sliders (Sanderson)` — because
+they cite genre-neutral structural frameworks, not fantasy content.
+Deleting a correct citation to satisfy a regex would be the wrong trade.
+Task 20's leak guard exempts `shared/craft/` from the comp-author check
+for exactly this reason, and pins those three strings so the exemption
+cannot be used to quietly strip them.
 
 - [ ] **Step 7: Commit**
 
@@ -3814,9 +3823,22 @@ SCANNED_DIRS = ["shared/rubrics", "shared/craft", "shared/templates",
 
 # Terms that name one genre's furniture. A hit outside shared/genres/ means
 # a genre assumption crept back into the base machinery.
+# Genre furniture. A hit anywhere outside shared/genres/ means a genre
+# assumption crept back into the base machinery.
 LEAK_RE = re.compile(
-    r"\b(fantasy|magic|magical|sorcer\w*|wizard|bestiary|elves|dwarves|orcs"
-    r"|sanderson|tolkien|jemisin|rothfuss)\b", re.I)
+    r"\b(fantasy|magic|magical|sorcer\w*|wizard|bestiary|elves|dwarves"
+    r"|orcs)\b", re.I)
+
+# Author names are a separate check, because they mean different things in
+# different places. In a rubric or a skill they are comps — genre content,
+# and a leak. In CRAFT.md they are citations on genre-neutral structural
+# frameworks ("Promises, Progress, Payoff (Sanderson)", "MICE Quotient
+# (Orson Scott Card / Sanderson)", "The Three Sliders (Sanderson)"), which
+# must survive. Stripping an attribution to satisfy a regex would be worse
+# than the regex being over-broad.
+COMPS_RE = re.compile(
+    r"\b(sanderson|tolkien|jemisin|rothfuss|hobb|le guin|rowling)\b", re.I)
+COMPS_EXEMPT_DIRS = ("shared/craft",)
 
 # ANTI-SLOP.md and voice.md list 'realm' and 'tapestry' as banned slop words,
 # which is vocabulary guidance, not genre content. Nothing else is exempt.
@@ -3839,17 +3861,47 @@ def scanned_files():
             yield rel, path
 
 
-def test_no_genre_terms_outside_genre_packs():
-    offenders = []
+def _offenders(pattern, skip_dirs=()):
+    found = []
     for rel, path in scanned_files():
+        if any(rel.startswith(d) for d in skip_dirs):
+            continue
         for lineno, line in enumerate(
                 path.read_text(encoding="utf-8").splitlines(), start=1):
-            match = LEAK_RE.search(line)
+            match = pattern.search(line)
             if match:
-                offenders.append(f"{rel}:{lineno}: {match.group(0)!r} in {line.strip()!r}")
+                found.append(
+                    f"{rel}:{lineno}: {match.group(0)!r} in {line.strip()!r}")
+    return found
+
+
+def test_no_genre_terms_outside_genre_packs():
+    offenders = _offenders(LEAK_RE)
     assert not offenders, (
         "genre-specific content found outside shared/genres/:\n  "
         + "\n  ".join(offenders))
+
+
+def test_no_comp_authors_outside_genre_packs():
+    """Comp authors are genre content in a rubric or skill, citations in CRAFT.md."""
+    offenders = _offenders(COMPS_RE, skip_dirs=COMPS_EXEMPT_DIRS)
+    assert not offenders, (
+        "comparable-author names found outside shared/genres/ — these belong "
+        "in a pack's `comps`:\n  " + "\n  ".join(offenders))
+
+
+def test_craft_citations_survived():
+    """The exemption is scoped, not a blanket pass.
+
+    CRAFT.md's structural frameworks carry author attributions that must NOT
+    be stripped to satisfy the guard. If these disappear, someone 'fixed' a
+    false positive by deleting a correct citation.
+    """
+    craft = (PLUGIN / "shared/craft/CRAFT.md").read_text(encoding="utf-8")
+    for citation in ("Promises, Progress, Payoff (Sanderson)",
+                     "MICE Quotient (Orson Scott Card / Sanderson)",
+                     "The Three Sliders (Sanderson)"):
+        assert citation in craft, f"citation removed from CRAFT.md: {citation}"
 
 
 def test_guard_actually_scans_something():
