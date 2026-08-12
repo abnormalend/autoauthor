@@ -683,6 +683,19 @@ a "source of truth" comment above `RESERVED_DIMENSIONS` pointing at
 that rubric doesn't silently drift out of sync with this list) and a
 comment above `CORE_PROJECT_FILES` noting what it mirrors.
 
+A still later pass (after Tasks 6-8 shipped the packs) added a third
+thing to the top-of-file block and a matching check to `validate_pack`:
+`NAME_RE = re.compile(r"[a-z0-9][a-z0-9-]*")`, moved here from
+`resolve_genre.py` (Task 4), which now imports it instead of defining
+its own copy. `validate_pack` applies it to a pack's own `name` field,
+so `Cozy_Mystery.md` fails at authoring time with a message naming the
+rule rather than validating clean and then failing at resolve time with
+"invalid genre pack name". The two `name` checks are now an
+`if`/`if` pair inside a single `else`, not an `if`/`elif`: a name can
+match its filename stem and still be illegal. Tests:
+`test_name_must_use_resolver_safe_characters` (asserting the exact
+error) and `test_hyphenated_lowercase_name_is_valid`.
+
 A later quality-review pass (during Tasks 3-5) added two more things to
 this same top-of-file block: `TEMPLATE_STEM = "TEMPLATE"`, right after
 `CORE_PROJECT_FILES`, and a `pack_names_in(directory)` function, right
@@ -922,7 +935,9 @@ def _validate_shape(shape):
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `uv run pytest tests/test_genre_pack.py -v`
-Expected: 56 passed. The test file's validate_pack section was reorganized
+Expected: 62 passed (56 at the time this task landed, plus the CLI tests
+from Task 3 and the two `name`-format tests noted above). The test file's
+validate_pack section was reorganized
 by subject (name / label / role / weights / primary structure / modifier
 restrictions / pillar dimensions / conflicts_with / shape / artifacts)
 rather than by which task or plan revision introduced each test; packs
@@ -1846,16 +1861,46 @@ git commit -m "test: resolve_genre merge and conflict rules"
 
 - [ ] **Step 1: Write the template**
 
+A quality-review pass after Tasks 7-8 shipped the packs found that a
+novelist could not actually get from this file to a working pack. The
+first instruction ("copy this file to `<name>.md`") produced
+`missing '---' frontmatter opener on line 1`, because the frontmatter
+skeleton sat inside a fenced block under ~35 lines of guide prose; the
+guide never said which `state.json` key turns a finished pack on; the
+`name` rule omitted the character-class constraint `resolve_genre.py`
+enforces; the `weights` guidance never mentioned that the pillar bar is
+an independent gate weights cannot move; `## Seed Prompt` had no
+skeleton despite both shipped packs sharing a four-part structure with a
+load-bearing verbatim sentence; the prose-bullet warning flatly
+contradicted `fantasy.md`; `${CLAUDE_PLUGIN_ROOT}` went unexplained for
+a non-programmer audience; and nothing stated the `pillar_noun`
+no-leading-article convention. The same pass added `## Calibration` —
+the cap-versus-gate arithmetic every future pack author has to do. The
+corrected template below is the final content; the fix was verified by
+authoring a scratch `mystery.md` from this guide alone, which validated
+on the first attempt.
+
 Create `plugin/autonovel/shared/genres/TEMPLATE.md`:
 
 ````markdown
 # Genre Pack Authoring Guide
 
-Copy this file to `<name>.md`, fill it in, and validate:
+This file is a guide, not a skeleton — copying it will not produce a
+working pack. Create `<name>.md` and paste the block under
+[Frontmatter](#frontmatter) below — starting at the `---` line, without
+the surrounding backticks — as the very first thing in the file. Then
+work down this guide from `## Framing` onward, filling in each `##`
+section.
+
+Validate as you go:
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/validate_genre_pack.py" <name>.md
 ```
+
+(`${CLAUDE_PLUGIN_ROOT}` is a variable Claude Code fills in with the
+installed plugin's directory. Running the command yourself in a
+terminal, substitute the path to `plugin/autonovel` in this repo.)
 
 A pack may live in the plugin (`shared/genres/`) or in a single novel
 project (`<project>/genres/`). The project copy wins.
@@ -1876,13 +1921,52 @@ project (`<project>/genres/`). The project copy wins.
 Romance is `["primary", "secondary"]` — a romance novel, or a romantic
 subplot in a fantasy. Erotica is `["primary", "modifier"]`.
 
+A finished pack is switched on from the novel project's `state.json`,
+one key per role: `genre` names the primary (defaults to `"general"`
+when unset), `genre_secondary` names the single optional secondary, and
+`genre_modifiers` is a list of modifier names. A pack must declare the
+role of the slot it is used in, and may fill only one slot per project.
+
 ## Required
 
 A primary needs `## Framing` and `## Pillar Dimensions`. A modifier needs
 neither. Everything else is optional; omit `## Plot Architecture` to inherit
 the base Save the Cat structure.
 
+## Calibration
+
+Read this before writing `weights` or `## Pillar Dimensions`.
+
+The foundation loop exits only when BOTH the weighted `overall_score` is
+above 7.5 AND the pillar score — the average of *your* pillar
+dimensions, on its own — is above 7.0. The pillar bar is an
+**independent gate**. `weights` decides how much the pillar contributes
+to the overall and nothing else, so lowering `pillar` does not soften
+the 7.0 pillar bar; it only removes the pillar's influence on the
+overall. A pack that sets `pillar: 15` because "this genre cares less
+about worldbuilding" will still refuse to exit the loop on pillar score.
+
+That makes the score caps you write into dimension criteria ("if X,
+score 5 max") arithmetic you have to check. Caps are the right tool —
+they are what stops a judge from rewarding a real gap — but several low
+caps in one section can put the gate out of reach for a book that is
+otherwise fine.
+
+Sanity-check before you ship the pack: **if every cap in your section
+fired at once, what would the pillar average be, and is it above 7.0?**
+Four dimensions capping at 5/5/6/6 average 5.5, so the loop cannot exit
+until at least two of those caps stop firing. That is a correct and
+useful demand *if* each cap fires only on a genuine defect. A cap an
+ordinary competent book trips by accident is mis-set: raise the number
+or narrow the trigger — do not delete the cap.
+
 ---
+
+## Frontmatter
+
+Paste this into `<name>.md` first, starting at the `---` line. It is JSON
+between two `---` lines, not a `##` section — do not add a
+`## Frontmatter` heading to your pack.
 
 ```
 ---
@@ -1906,11 +1990,29 @@ the base Save the Cat structure.
 ---
 ```
 
-`weights` must be integers summing to 100. `content_register` declares
-intensity axes and their levels — `{"heat": "explicit"}`,
-`{"violence": "off-page"}` — and a declared level becomes a Genre Contract
-promise the book must keep. `artifacts` names extra project files this genre
-requires; describe each under `## Artifacts`.
+`name` must be lowercase letters, digits, and hyphens only, starting
+with a letter or digit — `cozy-mystery`, not `Cozy_Mystery` — and must
+match the filename stem exactly. Both rules are enforced, so rename the
+file and the `name` field together.
+
+`weights` must be integers summing to 100. The four categories it
+divides are:
+
+- **pillar** — your own `## Pillar Dimensions`.
+- **character** — `character_depth`, `character_distinctiveness`,
+  `character_secrets`.
+- **structure** — `outline_completeness`, `foreshadowing_balance`.
+- **craft** — `internal_consistency`, `voice_clarity`, `canon_coverage`.
+
+Weights set each category's share of `overall_score` and nothing else —
+the pillar bar is a separate, independent gate, so lowering `pillar`
+makes the pillar no easier to clear (see `## Calibration` above).
+Start from 40/30/20/10 and move at most 10-15 points.
+
+`content_register` declares intensity axes and their levels —
+`{"heat": "explicit"}`, `{"violence": "off-page"}` — and a declared level
+becomes a Genre Contract promise the book must keep. `artifacts` names extra
+project files this genre requires; describe each under `## Artifacts`.
 
 ## Framing
 
@@ -1924,6 +2026,11 @@ central system, or comparable authors. Use these exact keys.
 - reader_persona — <one sentence: the Genre Reader panel persona>
 - writer_persona — <one sentence: the Writer panel persona>
 
+`pillar_noun` is a **bare noun phrase with no leading article** —
+`magic system`, not `the magic system`. The rubric prose supplies its own
+article around the substitution, so a leading `the` reads as "the the
+magic system".
+
 ## Pillar Dimensions
 
 Three to six scored dimensions. Each bullet MUST read `- key — criteria`
@@ -1933,14 +2040,22 @@ collide with the base dimensions (`character_depth`,
 `foreshadowing_balance`, `internal_consistency`, `voice_clarity`,
 `canon_coverage`).
 
-This section takes dimension bullets only — no prose bullets. The parser
-reads every `- key <dash> ...` line in this section as a dimension
-declaration (or, with the wrong dash, a malformed one), so a stray prose
-bullet such as `- write carefully, judges score 0-10` will be parsed as a
-dimension key and can trip the validator. Put prose elsewhere (a
-paragraph above the bullets, or another section).
+Mind the bullet shape here. The parser reads every **unindented** bullet
+in this section whose first word is a bare lowercase identifier —
+`- some_key <dash> ...` — as a dimension declaration (or, with the wrong
+dash, a malformed one), so a stray prose bullet such as
+`- write carefully, judges score 0-10` becomes a dimension key and can
+trip the validator. Everything else is safe and welcome: `###`
+subsections of supporting prose above the dimension list, bullets
+indented by two spaces or more, and bullets whose first word is
+capitalized. `fantasy.md` uses all three — two `###` subsections of laws
+and measures, full of indented and capitalized prose bullets, sit above
+its `### Scored dimensions` list.
 
 Write real rubric criteria, not labels. A judge scores 0-10 against these.
+Give each one a concrete test with a number attached, so two judges
+reading the same documents land within a point of each other — and read
+`## Calibration` above before you set those numbers.
 
 - example_dim — What excellent looks like, what a gap looks like, and one
   concrete test the judge can apply.
@@ -1955,7 +2070,9 @@ Binary, checkable promises — not 0-10 scores. A breach caps the score.
 
 ## World Sections
 
-Required headings for `world.md`, one per line, in order.
+Required headings for `world.md`, one per line, in order. Give each one a
+`###` body below the list saying what belongs under it — the foundation
+agent builds `world.md` from these, and a bare heading tells it nothing.
 
 ## Cast Requirements
 
@@ -1995,8 +2112,56 @@ a genre-specific banned-phrase list.
 
 ## Seed Prompt
 
-Required concept fields, the DO-NOT list, and diversity requirements for
-`novel-seed`.
+What `novel-seed` reads to generate ten concepts. Four parts, in this
+order:
+
+1. **The persona block**, introduced by exactly
+   `Persona (adopt while generating):` — second person, present tense,
+   naming what this genre's concepts must never be.
+2. **The required concept fields**, introduced by the sentence
+   `Required concept fields (these <genre> fields and phrasings replace
+   the neutral scaffold's versions of the same fields):`. That sentence
+   is load-bearing — `novel-seed` relies on it to know your fields
+   override the neutral scaffold's, so keep the wording and swap only
+   `<genre>`. Under it, one block per field: an ALL-CAPS name, a colon,
+   and what it must contain. Every pack keeps WORLD, TENSION, THEME, and
+   WHY IT'S NOT GENERIC; add or rename the rest for the genre (fantasy
+   adds MAGIC/COST, general adds STAKES and WHEN). Every scored pillar
+   dimension should have a field feeding it.
+3. **The diversity list**, introduced by
+   `Aim for DIVERSITY across the ten concepts:` — the axes the ten must
+   spread across, so the batch isn't ten variations on one idea.
+4. **The DO-NOT list**, introduced by `DO NOT generate:` — this genre's
+   exhausted premises, each stated concretely enough to recognize on
+   sight.
+
+```
+Persona (adopt while generating):
+
+You are <who is generating: the genre's range, what they know>. You
+generate novel concepts that are SPECIFIC, SURPRISING, and
+STRUCTURALLY SOUND. You never propose <this genre's default cliché>.
+
+Required concept fields (these <genre> fields and phrasings
+replace the neutral scaffold's versions of the same fields):
+
+WORLD: <what makes this world specific — make it SENSORY>
+<PILLAR FIELD>: <the field this genre's pillar needs — MAGIC/COST,
+  STAKES, THE CRIME, whatever your pillar dimensions score>
+TENSION: <the central conflict; both PERSONAL and larger, and the
+  two in tension with each other>
+THEME: <a genuine question with no easy answer — not a message>
+WHY IT'S NOT GENERIC: <one sentence>
+
+Aim for DIVERSITY across the ten concepts:
+  - <axis: setting, structure, scale, protagonist age, ...>
+  - <axis>
+  - Mix of tones: <the tones this genre supports>
+
+DO NOT generate:
+  - <this genre's most exhausted premise>
+  - <the next one>
+```
 ````
 
 - [ ] **Step 2: Verify the template itself is not mistaken for a pack**
@@ -2023,6 +2188,52 @@ contemporary novel clear the foundation gate.
 
 - [ ] **Step 1: Write the pack**
 
+A quality-review pass after this pack shipped made eight corrections,
+all of them consequences of `general` being the pack a user gets when
+they never chose a genre:
+
+- `pillar_noun` was `"the world of the novel"` — a leading article that
+  substitutes into rubric prose as "the the world of the novel". Now the
+  bare `"story world"`, matching `fantasy.md`'s bare `"magic system"`.
+- `thematic_architecture` and `temporal_grounding` were phrased against a
+  manuscript ("without using a word from the manuscript", "if a character
+  states the theme aloud anywhere", "a reader should always know"). The
+  foundation judge has no manuscript — it gets `voice.md`, `world.md`,
+  `characters.md`, `outline.md`, `canon.md`. Both now score "the documents
+  you were given", and the theme cap is scoped to the outline and voice.md's
+  exemplar passages rather than "anywhere".
+- `## World Sections` was six bare headings against `fantasy.md`'s nine
+  with `###` bodies — and three of the four pillar dimensions score
+  exactly those sections, so the pack was telling the judge what to
+  punish and the foundation agent nothing about what to build. All six
+  now have `###` bodies.
+- `weights` moved from `{pillar: 15, ..., craft: 25}` to
+  `{pillar: 20, character: 40, structure: 20, craft: 20}`. The extra
+  `craft` weight was meant to encode "prose matters more in literary
+  fiction", but `craft` in `foundation.md` is `internal_consistency` +
+  `voice_clarity` + `canon_coverage` — two of the three are bookkeeping,
+  so the weight mostly upweighted canon hygiene. Properly encoding
+  "prose matters" needs a prose dimension in the base rubric; that is
+  out of scope for this plan.
+- The seed prompt gained a `WHEN` field. `temporal_grounding` is a scored
+  pillar dimension and nothing in the seed asked for period, season, or
+  elapsed duration.
+- `comps` were five interiority-heavy stylists (Robinson, Ishiguro,
+  Ferrante, Whitehead, Cusk), and comps feed the reader/writer panel
+  personas as well as the seed — a user who wanted a plain contemporary
+  novel got pulled toward Marilynne Robinson. Robinson and Cusk out,
+  Patchett, Ng, and Tyler in.
+- `## Cast Requirements` said "ghost/wound/lie/want/need chain" where
+  every other file in the repo says `wound/want/need/lie`, and dropped
+  "physical habits and tells" and "key relationships mapped", which
+  `fantasy.md` keeps and which matter at least as much here. Aligned and
+  restored, in `fantasy.md`'s numbered-roster shape.
+- Two DO-NOT additions: the dead or missing child/sibling as the
+  premise's whole engine (distinct from the existing "trauma as a
+  substitute for character" — there the wound stands in for character,
+  here the wound *is* the plot), and the extramarital affair as sole
+  spine.
+
 Create `plugin/autonovel/shared/genres/general.md`:
 
 ````markdown
@@ -2032,7 +2243,7 @@ Create `plugin/autonovel/shared/genres/general.md`:
   "label": "General Fiction",
   "role": ["primary"],
   "pillar_label": "Setting & Thematic Architecture",
-  "weights": {"pillar": 15, "character": 40, "structure": 20, "craft": 25},
+  "weights": {"pillar": 20, "character": 40, "structure": 20, "craft": 20},
   "beat_system": "save-the-cat",
   "content_register": {},
   "conflicts_with": [],
@@ -2049,8 +2260,8 @@ Create `plugin/autonovel/shared/genres/general.md`:
 ## Framing
 
 - genre_noun — "novel"
-- pillar_noun — "the world of the novel"
-- comps — Marilynne Robinson, Kazuo Ishiguro, Elena Ferrante, Colson Whitehead, Rachel Cusk
+- pillar_noun — "story world"
+- comps — Ann Patchett, Kazuo Ishiguro, Elena Ferrante, Colson Whitehead, Celeste Ng, Anne Tyler
 - seed_persona — a novelist with wide range and no house style, who generates premises that are specific, surprising, and structurally sound
 - reader_persona — a thoughtful reader who finishes 40 novels a year across every shelf in the store, cares about whether a book earns its length, and has no patience for a premise that never pays out
 - writer_persona — a published novelist and workshop teacher who reads as a craftsperson and cares about the gap between what a book attempts and what it achieves
@@ -2059,8 +2270,8 @@ Create `plugin/autonovel/shared/genres/general.md`:
 
 - setting_specificity — Do places do narrative work, or are they backdrop? A scene should be impossible to relocate without loss. Check: could two scenes in two locations be swapped with only proper nouns changed? If yes, score 5 max.
 - social_texture — Class, work, money, family structure, institutions. Are the characters' material circumstances specific and consequential, or is everyone comfortably unplaced? Test: name what each major character does for money and what happens to them if they stop. If the novel cannot answer that for the protagonist, score 5 max. Decorative sociology — detail that never constrains a choice — counts against, not for.
-- thematic_architecture — Is there a genuine question the book is asking, stated nowhere and present everywhere? A theme that any character articulates aloud is a message, not a theme. Test: can you name the question in one sentence without using a word from the manuscript? If you cannot, score 5 max. If a character states the theme aloud anywhere, score 6 max regardless of how well the rest of the book explores it.
-- temporal_grounding — When is this, and does it matter? Period, season, elapsed duration, and the rate at which this world changes. Test: could this story happen unchanged fifty years earlier or later? If yes, and the novel is not deliberately timeless, score 6 max. Also check that elapsed time is trackable — a reader should always know roughly how long it has been since chapter 1.
+- thematic_architecture — Is there a genuine question the book is asking, stated nowhere and present everywhere? A theme a character articulates aloud is a message, not a theme. Test: from the documents you were given, can you name the question in one sentence without reusing the documents' own phrasing for it? If you cannot, score 5 max. If the outline or an exemplar passage in voice.md has a character state the theme aloud, score 6 max regardless of how well the rest of the plan explores it.
+- temporal_grounding — When is this, and does it matter? Period, season, elapsed duration, and the rate at which this world changes. Test: could this story happen unchanged fifty years earlier or later? If yes, and the novel is not deliberately timeless, score 6 max. Also check that elapsed time is trackable in the documents you were given — the outline should let you say, at any chapter, roughly how long it has been since chapter 1.
 
 ## Genre Contract
 
@@ -2069,6 +2280,11 @@ Create `plugin/autonovel/shared/genres/general.md`:
 
 ## World Sections
 
+Places, institutions, and money are the pillar here the way a magic
+system is the pillar in fantasy. Each section below must produce detail
+that CONSTRAINS a choice somewhere in the outline; detail that constrains
+nothing is decoration and counts against the score, not for it.
+
 - Setting & Place
 - Society & Institutions
 - Work, Money, Class
@@ -2076,12 +2292,72 @@ Create `plugin/autonovel/shared/genres/general.md`:
 - Cultural Details
 - Internal Consistency Rules
 
+### Setting & Place
+The primary setting's physical layout and its distinctive property —
+what a stranger would notice first and what a resident stopped noticing
+years ago. Neighboring or contrasting places (at least 2-3): where
+characters go to escape, to work, to be unobserved. A sensory signature
+per location — sound, smell, light, weather — specific enough that a
+scene set there could not be relocated with only proper nouns changed.
+
+### Society & Institutions
+The bodies with power over the characters: employers, schools, churches,
+courts, hospitals, councils, landlords, families acting as institutions.
+Who decides, who appeals, who has no standing. At least 3-4 with
+interests that collide. For each, what it can take away from the
+protagonist and by what procedure.
+
+### Work, Money, Class
+What each major character does for money, what they are paid, what it
+costs them to live, and what happens to them if the money stops. Who
+owns what, who owes whom, who inherited and who did not. The specific
+markers by which this world reads class — accent, address, schooling,
+teeth, car, the way a debt is asked for.
+
+### Time & Period
+When this is: year or era, season, and the span the novel covers from
+chapter 1 to the end. What is changing in this world during that span
+and at what rate — a closing industry, a rising rent, a season turning,
+a child growing. What technology, law, money, and news look like here,
+concretely enough that the story could not slide fifty years in either
+direction unchanged.
+
+### Cultural Details
+Customs, taboos, manners, food, clothing, funerals and weddings, what is
+said aloud and what never is. The local rules an outsider would break
+without knowing. Things that make daily life feel SPECIFIC to this place
+rather than to "a town".
+
+### Internal Consistency Rules
+Hard constraints a writer must not violate: distances and travel times,
+who can afford what, what an institution is and is not allowed to do,
+what is physically possible in this setting. This world has no magic —
+which means coincidence, sudden money, and convenient authority are the
+things that break it. Write down the ones this book must not use.
+
 ## Cast Requirements
 
-- The protagonist, with a full ghost/wound/lie/want/need chain, three sliders, arc type, all eight speech dimensions, and at least two secrets.
-- The person closest to the protagonist's central conflict, at the same depth.
-- An antagonist — not a villain. Someone whose legitimate interests collide with the protagonist's, with their own full chain.
-- At least two further characters the story needs, with the depth their page time earns.
+1. **The protagonist** — derived from the seed.
+   - Full wound/want/need/lie chain
+   - Three sliders with justification
+   - Arc type (positive/negative/flat)
+   - Detailed speech pattern (8 dimensions, with example lines)
+   - Physical habits and tells connected to their specific
+     circumstances (their work, their class, their wound)
+   - At least 2 secrets
+   - Key relationships mapped
+
+2. **The person closest to the protagonist's central conflict** — same
+   depth as the protagonist. What they know and what they're hiding.
+
+3. **An antagonist** — not a villain. Someone whose legitimate interests
+   collide with the protagonist's, with their own full
+   wound/want/need/lie chain; they should be understandable, not
+   evil-for-evil's-sake.
+
+4. **At least two further characters** the story needs, with the depth
+   their page time earns — a peer, someone from the other side of the
+   institutional line, an ally with divided loyalties.
 
 ## Canon Categories
 
@@ -2137,6 +2413,11 @@ WORLD: The specific social world the book lives in — a place, a
   trade, an institution, a family, a moment. Not "small-town
   America" but which town, whose kitchen, what the work is. Make it
   SENSORY and make it material: what things cost, who pays.
+WHEN: The period (year or era), the season it opens in, and roughly how
+  much time the story covers end to end. Name one thing that is
+  changing in this world over that span — a closing industry, a rising
+  rent, a child growing — so the story could not slide fifty years in
+  either direction unchanged.
 STAKES: What does the protagonist stand to lose, and what makes the
   loss irreversible? Rarely death — in this genre the stakes are a
   marriage, a house, a licence, a child's regard, a version of
@@ -2173,6 +2454,9 @@ DO NOT generate:
   - "A family gathers and secrets come out"
   - Writers, MFA programs, or novels about writing novels
   - Terminal illness or a funeral as the whole structural spine
+  - A dead or vanished child or sibling as the premise's entire
+    engine — the loss may exist, but it cannot be the plot
+  - The extramarital affair as the whole spine of the book
 ````
 
 - [ ] **Step 2: Validate the pack**
@@ -2266,9 +2550,24 @@ Append the five dimensions, moving the criteria text verbatim from
 - magic_system — Hard rules with COSTS and LIMITATIONS per Sanderson's Second Law. Could a writer resolve the CLIMACTIC CONFLICT using only rules already established? Are costs plot-driving, not decorative? Are there at least 3 societal implications explored with specificity? Is the system TESTABLE — could you write a courtroom scene, a contract negotiation, and a magical confrontation without inventing new rules? Also check First Law compliance (foreshadowed solutions over total magic solutions), that limitations are at least as prominent as powers, and that no new unforeshadowed powers appear in the final 25%.
 - world_history — Timeline of events creating PRESENT-DAY tensions. Each historical event should map to a current faction conflict or character motivation. Decorative history (cool but plot-irrelevant) counts against the score, not for it.
 - geography_and_culture — Locations distinct with sensory signatures. Cultures with specific customs that GENERATE CONFLICT. Economy that creates class tension. Check: could two different scenes set in two different locations feel meaningfully different based on what's here?
-- lore_interconnection — Does changing one element force changes in at least two others? Test by mentally removing the magic system — does the political structure collapse? Does the class system change? If elements are modular and detachable, score low.
-- iceberg_depth — Implied depth versus stated depth. But CHECK: does the author actually know the answers to the mysteries, or are they handwaving? If a planning doc says "the answer will be revealed" without specifying WHAT the answer is, that's a gap wearing an iceberg costume.
+- lore_interconnection — Does changing one element force changes in at least two others? Test by mentally removing the magic system — does the political structure collapse? Does the class system change? Count the elements that survive removal unchanged: if the political structure, the class system, and the economy all still stand, the lore is modular and detachable, score 4 max; if two of the three still stand, score 6 max.
+- iceberg_depth — Implied depth versus stated depth. But CHECK: does the author actually know the answers to the mysteries, or are they handwaving? If a planning doc says "the answer will be revealed" without specifying WHAT the answer is, that's a gap wearing an iceberg costume. Test: pick three mysteries the documents gesture at, and for each ask whether the actual answer is written down somewhere in them. Zero answered caps at 4; three answered while the reader is still meant to be in the dark supports 8+.
 ````
+
+The last sentence of each of those two bullets is the **only** departure
+from the verbatim port, added by the quality-review pass after Task 7's
+calibration finding. `general.md` has four dimensions with numeric caps
+and `fantasy.md` had none, while both are gated at the same
+`> 7.0` pillar bar — so the neutral pack written to unblock non-fantasy
+novels was arguably stricter than the fantasy pack that blocked them.
+The fix was not to weaken `general`'s caps (they are good, and they are
+the pattern the remaining seven packs should copy) but to make
+`fantasy`'s two least-scoreable criteria countable: "score low" and
+"does the author actually know the answers" each let two judges differ
+by 3+ points on the same documents. No other criteria text changed, and
+neither addition alters what the dimensions are about — the acceptance
+test is still that a fantasy project scores within noise of its
+pre-change score.
 
 - [ ] **Step 3: Port the remaining sections**
 

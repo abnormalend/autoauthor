@@ -45,23 +45,22 @@ skills parse this, none of which can see this module's source:
 """
 import argparse
 import json
-import re
 import sys
 from pathlib import Path
 
-from genre_pack import (PackError, format_names, pack_names_in, parse_pack,
-                        validate_pack)
-
-DEFAULT_GENRE = "general"
-PLUGIN_GENRES = Path(__file__).resolve().parent.parent / "genres"
-
-# A pack name is a bare filename stem: lowercase letters, digits, and
-# hyphens. Rejecting anything else before it reaches a path join stops a
+# NAME_RE is shared with validate_pack rather than redefined here: a name
+# this resolver would reject must be the same name the authoring-time
+# validator rejects, or a pack validates clean and then fails at resolve
+# time. Rejecting anything else before it reaches a path join also stops a
 # name like "../outside" from escaping the genres/ directory it's looked up
 # in, and turns a state.json typo into a clear message instead of a
 # baffling "unknown genre pack" for a name that was never a real attempt at
 # one.
-NAME_RE = re.compile(r"[a-z0-9][a-z0-9-]*")
+from genre_pack import (NAME_RE, PackError, format_names, pack_names_in,
+                        parse_pack, validate_pack)
+
+DEFAULT_GENRE = "general"
+PLUGIN_GENRES = Path(__file__).resolve().parent.parent / "genres"
 
 
 def fail(message):

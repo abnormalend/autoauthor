@@ -47,6 +47,14 @@ CORE_PROJECT_FILES = {
 # genres/ directory for pack names excludes it.
 TEMPLATE_STEM = "TEMPLATE"
 
+# A pack name is a bare filename stem: lowercase letters, digits, and
+# hyphens. resolve_genre.py applies this to the names in state.json before
+# they reach a path join (so "../outside" can't escape the genres/
+# directory); validate_pack applies the same rule to a pack's own 'name'
+# field, so an authoring-time check catches 'Cozy_Mystery' instead of
+# letting it validate clean and then fail at resolve time.
+NAME_RE = re.compile(r"[a-z0-9][a-z0-9-]*")
+
 # A fenced block, backtick or tilde, 3 or more of the same character,
 # opened and closed by matching markers, with up to 3 spaces of leading
 # indent (CommonMark allows this — e.g. a fence indented under a bullet
@@ -228,10 +236,20 @@ def validate_pack(pack, known_names=None):
     name = meta.get("name")
     if not isinstance(name, str) or not name:
         errors.append("frontmatter 'name' must be a non-empty string")
-    elif name != path.stem:
-        errors.append(
-            f"frontmatter 'name' is {name!r} but the filename stem is "
-            f"{path.stem!r}")
+    else:
+        # Both checks run, not one-or-the-other: 'Cozy_Mystery' in
+        # Cozy_Mystery.md matches its stem and is still an illegal name,
+        # while a legal name in the wrong file is still a mismatch.
+        if not NAME_RE.fullmatch(name):
+            errors.append(
+                f"frontmatter 'name' is {name!r}; a pack name must be "
+                "lowercase letters, digits, and hyphens only, starting "
+                "with a letter or digit (e.g. 'cozy-mystery') — rename "
+                "the file to match")
+        if name != path.stem:
+            errors.append(
+                f"frontmatter 'name' is {name!r} but the filename stem is "
+                f"{path.stem!r}")
 
     if not isinstance(meta.get("label"), str) or not meta.get("label"):
         errors.append("frontmatter 'label' must be a non-empty string")

@@ -332,6 +332,25 @@ def test_name_non_string_is_reported(tmp_path):
     assert errors == ["frontmatter 'name' must be a non-empty string"]
 
 
+def test_name_must_use_resolver_safe_characters(tmp_path):
+    # 'Cozy_Mystery' matches its own filename stem, so the stem check
+    # passes it — but resolve_genre.py's NAME_RE rejects it at resolve
+    # time. Validation must fail at authoring time instead, when the
+    # author is still looking at the file.
+    meta = {**VALID_PRIMARY_META, "name": "Cozy_Mystery"}
+    errors = validate(tmp_path, "Cozy_Mystery", meta)
+    assert errors == [
+        "frontmatter 'name' is 'Cozy_Mystery'; a pack name must be "
+        "lowercase letters, digits, and hyphens only, starting with a "
+        "letter or digit (e.g. 'cozy-mystery') — rename the file to match"
+    ]
+
+
+def test_hyphenated_lowercase_name_is_valid(tmp_path):
+    meta = {**VALID_PRIMARY_META, "name": "cozy-mystery"}
+    assert validate(tmp_path, "cozy-mystery", meta) == []
+
+
 # --- label ------------------------------------------------------------------
 
 def test_label_missing_is_reported(tmp_path):
