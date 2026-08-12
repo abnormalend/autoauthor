@@ -214,10 +214,17 @@ def slop_score(text, genre_banned=()):
     # Composite penalty (0 = clean, 10 = disaster)
     # Genre-specific banned phrases. Multi-word, so matched as substrings
     # rather than through the token loop above.
-    lowered = text.lower()
+    #
+    # Whitespace is collapsed first because chapter files are hard-wrapped
+    # prose: without it, any phrase that happens to straddle a line break is
+    # silently missed, and the longer the phrase the likelier that is — so
+    # the scan would undercount exactly the florid multi-word constructions
+    # a genre banned list exists to catch.
+    lowered = re.sub(r"\s+", " ", text.lower())
     genre_hits = []
     for phrase in genre_banned:
-        c = lowered.count(phrase)
+        normalized = re.sub(r"\s+", " ", phrase.strip())
+        c = lowered.count(normalized)
         if c > 0:
             genre_hits.append((phrase, c))
 

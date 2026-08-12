@@ -36,7 +36,16 @@ project (`<project>/genres/`). The project copy wins.
 - **modifier** — an orthogonal axis (age category, heat level, tone). Only
   its Framing, Genre Contract, Drafting Rules, and `content_register` are
   read. It may not declare `weights`, `pillar_label`, `beat_system`,
-  `shape`, or a Pillar Dimensions section.
+  `shape`, or a Pillar Dimensions section. Its `## Framing` should supply
+  only `comps` and the three personas — `genre_noun` and `pillar_noun`
+  belong to the primary, since a YA fantasy is still a fantasy novel with
+  whatever central system fantasy has. Its `## Genre Contract` is checked
+  like every other pack's, so scope each promise to what the modifier
+  actually governs, the same way a secondary must.
+  A modifier's `artifacts` are **dropped** by the resolver: artifacts are
+  per-book deliverables the genre owns, and an orthogonal axis should not
+  spawn project files. A dual-role pack therefore gets its artifact as a
+  primary and not as a modifier — scope any rule that references it.
 
 Romance is `["primary", "secondary"]` — a romance novel, or a romantic
 subplot in a fantasy. Erotica is `["primary", "modifier"]`.
@@ -141,6 +150,23 @@ between two `---` lines, not a `##` section — do not add a
 ---
 ```
 
+**A modifier uses a shorter block.** Pasting the one above into a modifier
+produces four validator errors, because a modifier may not declare
+`pillar_label`, `weights`, `beat_system`, or `shape`. Use this instead:
+
+```
+---
+{
+  "name": "<must match the filename stem>",
+  "label": "<human-readable>",
+  "role": ["modifier"],
+  "content_register": {},
+  "conflicts_with": [],
+  "artifacts": []
+}
+---
+```
+
 `name` must be lowercase letters, digits, and hyphens only, starting
 with a letter or digit — `cozy-mystery`, not `Cozy_Mystery` — and must
 match the filename stem exactly. Both rules are enforced, so rename the
@@ -190,10 +216,22 @@ open for a modifier to set. Declaring a level here forces it on every book
 in the genre. If you are reaching for one, ask whether you are describing
 the genre or describing one book in it.
 
-**A declared level is a promise checked in both directions.** A book that
-promises `explicit` and fades to black has broken its contract exactly as
-one promising `closed-door` and delivering explicit has. Levels are a target,
-not a ceiling.
+**A level is always a ceiling. It is also a floor only when your
+`## Genre Contract` says so.**
+
+That distinction matters and is easy to get wrong. `erotica` declares
+`heat: explicit` *and* contracts that "the declared heat level is
+delivered" — so for that pack the level is a target in both directions, and
+a book that fades to black has breached. `cozy` declares
+`violence: off-page` with no matching contract clause, so it bounds the
+book without promising violence occurs at all: a cozy mystery has a body,
+a cozy fantasy may have none, and both satisfy it.
+
+Without that split, a tone or age modifier is pushed to omit exactly the
+axes it exists to bound, because `violence: off-page` read as a delivery
+promise would falsely assert that violence happens. If your pack means the
+level as a target rather than a bound, say so in `## Genre Contract` —
+otherwise it bounds only.
 
 **When packs disagree, the most restrictive level wins.** A `ya` modifier
 declaring `heat: warm` over a romance primary declaring `heat: steamy`
@@ -248,6 +286,13 @@ capitalized. `fantasy.md` uses all three — two `###` subsections of laws
 and measures, full of indented and capitalized prose bullets, sit above
 its `### Scored dimensions` list.
 
+The shape most likely to catch you out is a **definitional list** — terms
+of art you want to define before scoring against them. Written the natural
+way, `- fair play — every clue is on the page`, each entry is
+indistinguishable from a dimension declaration and every term becomes a
+phantom key. Either indent those bullets two spaces, or write them as
+bold-prefixed prose the way `mystery.md` and `romance.md` do.
+
 Write real rubric criteria, not labels. A judge scores 0-10 against these.
 Give each one a concrete test with a number attached, so two judges
 reading the same documents land within a point of each other — and read
@@ -283,8 +328,18 @@ percentage marks**. Declaring one does not replace the other: mystery ships
 `beat_system: save-the-cat` alongside its own act structure, and the outline
 uses Save the Cat beat names at the act marks stated here.
 
+**Percentage marks stated in this section win** over the beat system's own
+canonical marks. A thriller declaring `save-the-cat` alongside a Plot
+Architecture that pulls the Catalyst to 5% gets a Catalyst at 5%, not at
+Save the Cat's usual ~11% — the beat *names* still come from `beat_system`,
+but where they fall comes from here. That is the point of declaring both.
+
 **If you declare a `beat_system` other than `save-the-cat`, you must state
-its beats here or in a `###` subsection above your scored dimensions.**
+its beats somewhere in the pack.** The recommended home is a `###`
+subsection above your scored dimensions inside `## Pillar Dimensions`, which
+is what `romance.md` does for Romancing the Beat — it ships no
+`## Plot Architecture` at all. Use this section for act shape and marks; use
+that subsection to enumerate an unfamiliar beat vocabulary.
 Nothing else in the pipeline knows them — `layer-guides.md` tells the
 outliner to place "the beats of the pack's `beat_system` at their stated
 percentage marks", and if your pack does not state them, there is nothing to
@@ -327,7 +382,10 @@ artifact nothing scores is a file the pipeline will quietly stop maintaining.
 
 ## Drafting Rules
 
-Appended to the base 24 in `drafting-rules.md`. Number from 25. May include
+Appended to the base 24 in `drafting-rules.md`. Number from 25 — the
+numbering is per-pack, not a global sequence, so a stack of three packs
+will produce three rules numbered 25. The drafter reads every loaded
+pack's section, so the collision is expected and harmless. May include
 a genre-specific banned-phrase list.
 
 ## Seed Prompt

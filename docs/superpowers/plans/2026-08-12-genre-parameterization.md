@@ -4204,13 +4204,59 @@ Declare only the axes a genre actually constrains. Omitting an axis leaves
 it open; setting it to `none` promises the book contains none of that
 thing, which is a different and much stronger claim.
 
-## Follow-on work (not in this plan)
+## Genre packs: all nine shipped
 
-Spec phases 3 and 4 — authoring `science-fiction`, `thriller`, `erotica`,
-`ya`, and `cozy`. Each is a self-contained pack file validated by
-`validate_genre_pack.py` and covered by the existing
-`test_cli_validates_all_shipped_packs` test, so they need no further
-mechanism work.
+Spec phases 3 and 4 are complete. Nine packs ship — six primaries, of which
+five also serve as secondaries, plus two modifiers and one dual
+primary/modifier:
+
+| Pack | Roles | Pillar dims | `content_register` | Artifacts |
+|---|---|---|---|---|
+| `general` | primary | 4 | `{}` | — |
+| `fantasy` | primary, secondary | 5 | `{}` | — |
+| `romance` | primary, secondary | 5 | `{}` | — |
+| `mystery` | primary, secondary | 5 | `{}` | `clue_ledger.md` |
+| `science-fiction` | primary, secondary | 5 | `{}` | — |
+| `thriller` | primary, secondary | 5 | `{}` | — |
+| `erotica` | primary, **modifier** | 5 | `heat: explicit` | `encounter_ledger.md` |
+| `ya` | modifier | — | `heat: warm`, `language: strong` | — |
+| `cozy` | modifier | — | `violence: off-page`, `language: mild` | — |
+
+**No mechanism changed to accommodate any of them.** Every pack was written
+against `TEMPLATE.md` and the existing validator and resolver. What did
+change is the guide: authoring nine packs surfaced seventeen gaps in it,
+which is what a guide is for.
+
+Things the later packs proved that the first two could not:
+
+- **`shape` being pack-owned was load-bearing.** `thriller` ships 40-55
+  chapters at 1,900 words against `fantasy`'s 22-26 at 3,200. Under the
+  original hardcoded values a thriller would have been drafted in
+  3,200-word chapters, which is simply the wrong book.
+- **The modifier role works.** `ya` and `cozy` are the first packs to
+  declare no weights, no `pillar_label`, no `shape`, and no dimensions, and
+  they compose with every primary.
+- **Clamping resolves a real cross-pack collision.** `mystery` + `cozy` +
+  `ya` produces `language: mild` sourced to `cozy`, beating `ya`'s
+  `strong` on the ordered scale. Note that `fantasy` + `ya` is *not* a
+  clamp — fantasy declares `{}`, so `ya` sets the axes uncontested.
+- **`conflicts_with` and clamping do different jobs**, and the distinction
+  is now written into `erotica`'s contract prose: two packs constraining
+  *different* axes is what the clamp is for, while two contracts promising
+  *different deliveries* of the same axis is what `conflicts_with` is for.
+  That is why `erotica` conflicts with `ya` (both promise a heat delivery,
+  incompatibly) but **not** with `cozy` (which constrains violence and
+  language, saying nothing about heat — a warm, community-centred,
+  explicit book is coherent and publishable).
+- **`slop_score --genre-pack` has its first real consumer.** `erotica`
+  ships a 41-phrase `BANNED PHRASES:` block covering the purple-euphemism
+  register the base anti-slop tiers do not touch. Authoring it exposed a
+  bug in the scanner: phrases were matched against raw text, so any
+  multi-word phrase straddling a line wrap was missed — a systematic
+  undercount of exactly the florid constructions such a list exists to
+  catch, since chapter files are hard-wrapped prose.
+
+## Follow-on work (not in this plan)
 
 `romance` and `mystery` have since been authored and shipped — they went
 first because they stress the design in opposite directions: romance has

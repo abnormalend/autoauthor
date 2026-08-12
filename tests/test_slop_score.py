@@ -102,3 +102,37 @@ def test_missing_pack_file_does_not_break_scoring(tmp_path):
          "--genre-pack", str(tmp_path / "nope.md")],
         capture_output=True, text=True)
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_banned_phrase_is_caught_across_a_line_wrap(tmp_path):
+    """Chapter files are hard-wrapped prose.
+
+    Matching against raw text missed any phrase straddling a newline, and
+    the longer the phrase the likelier that was — so the scan undercounted
+    exactly the florid constructions a genre banned list exists to catch.
+    """
+    pack = _pack_with_banned(tmp_path, "she came undone")
+    chapter = tmp_path / "ch_01.md"
+    chapter.write_text("She came\nundone in his arms.\n", encoding="utf-8")
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), str(chapter), "--genre-pack", str(pack)],
+        capture_output=True, text=True)
+    assert result.returncode == 0, result.stdout + result.stderr
+    hits = json.loads(result.stdout)["files"][0]["genre_banned_hits"]
+    assert [h[0] for h in hits] == ["she came undone"]
+
+
+def test_wrapped_and_flat_text_score_identically(tmp_path):
+    pack = _pack_with_banned(tmp_path, "waves of pleasure")
+    flat = tmp_path / "flat.md"
+    wrapped = tmp_path / "wrapped.md"
+    flat.write_text("Waves of pleasure. " * 3, encoding="utf-8")
+    wrapped.write_text("Waves of\npleasure. " * 3, encoding="utf-8")
+    scores = []
+    for path in (flat, wrapped):
+        r = subprocess.run(
+            [sys.executable, str(SCRIPT), str(path), "--genre-pack", str(pack)],
+            capture_output=True, text=True)
+        assert r.returncode == 0, r.stdout + r.stderr
+        scores.append(json.loads(r.stdout)["files"][0]["genre_banned_hits"])
+    assert scores[0] == scores[1] != []
