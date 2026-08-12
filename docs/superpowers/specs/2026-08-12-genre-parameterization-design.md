@@ -96,7 +96,7 @@ dash), so the validator can extract dimension keys without parsing prose.
 | `pillar_label` | primary | Names the rubric's genre category ("Relationship Architecture", "Plot Machinery & Procedure"). |
 | `weights` | primary | Category weights; integers summing to 100. |
 | `beat_system` | primary | Names the beat vocabulary the outline and chapter rubric check against. Default `save-the-cat`. |
-| `content_register` | optional | Declared intensity axes with levels, e.g. `{heat: explicit}`, `{violence: off-page}`. |
+| `content_register` | optional | Declared intensity axes with levels, e.g. `{heat: explicit}`, `{violence: off-page}`. Closed vocabulary — see below. |
 | `conflicts_with` | optional | Pack names that may not be loaded alongside this one. Enforced at load. |
 | `shape` | primary | Chapter count range, word count range, per-chapter target, default POV/tense. |
 | `artifacts` | optional | Extra project files this genre requires. |
@@ -167,6 +167,15 @@ same pillar dimension key — the primary wins and the validator warns.
 Modifiers cannot touch weights or dimensions, which is why they stack safely
 without reopening the weight-arithmetic problem that ruled out unrestricted
 N-pack composition.
+
+`content_register` is the exception to "additive". Its axes carry closed,
+ordered vocabularies (`heat`, `violence`, `language`), and a collision
+clamps the axis to the most restrictive level any loaded pack declares
+rather than erroring. Two packs setting the same axis differently is the
+normal case — a `ya` modifier over a `romance` primary — and the safe
+answer is the stricter one. The vocabulary is closed precisely so those
+levels can be ordered: free strings would leave `"closed-door"` and
+`"fade to black"` unorderable and reading as a real disagreement.
 
 *Erotic Paranormal Romance* resolves as primary `fantasy`, secondary
 `romance`, modifier `erotica`. The erotica pack's pillar dimensions and

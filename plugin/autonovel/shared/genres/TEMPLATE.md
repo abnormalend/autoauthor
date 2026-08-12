@@ -129,10 +129,43 @@ the pillar bar is a separate, independent gate, so lowering `pillar`
 makes the pillar no easier to clear (see `## Calibration` above).
 Start from 40/30/20/10 and move at most 10-15 points.
 
-`content_register` declares intensity axes and their levels —
-`{"heat": "explicit"}`, `{"violence": "off-page"}` — and a declared level
-becomes a Genre Contract promise the book must keep. `artifacts` names extra
-project files this genre requires; describe each under `## Artifacts`.
+`artifacts` names extra project files this genre requires; describe each
+under `## Artifacts`.
+
+### content_register
+
+Declares how intense this genre's content is, on three axes with fixed
+vocabularies. Anything else is rejected at authoring time.
+
+| Axis | Levels, least to most intense |
+|---|---|
+| `heat` | `none` · `closed-door` · `warm` · `steamy` · `explicit` |
+| `violence` | `none` · `off-page` · `moderate` · `graphic` |
+| `language` | `none` · `mild` · `strong` · `unrestricted` |
+
+Declare only the axes your genre actually constrains. A pack that says
+nothing about violence should omit `violence` rather than set it to `none` —
+omitting leaves it open, while `none` promises the book contains none.
+
+**A declared level is a promise checked in both directions.** A book that
+promises `explicit` and fades to black has broken its contract exactly as
+one promising `closed-door` and delivering explicit has. Levels are a target,
+not a ceiling.
+
+**When packs disagree, the most restrictive level wins.** A `ya` modifier
+declaring `heat: warm` over a romance primary declaring `heat: steamy`
+resolves to `warm`, and `resolve_genre.py` reports which pack it came from
+in `content_register_sources`. This is the normal case, not an error — it is
+why modifiers exist. Restrictive is the safe direction: under-delivering on
+heat disappoints a reader, while over-delivering can break an age-category
+promise.
+
+That resolution is only possible because the vocabulary is closed. If one
+pack wrote `closed-door` and another `fade to black`, the two would be
+unorderable and read as a genuine disagreement, and every stack combining
+them would fail to resolve. Use the words in the table even when a better
+one exists for your genre — say what you mean about nuance in
+`## Genre Contract`, where prose belongs.
 
 ## Framing
 

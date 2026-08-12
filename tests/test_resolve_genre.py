@@ -311,27 +311,78 @@ def test_same_pack_in_two_slots_is_rejected(tmp_path):
     assert "testsecond" in result.stderr
 
 
-def test_content_register_collision_is_rejected(tmp_path):
-    # content_register is the only thing six LLM subagents see for where
-    # the content boundaries are — two modifiers disagreeing on the same
-    # key must not resolve silently to "whichever loaded last".
+def _register_stack(tmp_path, **levels_by_pack):
+    """Primary plus one modifier per named pack, each with its own levels."""
     write_state(tmp_path, genre="testprimary",
-                genre_modifiers=["cozy", "steamy"])
+                genre_modifiers=list(levels_by_pack))
     write_project_pack(tmp_path, "testprimary", primary_meta("testprimary"),
                        PRIMARY_BODY)
-    write_project_pack(
-        tmp_path, "cozy",
-        {"name": "cozy", "label": "Cozy", "role": ["modifier"],
-         "content_register": {"heat": "closed-door"}, "conflicts_with": []},
-        MODIFIER_BODY)
-    write_project_pack(
-        tmp_path, "steamy",
-        {"name": "steamy", "label": "Steamy", "role": ["modifier"],
-         "content_register": {"heat": "explicit"}, "conflicts_with": []},
-        MODIFIER_BODY)
+    for name, register in levels_by_pack.items():
+        write_project_pack(
+            tmp_path, name,
+            {"name": name, "label": name.title(), "role": ["modifier"],
+             "content_register": register, "conflicts_with": []},
+            MODIFIER_BODY)
+
+
+def test_content_register_clamps_to_the_most_restrictive_level(tmp_path):
+    # Two packs setting the same axis differently is the NORMAL case — a ya
+    # modifier over a romance primary — not an authoring error. Because the
+    # scales are ordered, it resolves to the more restrictive level rather
+    # than to whichever pack loaded last.
+    _register_stack(tmp_path,
+                    steamy={"heat": "explicit"},
+                    cozy={"heat": "closed-door"})
+    result = run(tmp_path)
+    assert result.returncode == 0, result.stdout + result.stderr
+    out = json.loads(result.stdout)
+    assert out["content_register"]["heat"] == "closed-door"
+    assert out["content_register_sources"]["heat"] == "cozy"
+
+
+def test_clamping_is_order_independent(tmp_path):
+    """The restrictive level wins regardless of which pack loads first."""
+    _register_stack(tmp_path,
+                    cozy={"heat": "closed-door"},
+                    steamy={"heat": "explicit"})
+    out = json.loads(run(tmp_path).stdout)
+    assert out["content_register"]["heat"] == "closed-door"
+
+
+def test_agreeing_packs_merge_without_a_source_surprise(tmp_path):
+    _register_stack(tmp_path,
+                    alpha={"heat": "warm"},
+                    beta={"heat": "warm"})
+    out = json.loads(run(tmp_path).stdout)
+    assert out["content_register"]["heat"] == "warm"
+    assert out["content_register_sources"]["heat"] == "alpha"
+
+
+def test_different_axes_merge_independently(tmp_path):
+    _register_stack(tmp_path,
+                    alpha={"heat": "steamy"},
+                    beta={"violence": "off-page"})
+    out = json.loads(run(tmp_path).stdout)
+    assert out["content_register"] == {"heat": "steamy",
+                                       "violence": "off-page"}
+    assert out["content_register_sources"] == {"heat": "alpha",
+                                               "violence": "beta"}
+
+
+def test_unknown_axis_is_rejected_at_resolve(tmp_path):
+    _register_stack(tmp_path, alpha={"gore": "lots"})
     result = run(tmp_path)
     assert result.returncode == 1
-    assert "disagree on content_register 'heat'" in result.stderr
+    assert "unknown content_register axis 'gore'" in result.stderr
+
+
+def test_unknown_level_is_rejected_at_resolve(tmp_path):
+    """This is the 'fade to black' case the closed vocabulary exists for."""
+    _register_stack(tmp_path, alpha={"heat": "fade to black"})
+    result = run(tmp_path)
+    assert result.returncode == 1
+    assert "content_register.heat is 'fade to black'" in result.stderr
+    assert "closed-door" in result.stderr  # the message names the real levels
 
 
 def test_content_register_identical_values_do_not_conflict(tmp_path):

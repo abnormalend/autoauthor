@@ -165,6 +165,9 @@ of the same kind, in both directions: a plan that promises `closed-door` and
 outlines a scene it can only deliver explicitly has breached it, and so has
 one that promises explicit and outlines a book that never goes there. Check
 the declared levels against the outline alongside the written promises.
+Where two loaded packs declare the same axis at different levels, the MORE
+RESTRICTIVE one governs — you read the packs directly, so apply that clamp
+yourself before judging.
 
 A breach caps `overall_score` at 6. The cap applies to the final weighted
 mean, after it is computed — it does not change any dimension score, and

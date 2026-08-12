@@ -773,3 +773,53 @@ def test_modifier_still_needs_no_shape(tmp_path):
             "conflicts_with": []}
     body = "## Framing\n\n- comps — Someone.\n"
     assert validate(tmp_path, "testmod", meta, body=body) == []
+
+
+# --- content_register vocabulary -------------------------------------------
+# The vocabulary is closed so that levels can be ORDERED, which is what lets
+# resolve_genre clamp a stack to its most restrictive level instead of
+# hard-failing when two packs word the same level differently.
+
+def test_valid_content_register_axes_and_levels(tmp_path):
+    meta = {**VALID_PRIMARY_META,
+            "content_register": {"heat": "warm", "violence": "off-page",
+                                 "language": "mild"}}
+    assert validate(tmp_path, "testgenre", meta) == []
+
+
+def test_unknown_axis_is_reported_with_the_valid_ones(tmp_path):
+    meta = {**VALID_PRIMARY_META, "content_register": {"gore": "lots"}}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("unknown content_register axis 'gore'" in e for e in errors)
+    assert any("heat" in e and "violence" in e for e in errors)
+
+
+def test_synonym_level_is_rejected(tmp_path):
+    """'fade to black' means 'closed-door'. Two spellings broke merging."""
+    meta = {**VALID_PRIMARY_META,
+            "content_register": {"heat": "fade to black"}}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("content_register.heat is 'fade to black'" in e for e in errors)
+    assert any("closed-door" in e for e in errors)
+
+
+def test_content_register_must_be_an_object(tmp_path):
+    meta = {**VALID_PRIMARY_META, "content_register": ["heat: warm"]}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("must be a JSON object" in e for e in errors)
+
+
+def test_empty_content_register_is_valid(tmp_path):
+    meta = {**VALID_PRIMARY_META, "content_register": {}}
+    assert validate(tmp_path, "testgenre", meta) == []
+
+
+def test_every_axis_scale_is_ordered_least_to_most_intense(tmp_path):
+    """The order is load-bearing — resolve_genre indexes into these."""
+    assert genre_pack.CONTENT_AXES["heat"][0] == "none"
+    assert genre_pack.CONTENT_AXES["heat"][-1] == "explicit"
+    assert genre_pack.CONTENT_AXES["violence"][0] == "none"
+    assert genre_pack.CONTENT_AXES["violence"][-1] == "graphic"
+    for axis, scale in genre_pack.CONTENT_AXES.items():
+        assert scale[0] == "none", f"{axis} must start at 'none'"
+        assert len(set(scale)) == len(scale), f"{axis} has a duplicate level"

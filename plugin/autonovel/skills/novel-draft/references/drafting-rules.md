@@ -83,11 +83,17 @@ Read every loaded pack's `## Drafting Rules` and follow them alongside the
 24 above. Where a pack supplies a banned-phrase list, treat it with the same
 force as voice.md Part 1's Tier 1 list.
 
-Honor every level in the merged `content_register` (the resolver prints it;
-each level comes from a loaded pack's frontmatter) as a HARD boundary on
+Honor every level in the merged `content_register` as a HARD boundary on
 what this chapter may put on the page — in both directions. A declared level
 is a floor as well as a ceiling: a book whose register says `closed-door`
 must not render the scene explicitly, and one whose register says `explicit`
 must not cut away from it. Write to the declared level, not past it and not
 short of it. A register the packs do not declare is not a licence to
 improvise one — leave that axis to voice.md and the outline.
+
+Take the levels from the resolver's `content_register`, which has already
+clamped each axis to the most restrictive level any loaded pack declares.
+Do not re-derive them from the packs' own frontmatter: a `ya` modifier over
+a romance primary resolves to the ya level, and reading the primary alone
+would write past it. `content_register_sources` names the pack each
+surviving level came from if you need to explain one.

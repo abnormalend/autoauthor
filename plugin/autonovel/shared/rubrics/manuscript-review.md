@@ -17,7 +17,10 @@ Read them. Use each pack's `## Framing` values wherever this rubric refers
 to the genre, the pillar, or comparable authors. Treat any `content_register`
 level a pack declares in its frontmatter as a Genre Contract promise in both
 directions — a book that promises `closed-door` and delivers explicit has
-breached it, and so has one that promises explicit and delivers closed-door.
+breached it, and so has one that promises explicit and delivers
+closed-door. Where two loaded packs declare the same axis at
+different levels, the MORE RESTRICTIVE one governs — you read the
+packs directly, so apply that clamp yourself before judging.
 
 Read the novel in manuscript.md (the input file above). Review it first as a literary critic (like a
 newspaper book review, including a star rating out of five) and then as

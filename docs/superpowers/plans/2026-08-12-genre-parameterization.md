@@ -4155,23 +4155,52 @@ git commit --allow-empty -m "chore: genre parameterization smoke test results
 
 ---
 
-## Known gap to close before phases 3-4
+## content_register: closed vocabulary (closed before phases 3-4)
 
-`content_register` has no controlled vocabulary and no validation. An
-author can write `{"violence": "on-page but not graphic"}` and it passes,
-because any string is accepted. Two consequences: the value becomes a
-Genre Contract promise the book must keep, with nothing defining what it
-means; and `resolve_genre.py`'s `merge()` hard-fails a resolve when two
-packs choose differently-worded levels that mean the same thing —
-`"closed-door"` versus `"fade to black"` would be treated as a genuine
-disagreement.
+This was logged as a gap and is now fixed. Recorded here because the
+remaining seven packs depend on the semantics.
 
-This is harmless with two shipped packs and no `content_register` values
-in use. It becomes a real problem the moment `erotica`, `cozy`, and `ya`
-are authored, since those are the packs the field exists for, and they
-may be written in parallel. Define the allowed axes and their levels —
-probably `heat`, `violence`, `language`, each with an ordered scale — and
-validate against them, before authoring those three.
+`CONTENT_AXES` in `genre_pack.py` defines three axes, each an ordered
+scale from least to most intense:
+
+| Axis | Levels |
+|---|---|
+| `heat` | `none` · `closed-door` · `warm` · `steamy` · `explicit` |
+| `violence` | `none` · `off-page` · `moderate` · `graphic` |
+| `language` | `none` · `mild` · `strong` · `unrestricted` |
+
+`validate_pack` rejects any other axis or level, naming the valid ones.
+
+**The ordering is what makes stacking work.** The original design made two
+packs declaring the same axis differently a hard failure, on the reasoning
+that `merge()` could not safely pick a winner. That was wrong about the
+common case: a `ya` modifier over a `romance` primary is not an authoring
+error, it is the entire point of modifiers, and the right answer is
+obviously the ya level. With ordered scales the resolver clamps each axis
+to the most restrictive level any loaded pack declares, deterministically
+and without an error, and reports the contributing pack in
+`content_register_sources`. Restrictive is the safe direction:
+under-delivering on heat disappoints a reader, over-delivering can breach
+an age-category promise.
+
+The closed vocabulary is a precondition for that, not bureaucracy. Free
+strings cannot be ordered, so `"closed-door"` and `"fade to black"` — the
+same level, two spellings — were unorderable *and* read as a genuine
+disagreement, failing every stack that combined them.
+
+Two consumer-side notes for whoever authors the remaining packs:
+
+- Judges read the packs directly rather than the resolver's output, so
+  every rubric's pack block now tells them to apply the clamp themselves.
+  The drafting rules take the merged value instead, and say explicitly not
+  to re-derive it from a pack's own frontmatter.
+- `conflicts_with` is still needed and is not made redundant by clamping.
+  `erotica` + `ya` would clamp to a safe heat level and still be wrong, for
+  reasons that are not a register question.
+
+Declare only the axes a genre actually constrains. Omitting an axis leaves
+it open; setting it to `none` promises the book contains none of that
+thing, which is a different and much stronger claim.
 
 ## Follow-on work (not in this plan)
 

@@ -46,9 +46,15 @@ skills parse this, none of which can see this module's source:
   shape             — the primary pack's 'shape' dict (chapters/words
                        ranges, chapter_words, pov_default), or {} if it
                        declared none.
-  content_register  — merged content_register dicts from every loaded
-                       pack (primary, secondary, and modifiers alike);
-                       see merge() for the collision rule.
+  content_register  — merged intensity levels from every loaded pack
+                       (primary, secondary, and modifiers alike), clamped
+                       per axis to the MOST RESTRICTIVE level any of them
+                       declares. Axes and their ordered scales are defined
+                       by CONTENT_AXES in genre_pack.py.
+  content_register_sources
+                    — which pack each surviving level came from, so a
+                       caller can explain a clamp the user did not expect
+                       (a ya modifier pulling a romance's heat down).
   artifacts         — the union of every non-modifier pack's 'artifacts'
                        list, in first-seen order; a modifier's own
                        'artifacts' entries are deliberately excluded —
@@ -67,7 +73,8 @@ from pathlib import Path
 # in, and turns a state.json typo into a clear message instead of a
 # baffling "unknown genre pack" for a name that was never a real attempt at
 # one.
-from genre_pack import (NAME_RE, PackError, format_names, pack_names_in,
+from genre_pack import (CONTENT_AXES, NAME_RE, PackError, format_names,
+                        pack_names_in,
                         parse_pack, validate_pack)
 
 DEFAULT_GENRE = "general"
@@ -186,23 +193,9 @@ def merge(packs):
     primary = packs[0]
     meta = primary["meta"]
 
-    content_register = {}
+    content_register, register_sources = _merge_content_register(packs)
     artifacts = []
     for pack in packs:
-        # content_register merges across every loaded pack, not just the
-        # primary — it's the orthogonal axis a modifier exists to set (an
-        # "explicit" heat-level modifier layered onto a primary that
-        # declares none). Two packs setting the SAME key to DIFFERENT
-        # values is a real authoring conflict, not something merge() can
-        # silently resolve: this field is what tells the LLM subagents
-        # doing the actual writing where the content boundaries are, and
-        # the merged value is all they ever see.
-        for key, value in (pack["meta"].get("content_register") or {}).items():
-            if key in content_register and content_register[key] != value:
-                fail(f"packs disagree on content_register {key!r}: "
-                     f"{content_register[key]!r} vs {value!r}; add a "
-                     "'conflicts_with' entry or drop one modifier")
-            content_register[key] = value
         # A modifier's own 'artifacts' entries are excluded from the
         # union: artifacts are per-book deliverables (a clue ledger, a
         # heat-tracking sheet) that the primary/secondary genre owns:
@@ -232,8 +225,38 @@ def merge(packs):
         "beat_system": meta.get("beat_system", "save-the-cat"),
         "shape": meta.get("shape", {}),
         "content_register": content_register,
+        "content_register_sources": register_sources,
         "artifacts": artifacts,
     }
+
+
+def _merge_content_register(packs):
+    """Clamp a stack to the most restrictive level each pack declares.
+
+    content_register merges across every loaded pack, not just the primary —
+    it is the orthogonal axis a modifier exists to set (a heat-level modifier
+    over a primary that declares none). Two packs setting the same axis to
+    different levels is NOT an authoring error: a `ya` modifier over a
+    romance primary is the normal case, and the right answer is the ya level.
+
+    Because CONTENT_AXES orders each scale, that resolves deterministically
+    to the lower index — the more restrictive level — rather than to whichever
+    pack happened to load last, and rather than to a hard failure. Restrictive
+    is the safe direction: a book that under-delivers on heat disappoints,
+    while one that over-delivers can breach an age-category promise.
+
+    Returns (levels, sources), where sources names the pack each surviving
+    level came from so a caller can explain a clamp it did not expect.
+    """
+    levels, sources = {}, {}
+    for pack in packs:
+        name = pack["meta"]["name"]
+        for axis, level in (pack["meta"].get("content_register") or {}).items():
+            scale = CONTENT_AXES[axis]  # validate_pack guarantees membership
+            if axis not in levels or scale.index(level) < scale.index(levels[axis]):
+                levels[axis] = level
+                sources[axis] = name
+    return levels, sources
 
 
 def main(argv):

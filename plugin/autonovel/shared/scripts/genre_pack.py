@@ -29,6 +29,25 @@ RESERVED_DIMENSIONS = {
 
 WEIGHT_KEYS = ("pillar", "character", "structure", "craft")
 
+# Content intensity axes, each ordered least to most intense.
+#
+# The order is load-bearing, not decorative: resolve_genre.py clamps a stack
+# to the most restrictive level any loaded pack declares, so a `ya` modifier
+# over a `romance` primary yields the ya level rather than an error. That is
+# only possible because these are scales rather than free strings.
+#
+# A declared level is a promise checked in BOTH directions — a book that
+# promises `explicit` and fades to black has broken its contract exactly as
+# one promising `closed-door` and delivering explicit has. That is why the
+# vocabulary is closed: "closed-door" and "fade to black" mean the same
+# thing, and two packs wording it differently used to read as a genuine
+# disagreement and hard-fail the resolve.
+CONTENT_AXES = {
+    "heat": ("none", "closed-door", "warm", "steamy", "explicit"),
+    "violence": ("none", "off-page", "moderate", "graphic"),
+    "language": ("none", "mild", "strong", "unrestricted"),
+}
+
 # Fields only a primary may declare. A modifier that sets these is trying to
 # own structure it is not allowed to own.
 PRIMARY_ONLY_FIELDS = ("weights", "pillar_label", "beat_system", "shape")
@@ -300,6 +319,8 @@ def validate_pack(pack, known_names=None):
                 f"frontmatter 'conflicts_with' names unknown pack(s) "
                 f"{format_names(unknown)}; known packs: {format_names(sorted(known_names))}")
 
+    errors.extend(_validate_content_register(meta.get("content_register")))
+
     errors.extend(_validate_shape(meta.get("shape"), required=is_primary))
 
     # meta.get("artifacts", []) rather than `or []` — an explicit
@@ -398,6 +419,33 @@ def _validate_dimensions(dimensions, malformed_dimensions, has_section):
     dupes = sorted({d for d in dimensions if dimensions.count(d) > 1})
     if dupes:
         errors.append(f"duplicate pillar dimension key(s): {format_names(dupes)}")
+    return errors
+
+
+def _validate_content_register(register):
+    """Validate a pack's declared content intensity levels.
+
+    The vocabulary is closed on purpose. An open one lets two packs write
+    the same level differently ("closed-door" vs "fade to black"), which
+    reads as a disagreement to the resolver and cannot be ordered, so a
+    stack cannot be clamped to its most restrictive level.
+    """
+    if register is None:
+        return []
+    if not isinstance(register, dict):
+        return ["'content_register' must be a JSON object mapping an axis "
+                f"to a level; axes are {format_names(sorted(CONTENT_AXES))}"]
+    errors = []
+    for axis, level in register.items():
+        if axis not in CONTENT_AXES:
+            errors.append(
+                f"unknown content_register axis {axis!r}; valid axes are "
+                f"{format_names(sorted(CONTENT_AXES))}")
+            continue
+        if level not in CONTENT_AXES[axis]:
+            errors.append(
+                f"content_register.{axis} is {level!r}; valid levels are "
+                f"{format_names(CONTENT_AXES[axis])} (least to most intense)")
     return errors
 
 
