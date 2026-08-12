@@ -2059,7 +2059,7 @@ Create `plugin/autonovel/shared/genres/general.md`:
 
 - setting_specificity — Do places do narrative work, or are they backdrop? A scene should be impossible to relocate without loss. Check: could two scenes in two locations be swapped with only proper nouns changed? If yes, score 5 max.
 - social_texture — Class, work, money, family structure, institutions. Are the characters' material circumstances specific and consequential, or is everyone comfortably unplaced? Test: name what each major character does for money and what happens to them if they stop. If the novel cannot answer that for the protagonist, score 5 max. Decorative sociology — detail that never constrains a choice — counts against, not for.
-- thematic_architecture — Is there a genuine question the book is asking, stated nowhere and present everywhere? A theme that any character articulates aloud is a message, not a theme. Check: can you name the question in one sentence without using a word from the manuscript?
+- thematic_architecture — Is there a genuine question the book is asking, stated nowhere and present everywhere? A theme that any character articulates aloud is a message, not a theme. Test: can you name the question in one sentence without using a word from the manuscript? If you cannot, score 5 max. If a character states the theme aloud anywhere, score 6 max regardless of how well the rest of the book explores it.
 - temporal_grounding — When is this, and does it matter? Period, season, elapsed duration, and the rate at which this world changes. Test: could this story happen unchanged fifty years earlier or later? If yes, and the novel is not deliberately timeless, score 6 max. Also check that elapsed time is trackable — a reader should always know roughly how long it has been since chapter 1.
 
 ## Genre Contract
@@ -2966,7 +2966,15 @@ In step 2's template-copy bullet, after the `cp` line, add:
 In the current step 4 (Selection), replace `Present the concepts compactly
 (TITLE + HOOK + MAGIC/COST, matching the field names in seed-prompts.md)`
 with `Present the concepts compactly (TITLE + HOOK + the pack's first
-required field)`.
+required field that the neutral scaffold does not already define)`.
+
+That qualifier matters. Both shipped packs list `WORLD` first, but the
+scaffold defines `WORLD` too — so "first required field" would render
+TITLE + HOOK + WORLD, and the user would choose between concepts by their
+least distinguishing attribute. The behavior this replaces showed
+`MAGIC/COST`, the genre-specific field. That field is second in both packs
+(`MAGIC/COST` in fantasy, `STAKES` in general), and it is what makes two
+concepts in the same genre actually different from each other.
 
 In the current step 5, replace the four required elements with:
 

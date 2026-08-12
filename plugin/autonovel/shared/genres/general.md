@@ -31,7 +31,7 @@
 
 - setting_specificity — Do places do narrative work, or are they backdrop? A scene should be impossible to relocate without loss. Check: could two scenes in two locations be swapped with only proper nouns changed? If yes, score 5 max.
 - social_texture — Class, work, money, family structure, institutions. Are the characters' material circumstances specific and consequential, or is everyone comfortably unplaced? Test: name what each major character does for money and what happens to them if they stop. If the novel cannot answer that for the protagonist, score 5 max. Decorative sociology — detail that never constrains a choice — counts against, not for.
-- thematic_architecture — Is there a genuine question the book is asking, stated nowhere and present everywhere? A theme that any character articulates aloud is a message, not a theme. Check: can you name the question in one sentence without using a word from the manuscript?
+- thematic_architecture — Is there a genuine question the book is asking, stated nowhere and present everywhere? A theme that any character articulates aloud is a message, not a theme. Test: can you name the question in one sentence without using a word from the manuscript? If you cannot, score 5 max. If a character states the theme aloud anywhere, score 6 max regardless of how well the rest of the book explores it.
 - temporal_grounding — When is this, and does it matter? Period, season, elapsed duration, and the rate at which this world changes. Test: could this story happen unchanged fifty years earlier or later? If yes, and the novel is not deliberately timeless, score 6 max. Also check that elapsed time is trackable — a reader should always know roughly how long it has been since chapter 1.
 
 ## Genre Contract
