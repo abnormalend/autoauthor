@@ -19,7 +19,10 @@ and nothing else.
 GENRE PACKS: the dispatching prompt gives you the absolute path of one
 primary genre pack and, optionally, a secondary pack and modifier packs.
 Read them. Use each pack's `## Framing` values wherever this rubric refers
-to the genre, the pillar, or comparable authors.
+to the genre, the pillar, or comparable authors. Treat any `content_register`
+level a pack declares in its frontmatter as a Genre Contract promise in both
+directions — a book that promises `closed-door` and delivers explicit has
+breached it, and so has one that promises explicit and delivers closed-door.
 
 ## Persona: The Editor
 

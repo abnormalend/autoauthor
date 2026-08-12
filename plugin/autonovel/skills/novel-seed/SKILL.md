@@ -16,7 +16,22 @@ existing project.
    already said. Default suggestion: `~/novels/<tag>` where `<tag>` is a
    short kebab-case slug. Never nest inside another git repo.
 
-2. **Initialize the project:**
+2. **Choose the genre.** List the packs in
+   `"${CLAUDE_PLUGIN_ROOT}/shared/genres/"` (excluding TEMPLATE.md) with
+   their `label`, and ask the user to pick a primary. Offer an optional
+   secondary and any modifiers, explaining that a secondary contributes
+   additively (a second genre's material layered in, such as a romance
+   subplot) and a modifier is an orthogonal axis (YA, cozy, heat level).
+   If the user declines to choose, use `general`.
+
+   Settle this BEFORE the project directory exists. The genre is written
+   during init below, not after it: the template `state.json` ships
+   `"genre": null`, and a null genre resolves silently to `general` — so a
+   run interrupted between init and a later genre step would leave a
+   project that builds an entire book in a genre nobody chose, with
+   nothing ever surfacing the mistake.
+
+3. **Initialize the project:**
    - Safety checks first: if `<dir>` already exists and is non-empty, STOP
      and ask the user before touching it (a retry may have partial content
      worth keeping — never overwrite silently). Then verify the parent is
@@ -27,12 +42,28 @@ existing project.
      `cp "${CLAUDE_PLUGIN_ROOT}/shared/templates/"* <dir>/` (quoted against
      spaces in the install path) — this copies voice.md, world.md,
      characters.md, outline.md, canon.md, MYSTERY.md, state.json.
-   - Once step 3 has resolved the genre, come back and render the
-     pack-driven parts of these templates:
-     write `world.md`'s section headings from the resolved pack's
+   - **Write the genre into `state.json` immediately after the copy** —
+     set `genre`, `genre_secondary`, and `genre_modifiers` from step 2,
+     replacing the template's nulls. Then resolve the stack from the
+     project directory and KEEP the JSON it prints; the rest of this step
+     and step 4 both read it:
+
+     ```bash
+     python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py"
+     ```
+
+     It prints the merged config on stdout: `packs` (each with a `name`,
+     `role`, and the absolute `path` of the pack file to read),
+     `display_label`, `shape`, `artifacts`, and the rest. If it exits
+     non-zero, fix the selection before continuing — a conflicting stack
+     (for example `ya` with `erotica`) is rejected here rather than
+     producing an incoherent book.
+   - Render the pack-driven parts of the copied templates, reading the
+     pack files at the `packs[].path` values just printed: write
+     `world.md`'s section headings from the resolved pack's
      `## World Sections`, and `canon.md`'s category headings and one example
      entry each from its `## Canon Categories`. Create any file named in the
-     pack's `artifacts` from its `## Artifacts` template.
+     resolved `artifacts` list from the pack's `## Artifacts` template.
    - Install the ignore file: `mv <dir>/gitignore <dir>/.gitignore` —
      eval_logs/, edit_logs/, and briefs/ MUST be gitignored; the
      drafting and revision skills depend on them surviving
@@ -45,26 +76,9 @@ existing project.
    - Use the absolute `<dir>` path in every command rather than relying on
      the shell's current directory persisting.
 
-3. **Choose the genre.** List the packs in
-   `"${CLAUDE_PLUGIN_ROOT}/shared/genres/"` (excluding TEMPLATE.md) with
-   their `label`, and ask the user to pick a primary. Offer an optional
-   secondary and any modifiers, explaining that a secondary contributes
-   additively (a second genre's material layered in, such as a romance
-   subplot) and a modifier is an
-   orthogonal axis (YA, cozy, heat level). If the user declines to choose,
-   use `general`. Write `genre`, `genre_secondary`, and `genre_modifiers`
-   into state.json, then verify the stack resolves:
-
-   ```bash
-   python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py" --check
-   ```
-
-   If it exits non-zero, fix the selection before continuing — a conflicting
-   stack (for example `ya` with `erotica`) is rejected here rather than
-   producing an incoherent book.
-
 4. **Generate concepts.** Read `references/seed-prompts.md` (in this
-   skill's directory) and every pack path the resolver reports. If the user
+   skill's directory) and every pack path the resolver reported in step 3
+   (the `path` of each entry in `packs`). If the user
    supplied an idea, use the riff prompt (5 variations); otherwise the
    generate prompt (10 concepts). Write the concepts yourself, in-session,
    following every constraint in the prompt — the diversity requirements

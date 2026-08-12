@@ -6,9 +6,17 @@ scaffold around them.
 
 ## Persona (adopt while generating)
 
-Adopt the primary pack's `seed_persona`. You generate novel concepts that
-are SPECIFIC, SURPRISING, and STRUCTURALLY SOUND. Each concept should make a
-reader think 'I've never seen THAT before.'
+Adopt the persona the primary pack's `## Seed Prompt` opens with — the
+"Persona (adopt while generating)" paragraph. That one is AUTHORITATIVE
+here, because it is the fuller statement. The pack's `## Framing` also
+carries a `seed_persona` bullet; that is the same persona in one line, for
+consumers that have no room for the paragraph, and it never overrides the
+paragraph. If a pack somehow supplies only the `seed_persona` bullet, adopt
+that instead.
+
+Whichever you adopt: you generate novel concepts that are SPECIFIC,
+SURPRISING, and STRUCTURALLY SOUND. Each concept should make a reader think
+'I've never seen THAT before.'
 
 ## Generating fresh concepts
 
@@ -30,6 +38,15 @@ THEME: What question does this story explore? Not a message — a genuine
   question with no easy answer.
 WHY IT'S NOT GENERIC: One sentence on what makes this different from
   standard fare in this genre.
+
+**How the pack's fields merge with this list.** The pack's `## Seed Prompt`
+names the required fields and their phrasings; those REPLACE the versions
+above wherever the names match (a pack's own WORLD or TENSION wording wins
+over this scaffold's), and each field the pack adds is inserted at the
+position the pack lists it in, not at the placeholder line above. The
+placeholder marks where a pack's fields typically land, not where they must.
+Fields the pack does not mention keep their wording and position here. The
+same merge rule governs the riff list below.
 
 Aim for DIVERSITY across the ten concepts, following the pack's diversity
 requirements. In every genre: mix tones (dark, warm, weird, melancholy,

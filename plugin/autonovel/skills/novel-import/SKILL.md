@@ -59,12 +59,18 @@ throughout — extraction documents what is on the page.
    central conflict, the register, the content). Show the user the available
    packs from `"${CLAUDE_PLUGIN_ROOT}/shared/genres/"` and your proposal,
    and ask them to confirm or correct it — same shape as the MYSTERY.md
-   confirmation in the final steps. Write the choice into state.json and
-   verify it resolves:
+   confirmation in the final steps. Write the choice into state.json —
+   never leave `genre` null, which resolves silently to `general` — and
+   resolve the stack:
 
    ```bash
-   python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py" --check
+   python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py"
    ```
+
+   If it exits non-zero, STOP and report — an unresolvable or conflicting
+   genre stack must be fixed before any extraction work. Keep the reported
+   pack paths; step 5's extraction reads the resolved pack's
+   `## World Sections` and `## Canon Categories` from them.
 
    In a fully autonomous run, take your own inference and say so in the
    handoff report.

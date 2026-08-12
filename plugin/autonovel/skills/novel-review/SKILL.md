@@ -22,20 +22,27 @@ professor of fiction. Fix the top items; repeat. Maximum 4 rounds.
    If it exits non-zero, STOP and report — an unresolvable or conflicting
    genre stack must be fixed before any review work. Keep the reported pack
    paths; every judge dispatch below needs them. If `state.json` has no
-   `genre` field at all, STOP and run the migration in `novel/SKILL.md`
-   first.
+   `genre` field at all, or its `genre` is null, STOP and run the migration
+   in `novel/SKILL.md` first — a null genre resolves silently to `general`,
+   so the resolver exiting 0 is NOT evidence that anyone chose a genre.
 3. Resume: state.json `review_round` is the last COMPLETED round; this
    session runs round R = review_round + 1.
 4. Malformed or contract-violating reviewer output anywhere in this
    skill: one strict retry, then stop the round and report to the user
    (a failed full-manuscript review is not silently skippable).
-5. Read `plugin/autonovel/skills/novel-revise/SKILL.md`'s Fix stage
-   (path: `"${CLAUDE_PLUGIN_ROOT}/skills/novel-revise/SKILL.md"`)
-   and `"${CLAUDE_PLUGIN_ROOT}/skills/novel-revise/references/revision-playbook.md"`
-   — specifically its "Rewrite rules" section — before any chapter
-   rewrite. The Fix stage's scratch-copy, attempts.tsv, keep/discard,
-   and baseline conventions apply verbatim here, and the Rewrite rules
-   bind every chapter rewrite in this skill too.
+5. Required reading before any chapter rewrite:
+   - `plugin/autonovel/skills/novel-revise/SKILL.md`'s Fix stage
+     (path: `"${CLAUDE_PLUGIN_ROOT}/skills/novel-revise/SKILL.md"`)
+     and `"${CLAUDE_PLUGIN_ROOT}/skills/novel-revise/references/revision-playbook.md"`
+     — specifically its "Rewrite rules" section. The Fix stage's
+     scratch-copy, attempts.tsv, keep/discard, and baseline conventions
+     apply verbatim here, and the Rewrite rules bind every chapter rewrite
+     in this skill too.
+   - every genre pack path the resolver reported in step 2. This skill
+     rewrites chapters, and the packs are where the genre's
+     `## Drafting Rules` and `content_register` live — a rewrite judged
+     against the packs but written without them will drift off the
+     register the rest of the book was drafted to.
 
 ## One round (R)
 

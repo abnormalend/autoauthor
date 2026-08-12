@@ -9,6 +9,17 @@ Search order for each pack name: ./genres/<name>.md first, then the plugin's
 shared/genres/<name>.md. The project wins, so a one-off pack for a single
 novel needs no plugin change.
 
+DEFAULTING — read this before treating exit 0 as "the project has a genre".
+A state.json whose 'genre' is null, absent, or an empty string resolves to
+the 'general' pack, silently and successfully. That is deliberate: it keeps
+a hand-built project usable without a genre step. But it means a clean exit
+proves only that SOME pack resolved, never that anyone chose one — and the
+shipped state.json template ships '"genre": null'. A caller that needs to
+know a genre was actually chosen must inspect state.json's 'genre' itself
+and treat null/missing as unset, not infer it from this script's exit code
+or from primary_label. 'genre_secondary' defaults to none and
+'genre_modifiers' to the empty list under the same rule.
+
 Exit 0 on success; 1 with a message on stderr for any resolution, validation,
 or conflict error.
 
@@ -144,8 +155,8 @@ def resolve(project):
 
 
 def check_conflicts(packs):
-    # The same pack filling two slots (e.g. genre and genre_secondary both
-    # "fantasy") is the same failure the genre_modifiers duplicate guard
+    # The same pack filling two slots (genre and genre_secondary naming the
+    # same pack) is the same failure the genre_modifiers duplicate guard
     # above prevents, one slot over — it must be caught here too, since a
     # pack can legally declare more than one role and so pass load_pack's
     # role check in both slots.

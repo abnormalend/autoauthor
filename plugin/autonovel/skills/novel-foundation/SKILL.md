@@ -25,8 +25,9 @@ written in this phase. Typical runs take 5–15 iterations.
    If it exits non-zero, STOP and report — an unresolvable or conflicting
    genre stack must be fixed before any layer work. Keep the reported pack
    paths; every judge dispatch below needs them. If `state.json` has no
-   `genre` field at all, STOP and run the migration in `novel/SKILL.md`
-   first.
+   `genre` field at all, or its `genre` is null, STOP and run the migration
+   in `novel/SKILL.md` first — a null genre resolves silently to `general`,
+   so the resolver exiting 0 is NOT evidence that anyone chose a genre.
 3. Required reading, in full, before writing anything:
    - `"${CLAUDE_PLUGIN_ROOT}/shared/craft/CRAFT.md"`
    - `"${CLAUDE_PLUGIN_ROOT}/shared/craft/ANTI-SLOP.md"`

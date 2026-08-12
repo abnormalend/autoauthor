@@ -23,8 +23,9 @@ measure (full-novel score). Stop on plateau: full-novel score change
    If it exits non-zero, STOP and report — an unresolvable or conflicting
    genre stack must be fixed before any revision work. Keep the reported
    pack paths; every judge dispatch below needs them. If `state.json` has no
-   `genre` field at all, STOP and run the migration in `novel/SKILL.md`
-   first.
+   `genre` field at all, or its `genre` is null, STOP and run the migration
+   in `novel/SKILL.md` first — a null genre resolves silently to `general`,
+   so the resolver exiting 0 is NOT evidence that anyone chose a genre.
 3. Required reading: `"${CLAUDE_PLUGIN_ROOT}/shared/craft/ANTI-PATTERNS.md"`,
    the project's voice.md, `references/revision-playbook.md` (this
    skill's directory), and every genre pack path the resolver reported.

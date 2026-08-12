@@ -143,8 +143,7 @@ IMPORTANT:
 
 Build a complete chapter outline. Use the chapter count, total word
 count, and per-chapter target from the resolved pack's `shape`. Draw on
-world.md,
-characters.md, the discovered voice (voice.md Part 2), and the
+world.md, characters.md, the discovered voice (voice.md Part 2), and the
 central mystery (MYSTERY.md) — all filled first — as available
 inputs; the outline is the layer that turns them into a sequence of
 scenes.
@@ -152,8 +151,11 @@ scenes.
 BUILD THE OUTLINE WITH:
 
 ### Act Structure
-Map out Act I (0-23%), Act II Part 1 (23-50%), Act II Part 2 (50-77%),
-Act III (77-100%). State the percentage marks for the key beats.
+Map out the acts and state the percentage marks for the key beats. If the
+pack declares a `## Plot Architecture`, use ITS act structure and marks —
+do not overlay a three-act shape on a pack that chose another. Only when
+the pack declares none, use the default: Act I (0-23%), Act II Part 1
+(23-50%), Act II Part 2 (50-77%), Act III (77-100%).
 
 ### Chapter-by-Chapter Outline
 
@@ -182,9 +184,11 @@ Event) and note which chapters open and close each one. Nest them —
 plan them to close in the reverse order they opened.
 
 KEY PLOT ARCHITECTURE: follow the pack's `## Plot Architecture` if it
-declares one. If it does not, use the base act structure from CRAFT.md:
-Act I 0-23%, Act II 23-77%, Act III 77-100%, with Save the Cat beats at
-their stated percentage marks.
+declares one — this is the same rule the Act Structure section above
+states, and it governs both. If the pack declares none, use the base act
+structure from CRAFT.md: Act I 0-23%, Act II 23-77%, Act III 77-100%, with
+the beats of the pack's `beat_system` at their stated percentage marks
+(Save the Cat when the pack declares no `beat_system`).
 
 CONSTRAINTS:
 - The climax must be mechanically resolvable using established world

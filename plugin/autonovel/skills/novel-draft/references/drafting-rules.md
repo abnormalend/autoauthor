@@ -17,9 +17,10 @@ ahead.
 
 ## Core rules (1–13)
 
-1. Write the COMPLETE chapter. Target the pack's `shape.chapter_words`;
-   if the resolved pack declares no shape, use the outline entry's own
-   word-count target. Do not truncate or summarize.
+1. Write the COMPLETE chapter. The default target is the pack's
+   `shape.chapter_words`; where THIS chapter's outline entry states its own
+   word-count target, that wins — the outline entry is per-chapter and so
+   the more specific of the two. Do not truncate or summarize.
 2. The POV and tense established in voice.md Part 2, locked to the
    chapter's designated POV character (from the outline).
 3. Hit ALL numbered beats from the outline in order.
@@ -81,3 +82,12 @@ ahead.
 Read every loaded pack's `## Drafting Rules` and follow them alongside the
 24 above. Where a pack supplies a banned-phrase list, treat it with the same
 force as voice.md Part 1's Tier 1 list.
+
+Honor every level in the merged `content_register` (the resolver prints it;
+each level comes from a loaded pack's frontmatter) as a HARD boundary on
+what this chapter may put on the page — in both directions. A declared level
+is a floor as well as a ceiling: a book whose register says `closed-door`
+must not render the scene explicitly, and one whose register says `explicit`
+must not cut away from it. Write to the declared level, not past it and not
+short of it. A register the packs do not declare is not a licence to
+improvise one — leave that axis to voice.md and the outline.

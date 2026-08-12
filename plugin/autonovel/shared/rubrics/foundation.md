@@ -129,7 +129,10 @@ CHARACTER:
 
 STRUCTURE:
 - outline_completeness: Chapters with beats, POV, emotional arc,
-  try-fail cycle type. Save the Cat beats at correct % marks.
+  try-fail cycle type. Beats present at the correct % marks in the
+  vocabulary of the primary pack's `beat_system` — Save the Cat when the
+  pack declares none. Score the outline against the beat system the pack
+  actually names, never against a system it did not choose.
   Score 0 if empty. Score 5+ only if act structure exists.
 - foreshadowing_balance: Every planted thread has a planned payoff.
   Score 0 if ledger is empty regardless of implicit threads in
@@ -156,6 +159,12 @@ Read every loaded pack's `## Genre Contract` section. These are binary
 promises, not scored dimensions. Check each one against the OUTLINE — does
 the planned ending satisfy it, does the planned structure make it reachable?
 List every promise the plan would breach.
+
+Any `content_register` level a pack declares in its frontmatter is a promise
+of the same kind, in both directions: a plan that promises `closed-door` and
+outlines a scene it can only deliver explicitly has breached it, and so has
+one that promises explicit and outlines a book that never goes there. Check
+the declared levels against the outline alongside the written promises.
 
 A breach caps `overall_score` at 6. The cap applies to the final weighted
 mean, after it is computed — it does not change any dimension score, and

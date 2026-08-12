@@ -2413,16 +2413,16 @@ WORLD: The specific social world the book lives in — a place, a
   trade, an institution, a family, a moment. Not "small-town
   America" but which town, whose kitchen, what the work is. Make it
   SENSORY and make it material: what things cost, who pays.
-WHEN: The period (year or era), the season it opens in, and roughly how
-  much time the story covers end to end. Name one thing that is
-  changing in this world over that span — a closing industry, a rising
-  rent, a child growing — so the story could not slide fifty years in
-  either direction unchanged.
 STAKES: What does the protagonist stand to lose, and what makes the
   loss irreversible? Rarely death — in this genre the stakes are a
   marriage, a house, a licence, a child's regard, a version of
   themselves they can no longer claim. Name the loss AND name the
   thing that closes the door behind it.
+WHEN: The period (year or era), the season it opens in, and roughly how
+  much time the story covers end to end. Name one thing that is
+  changing in this world over that span — a closing industry, a rising
+  rent, a child growing — so the story could not slide fifty years in
+  either direction unchanged.
 TENSION: What's the central conflict? It must be both PERSONAL (one
   character's specific problem) and LARGER (it implicates a family,
   a workplace, a town, an institution). These two must be in
@@ -2458,6 +2458,17 @@ DO NOT generate:
     engine — the loss may exist, but it cannot be the plot
   - The extramarital affair as the whole spine of the book
 ````
+
+**Field order in `## Seed Prompt` is load-bearing, not cosmetic.** `STAKES`
+must come immediately after `WORLD`, ahead of `WHEN`. novel-seed step 5
+presents concepts as TITLE + HOOK + "the pack's first required field that
+the neutral scaffold does not already define", and the scaffold already
+defines `WORLD` — so whatever this pack lists second becomes the
+discriminator the user picks between ten premises by. With `WHEN` second
+that discriminator is period-and-season, which distinguishes almost
+nothing; `STAKES` is the field that actually separates two literary
+premises. Any pack added later should order its `## Seed Prompt` the same
+way: the genre's most discriminating field first after `WORLD`.
 
 - [ ] **Step 2: Validate the pack**
 
@@ -3282,26 +3293,54 @@ structure, the thematic focus.
 
 - [ ] **Step 2: Add genre selection to novel-seed/SKILL.md**
 
-Insert a new step between the current steps 2 and 3:
+Insert the genre question BEFORE the project-init step, as the new step 2,
+and have init write the answer. Do not put it after init:
 
 ```markdown
-3. **Choose the genre.** List the packs in
+2. **Choose the genre.** List the packs in
    `"${CLAUDE_PLUGIN_ROOT}/shared/genres/"` (excluding TEMPLATE.md) with
    their `label`, and ask the user to pick a primary. Offer an optional
    secondary and any modifiers, explaining that a secondary contributes
    additively (a romance subplot in a fantasy) and a modifier is an
    orthogonal axis (YA, cozy, heat level). If the user declines to choose,
-   use `general`. Write `genre`, `genre_secondary`, and `genre_modifiers`
-   into state.json, then verify the stack resolves:
+   use `general`.
 
-   ```bash
-   python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py"
-   ```
-
-   If it exits non-zero, fix the selection before continuing — a conflicting
-   stack (for example `ya` with `erotica`) is rejected here rather than
-   producing an incoherent book.
+   Settle this BEFORE the project directory exists. The genre is written
+   during init, not after it.
 ```
+
+Then, inside the init step, immediately after the template `cp`: write
+`genre`, `genre_secondary`, and `genre_modifiers` into state.json, and run
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py"
+```
+
+keeping the JSON it prints (init's template-render bullet and the
+concept-generation step both read `packs[].path` from it). If it exits
+non-zero, fix the selection before continuing — a conflicting stack (for
+example `ya` with `erotica`) is rejected here rather than producing an
+incoherent book.
+
+**Why the ordering, and why the plain form of the command.** Two separate
+traps:
+
+- *Ordering.* `templates/state.json` ships `"genre": null`, and
+  `resolve_genre.py` treats null and missing alike as the `general`
+  default. A run interrupted between init and a later genre step therefore
+  leaves a project that resolves cleanly as General Fiction, passes every
+  downstream skill's genre guard, and builds an entire book in a genre
+  nobody chose — self-healing the unrendered template headings on the way,
+  so nothing ever surfaces it. Writing the genre as part of init closes the
+  window. The downstream guards must also test for `genre` being null, not
+  only for the key being absent (see Task 16/17).
+- *Plain form, not `--check`.* `--check` prints nothing on success, and
+  this site's output is consumed: init renders `world.md` / `canon.md` /
+  `artifacts` from the resolved pack, and the concept step reads every
+  reported pack path. `--check` belongs only where a caller genuinely
+  needs nothing but an exit code. The same applies to Task 18's
+  novel-import call, whose extraction guide reads the resolved pack's
+  `## World Sections` and `## Canon Categories`.
 
 - [ ] **Step 3: Render the pack-driven templates at init**
 
@@ -3325,9 +3364,18 @@ That qualifier matters. Both shipped packs list `WORLD` first, but the
 scaffold defines `WORLD` too — so "first required field" would render
 TITLE + HOOK + WORLD, and the user would choose between concepts by their
 least distinguishing attribute. The behavior this replaces showed
-`MAGIC/COST`, the genre-specific field. That field is second in both packs
-(`MAGIC/COST` in fantasy, `STAKES` in general), and it is what makes two
-concepts in the same genre actually different from each other.
+`MAGIC/COST`, the genre-specific field, and that is what makes two concepts
+in the same genre actually different from each other.
+
+But the qualifier only lands on a discriminating field if the pack ORDERS
+its `## Seed Prompt` to put one there — the rule resolves to whatever the
+pack happens to list second, nothing more. `fantasy` lists `MAGIC/COST`
+second and resolves correctly. `general` originally listed `WHEN` second
+and resolved to period-and-season — the exact failure this qualifier was
+written to prevent, one field over. That is a constraint on packs, not
+something this step can fix: see the field-order note in Task 7, which
+requires `STAKES` immediately after `WORLD` in `general` and the same
+discipline in any pack added later.
 
 In the current step 5, replace the four required elements with:
 
@@ -3976,6 +4024,14 @@ git commit -m "test: guard against genre content outside genre packs"
 Existing projects have no `genre` field and were scored under fantasy
 weights. Taking the `general` default silently would both mislabel them and
 break score comparability.
+
+**This task must REWRITE two existing lines, not merely append a step.**
+`novel/SKILL.md` currently says at `:8` "This skill NEVER modifies project
+files, commits, or resets" and at `:28` "do not attempt to fix it (this
+skill is read-only)". The migration makes both false. Amend them to name
+the confirmed migration as the single exception; four skills already
+forward-reference this migration, so a router that still advertises itself
+as strictly read-only sends them somewhere that disclaims the job.
 
 - [ ] **Step 1: Add migration detection**
 

@@ -174,16 +174,16 @@ WORLD: The specific social world the book lives in — a place, a
   trade, an institution, a family, a moment. Not "small-town
   America" but which town, whose kitchen, what the work is. Make it
   SENSORY and make it material: what things cost, who pays.
-WHEN: The period (year or era), the season it opens in, and roughly how
-  much time the story covers end to end. Name one thing that is
-  changing in this world over that span — a closing industry, a rising
-  rent, a child growing — so the story could not slide fifty years in
-  either direction unchanged.
 STAKES: What does the protagonist stand to lose, and what makes the
   loss irreversible? Rarely death — in this genre the stakes are a
   marriage, a house, a licence, a child's regard, a version of
   themselves they can no longer claim. Name the loss AND name the
   thing that closes the door behind it.
+WHEN: The period (year or era), the season it opens in, and roughly how
+  much time the story covers end to end. Name one thing that is
+  changing in this world over that span — a closing industry, a rising
+  rent, a child growing — so the story could not slide fifty years in
+  either direction unchanged.
 TENSION: What's the central conflict? It must be both PERSONAL (one
   character's specific problem) and LARGER (it implicates a family,
   a workplace, a town, an institution). These two must be in
