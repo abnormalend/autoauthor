@@ -17,8 +17,9 @@ ahead.
 
 ## Core rules (1–13)
 
-1. Write the COMPLETE chapter. Target the pack's `shape.chapter_words`.
-   Do not truncate or summarize.
+1. Write the COMPLETE chapter. Target the pack's `shape.chapter_words`;
+   if the resolved pack declares no shape, use the outline entry's own
+   word-count target. Do not truncate or summarize.
 2. The POV and tense established in voice.md Part 2, locked to the
    chapter's designated POV character (from the outline).
 3. Hit ALL numbered beats from the outline in order.
