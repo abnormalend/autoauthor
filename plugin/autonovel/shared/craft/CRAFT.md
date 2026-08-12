@@ -172,45 +172,27 @@ If yes, dialogue is distinct. If no, characters need differentiation.
 
 ## 3. WORLDBUILDING
 
-### Sanderson's Three Laws of Magic
+### The Genre's Own System Laws
 
-ZEROTH LAW: "Always err on the side of awesome."
-  Wonder has intrinsic value, even if it bends other rules.
-
-FIRST LAW: "An author's ability to solve conflict with magic is
-  DIRECTLY PROPORTIONAL to how well the reader understands it."
-  - Hard magic (rules clear) CAN solve conflicts
-  - Soft magic (mysterious) should CREATE problems, not solve them
-  - Climactic conflict solved by unexplained magic = deus ex machina
-  - Eval: for each magic-solved conflict, was that capability
-    established BEFORE the resolution?
-
-SECOND LAW: "Limitations > Powers"
-  Three categories:
-  - LIMITATIONS: hard boundaries (what it can't do)
-  - COSTS: what the user pays (exhaustion, life force, resources)
-  - WEAKNESSES: vulnerabilities it creates (visible to enemies, etc.)
-  Rule: limitations should be >= powers in narrative prominence.
-  Rule: costs should DRIVE PLOT DECISIONS.
-
-THIRD LAW: "Expand what you have before adding something new."
-  - Fewer powers with more applications = depth
-  - Many powers with few applications each = grab-bag
-  - No new powers in the final 25% that weren't foreshadowed
+The primary genre pack's pillar dimensions define what rigor the speculative
+or central system requires — and how much. Some genres demand hard,
+legible rules with stated costs; others are undermined by that legibility.
+Do not import one genre's expectations into another.
 
 ### Worldbuilding Principles
 
 Three pillars (can't do all three deeply -- pick 1-2):
   - PHYSICAL: geography, climate, architecture, sensory experience
   - CULTURAL: religion, politics, customs, economics, language
-  - MAGICAL: the speculative element(s)
+  - SPECULATIVE: the genre's central non-realist element, if it has one
 
 Iceberg principle: Author knows 10x more than appears on page.
   Small unexplained details > over-explained systems.
   World should feel like it exists beyond the story's edges.
 
-Interconnection: If magic exists, trace implications through society,
-  economy, warfare, religion. Magic with zero cultural impact = shallow.
+Interconnection: If the world has a central system, trace its implications
+  through society, economy, warfare, religion. A system with zero cultural
+  impact is shallow.
 
 Pyramid of Abstraction: Ground descriptions in CONCRETE details that
   IMPLY abstract qualities. Not "the city was old" but "moss crusted
@@ -278,13 +260,7 @@ be ZERO tell, all show.
 
 ## 6. PROSE CRAFT (what makes writing alive)
 
-### Le Guin's Core Insight
-In fantasy, STYLE IS NOT ORNAMENT -- it IS the fantasy. The language
-doesn't describe the world; the language CREATES it. If your fantasy
-world sounds like a Poughkeepsie bus schedule, you're not writing
-fantasy. The prose must have a register appropriate to the world.
-
-### What the best fantasy prose does
+### What the best prose does
 1. SPECIFICITY: Not "a bird" but "a jay." Not "flowers" but "lupine."
 2. SURPRISE: Word choices the reader doesn't predict.
 3. RHYTHM VARIATION: Short. Then long sentences that carry the reader
@@ -348,12 +324,9 @@ COUNTERMEASURES (actively enforce these):
 
 ## 8. EVALUATION RUBRICS (summary)
 
-### Magic System
-  - First Law compliance: foreshadowed solutions / total magic solutions
-  - Limitation depth: count of limitations + costs + weaknesses
-  - Power/limitation ratio: limitations >= powers
-  - Depth score: applications shown / distinct abilities introduced
-  - No new unforeshadowed powers in final 25%
+### The Genre Pillar
+  - Scored against the primary pack's `## Pillar Dimensions`, not against
+    any fixed list here.
 
 ### Plot Structure
   - Beat compliance: major beats present at roughly correct % marks
