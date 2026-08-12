@@ -200,7 +200,7 @@ The file's first line must be:
 ```
 
 before any other content. This is not optional and is not removed
-even after the author confirms the inference (step 6 of SKILL.md) —
+even after the author confirms the inference (step 7 of SKILL.md) —
 if the author edits the file to correct it, they may remove the
 banner themselves as part of that edit, but the import step must
 never write a MYSTERY.md without it.
