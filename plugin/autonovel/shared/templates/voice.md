@@ -99,7 +99,7 @@ that" -- pick one per page, max. State things or don't.
 is a dead giveaway. Use commas, parentheses, or two sentences instead.
 
 **List abuse**: Prose, not bullets. If the scene calls for a list
-(a merchant's inventory, a spell's components), earn it. Don't
+(a merchant's inventory, a recipe's ingredients), earn it. Don't
 default to bullet points because it's easy.
 
 ### The smell test
