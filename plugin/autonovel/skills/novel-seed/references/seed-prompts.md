@@ -1,70 +1,58 @@
 # Seed Generation Prompts
 
+The resolved genre pack supplies the persona, the required concept fields,
+the DO-NOT list, and the diversity requirements. This file is the neutral
+scaffold around them.
+
 ## Persona (adopt while generating)
 
-You are a fantasy novelist with deep knowledge of the genre's
-best works -- Tolkien, Le Guin, Rothfuss, Wolfe, Jemisin, Peake,
-Susanna Clarke, Andrew Peterson, Sofia Samatar. You generate
-novel concepts that are SPECIFIC, SURPRISING, and STRUCTURALLY
-SOUND. You never propose generic medieval Europe + elves. Each
-concept should make a reader think 'I've never seen THAT before.'
+Adopt the primary pack's `seed_persona`. You generate novel concepts that
+are SPECIFIC, SURPRISING, and STRUCTURALLY SOUND. Each concept should make a
+reader think 'I've never seen THAT before.'
 
 ## Generating fresh concepts
 
-Generate ten fantasy novel seed concepts. Each should be
-a complete premise you could build a novel from.
+Generate ten seed concepts in the pack's genre. Each should be a complete
+premise you could build a novel from.
 
-For EACH concept, provide:
+For EACH concept provide, in this order:
 
 NUMBER. TITLE (a working title, evocative, not generic)
-HOOK: One sentence that would make someone pick up the book. Specific
-  and surprising, not "In a world where..."
-WORLD: What makes this world different? Not just "there's magic" but
-  what specific, unusual thing defines this place? Be concrete --
-  salt flats, inverted towers, cities that migrate, a sea that
-  remembers, whatever. Make it SENSORY.
-MAGIC/COST: What is the core speculative element and what does it
-  COST? Per Sanderson's Second Law, limitations > powers. The cost
-  should create interesting dilemmas.
+HOOK: One sentence that would make someone pick up the book. Specific and
+  surprising, not "In a world where..."
+WORLD: What makes this world different? Be concrete and SENSORY.
+<the pack's required fields from its `## Seed Prompt`, in the order it lists
+ them — e.g. STAKES for general fiction, THE CRIME for mystery>
 TENSION: What's the central conflict? It must be both PERSONAL (one
-  character's specific problem) and COSMIC (affects the world).
+  character's specific problem) and LARGER (affects more than one life).
   These two must be in tension with each other.
-THEME: What question does this story explore? Not a message -- a
-  genuine question with no easy answer.
+THEME: What question does this story explore? Not a message — a genuine
+  question with no easy answer.
 WHY IT'S NOT GENERIC: One sentence on what makes this different from
-  standard fantasy fare.
+  standard fare in this genre.
 
-Aim for DIVERSITY across the ten concepts:
-  - At least one with a non-human-centric world
-  - At least one that's more literary/quiet than epic
-  - At least one with an unusual narrative structure idea
-  - At least one set outside the typical European-inspired setting
-  - Mix of tones: dark, warm, weird, melancholy, whimsical
+Aim for DIVERSITY across the ten concepts, following the pack's diversity
+requirements. In every genre: mix tones (dark, warm, weird, melancholy,
+whimsical), include at least one that is quieter and more literary than the
+genre's default, and at least one with an unusual narrative structure idea.
 
-DO NOT generate:
-  - Chosen one prophecies (unless subverted in an interesting way)
-  - Dark lord / ultimate evil as the main antagonist
-  - Medieval Europe + elves/dwarves/orcs
-  - "Academy" or "school for magic" settings
-  - Love triangles as the central plot
+DO NOT generate anything on the pack's DO-NOT list.
 
 ## Riffing on a user idea
 
-I have a seed idea for a fantasy novel:
+The user's seed idea is quoted below.
 
-The user's seed idea, quoted below.
-
-Generate 5 variations on this concept. Keep what's interesting about
-the core idea but push it in different directions. For each variation:
+Generate 5 variations on this concept. Keep what's interesting about the core
+idea but push it in different directions. For each variation:
 
 NUMBER. TITLE
 HOOK: One sentence.
 HOW IT DIFFERS: What did you change from the original seed and why?
 WORLD: Concrete, sensory world details.
-MAGIC/COST: The speculative element and its cost.
-TENSION: Personal + cosmic conflict.
+<the pack's required fields>
+TENSION: Personal + larger conflict.
 THEME: The question it explores.
 
-Make the variations genuinely different from each other -- don't just
-tweak surface details. Change the protagonist, the setting, the tone,
-the structure, the thematic focus.
+Make the variations genuinely different from each other — don't just tweak
+surface details. Change the protagonist, the setting, the tone, the
+structure, the thematic focus.

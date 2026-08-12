@@ -27,6 +27,12 @@ existing project.
      `cp "${CLAUDE_PLUGIN_ROOT}/shared/templates/"* <dir>/` (quoted against
      spaces in the install path) — this copies voice.md, world.md,
      characters.md, outline.md, canon.md, MYSTERY.md, state.json.
+   - Once step 3 has resolved the genre, come back and render the
+     pack-driven parts of these templates:
+     write `world.md`'s section headings from the resolved pack's
+     `## World Sections`, and `canon.md`'s category headings and one example
+     entry each from its `## Canon Categories`. Create any file named in the
+     pack's `artifacts` from its `## Artifacts` template.
    - Install the ignore file: `mv <dir>/gitignore <dir>/.gitignore` —
      eval_logs/, edit_logs/, and briefs/ MUST be gitignored; the
      drafting and revision skills depend on them surviving
@@ -39,25 +45,45 @@ existing project.
    - Use the absolute `<dir>` path in every command rather than relying on
      the shell's current directory persisting.
 
-3. **Generate concepts.** Read `references/seed-prompts.md` (in this
-   skill's directory). If the user supplied an idea, use the riff prompt
-   (5 variations); otherwise the generate prompt (10 concepts). Write the
-   concepts yourself, in-session, following every constraint in the prompt
-   — the diversity requirements and the DO-NOT list are hard rules.
+3. **Choose the genre.** List the packs in
+   `"${CLAUDE_PLUGIN_ROOT}/shared/genres/"` (excluding TEMPLATE.md) with
+   their `label`, and ask the user to pick a primary. Offer an optional
+   secondary and any modifiers, explaining that a secondary contributes
+   additively (a second genre's material layered in, such as a romance
+   subplot) and a modifier is an
+   orthogonal axis (YA, cozy, heat level). If the user declines to choose,
+   use `general`. Write `genre`, `genre_secondary`, and `genre_modifiers`
+   into state.json, then verify the stack resolves:
 
-4. **Selection.** Present the concepts compactly (TITLE + HOOK + MAGIC/COST,
-   matching the field names in seed-prompts.md) and ask the user to pick,
-   remix, or reroll. If the user asked for a fully autonomous run, pick
-   the concept with the strongest interlock between the magic's cost and
-   the central tension, and say which you picked and why.
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py" --check
+   ```
 
-5. **Write `seed.txt`** with the full chosen concept. Verify it contains
-   all four required elements — world-differentiator (the WORLD field),
-   central tension (TENSION), cost/constraint (MAGIC/COST), and a concrete
-   sensory anchor (the WORLD field must contain at least one specific
-   sensory detail) — and strengthen any that are missing before saving.
+   If it exits non-zero, fix the selection before continuing — a conflicting
+   stack (for example `ya` with `erotica`) is rejected here rather than
+   producing an incoherent book.
 
-6. **Commit:** `git add -A && git commit -m "seed: <title>"`
+4. **Generate concepts.** Read `references/seed-prompts.md` (in this
+   skill's directory) and every pack path the resolver reports. If the user
+   supplied an idea, use the riff prompt (5 variations); otherwise the
+   generate prompt (10 concepts). Write the concepts yourself, in-session,
+   following every constraint in the prompt — the diversity requirements
+   and the DO-NOT list are hard rules.
 
-7. **Report:** project path, chosen title/hook, and next step:
+5. **Selection.** Present the concepts compactly (TITLE + HOOK + the pack's
+   first required field that the neutral scaffold does not already define)
+   and ask the user to pick, remix, or reroll. If the user asked for a fully
+   autonomous run, pick the concept with the strongest interlock between the
+   pack's central constraint and the central tension, and say which you
+   picked and why.
+
+6. **Write `seed.txt`** with the full chosen concept. Verify it contains a
+   world-differentiator (the WORLD field), a central tension (TENSION), a
+   concrete sensory anchor in the WORLD field, and every field the pack's
+   `## Seed Prompt` marks required — and strengthen any that are missing
+   before saving.
+
+7. **Commit:** `git add -A && git commit -m "seed: <title>"`
+
+8. **Report:** project path, chosen title/hook, and next step:
    `cd <dir>` then `/autonovel:novel-foundation`.
