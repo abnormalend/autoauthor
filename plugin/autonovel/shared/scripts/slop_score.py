@@ -13,6 +13,7 @@ The slop_penalty (0-10) is subtracted from LLM-judge chapter scores by the
 autonovel skills. Verbatim port of the mechanical scorer from the original
 autonovel pipeline's evaluation tooling.
 """
+import argparse
 import json
 import re
 import sys
@@ -94,7 +95,36 @@ TELLING_PATTERNS = [
 ]
 
 
-def slop_score(text):
+def load_genre_banned(path=None):
+    """Extra banned phrases from a genre pack's '## Drafting Rules' section.
+
+    A pack lists them one per line under a `BANNED PHRASES:` marker inside
+    that section. Every genre grows its own stock diction that the general
+    anti-slop tiers do not cover, and only the pack knows what it is.
+
+    Returns [] when no pack is given, the file is unreadable, or the marker
+    is absent — a genre without its own slop vocabulary is the normal case,
+    and scoring must never fail because of genre resolution.
+    """
+    if path is None:
+        return []
+    try:
+        text = Path(path).read_text(encoding="utf-8")
+    except OSError:
+        return []
+    match = re.search(r"^BANNED PHRASES:\s*$(.*?)(?=^##\s|\Z)",
+                      text, re.M | re.S)
+    if not match:
+        return []
+    phrases = []
+    for line in match.group(1).splitlines():
+        phrase = line.strip().lstrip("-").strip().lower()
+        if phrase:
+            phrases.append(phrase)
+    return phrases
+
+
+def slop_score(text, genre_banned=()):
     """
     Mechanical slop detection. Returns a dict with:
       - tier1_hits: list of (word, count)
@@ -182,7 +212,17 @@ def slop_score(text):
     structural_tic_count = sum(c for _, c in structural_tics)
 
     # Composite penalty (0 = clean, 10 = disaster)
+    # Genre-specific banned phrases. Multi-word, so matched as substrings
+    # rather than through the token loop above.
+    lowered = text.lower()
+    genre_hits = []
+    for phrase in genre_banned:
+        c = lowered.count(phrase)
+        if c > 0:
+            genre_hits.append((phrase, c))
+
     penalty = 0.0
+    penalty += min(len(genre_hits) * 1.5, 4.0)       # genre banned: up to 4 pts
     penalty += min(len(tier1_hits) * 1.5, 4.0)       # tier1: up to 4 pts
     penalty += min(tier2_cluster_count * 1.0, 2.0)    # tier2 clusters: up to 2 pts
     penalty += min(sum(c for _, c in tier3_hits) * 0.3, 2.0)  # tier3: up to 2 pts
@@ -199,6 +239,7 @@ def slop_score(text):
     penalty = min(penalty, 10.0)
 
     return {
+        "genre_banned_hits": genre_hits,
         "tier1_hits": tier1_hits,
         "tier2_hits": tier2_hits,
         "tier2_clusters": tier2_cluster_count,
@@ -214,14 +255,18 @@ def slop_score(text):
 
 
 def main():
-    paths = sys.argv[1:]
-    if not paths:
-        print("usage: slop_score.py <file> [file...]", file=sys.stderr)
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("files", nargs="+", help="chapter files to score")
+    parser.add_argument(
+        "--genre-pack", default=None,
+        help="genre pack whose BANNED PHRASES extend the Tier 1 scan")
+    args = parser.parse_args()
+
+    genre_banned = load_genre_banned(args.genre_pack)
     reports = []
-    for p in paths:
+    for p in args.files:
         text = Path(p).read_text()
-        r = slop_score(text)
+        r = slop_score(text, genre_banned=genre_banned)
         r["path"] = str(p)
         reports.append(r)
     penalties = [r["slop_penalty"] for r in reports]

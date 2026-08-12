@@ -50,6 +50,16 @@ ALLOWED = {
     "shared/templates/voice.md",
 }
 
+# The router's migration step names `fantasy` because that is a historical
+# fact about projects created before genre packs existed: their results.tsv
+# scores were produced under the fantasy rubric, and telling a user to pick
+# anything else without saying so would hide that their old and new scores
+# are incomparable. Same category as PIPELINE.md recording the original
+# program's `lore_score` — a record of what was, not an assumption about
+# what should be. Scoped to the migration and pinned by
+# test_router_names_fantasy_only_in_the_migration.
+LEAK_EXEMPT_FILES = {"skills/novel/SKILL.md"}
+
 # Attributions on genre-neutral craft frameworks. These must survive the
 # comps exemption above — see the module docstring.
 PINNED_CITATIONS = (
@@ -87,10 +97,33 @@ def _offenders(pattern, skip_files=()):
 
 
 def test_no_genre_terms_outside_genre_packs():
-    offenders = _offenders(LEAK_RE)
+    offenders = _offenders(LEAK_RE, skip_files=LEAK_EXEMPT_FILES)
     assert not offenders, (
         "genre-specific content found outside shared/genres/ — move it into "
         "a genre pack:\n  " + "\n  ".join(offenders))
+
+
+def test_router_names_fantasy_only_in_the_migration():
+    """The router's exemption is scoped to its migration step.
+
+    Every genre term in that file must sit inside the migration, which
+    exists to tell a legacy user which rubric produced their old scores.
+    A hit anywhere else means genre logic crept into the router itself.
+    """
+    path = PLUGIN / "skills/novel/SKILL.md"
+    lines = path.read_text(encoding="utf-8").splitlines()
+
+    starts = [i for i, l in enumerate(lines) if l.startswith("3. **Migration check.")]
+    ends = [i for i, l in enumerate(lines) if l.startswith("4. **Report**")]
+    assert starts and ends, "the router's migration step has moved or been renamed"
+    lo, hi = starts[0], ends[0]
+
+    stray = [f"{i + 1}: {lines[i].strip()!r}"
+             for i in range(len(lines))
+             if LEAK_RE.search(lines[i]) and not lo <= i < hi]
+    assert not stray, (
+        "genre terms in skills/novel/SKILL.md outside the migration step:\n  "
+        + "\n  ".join(stray))
 
 
 def test_no_comp_authors_outside_genre_packs():

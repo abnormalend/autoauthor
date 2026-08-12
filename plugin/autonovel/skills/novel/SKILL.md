@@ -5,7 +5,10 @@ description: Use when the user asks where their novel stands, wants to resume no
 
 # Novel — Pipeline Status and Router
 
-Read-only. This skill NEVER modifies project files, commits, or resets.
+Read-only, with exactly one exception: the genre migration in step 3,
+which runs only on a project that predates genre packs and only after the
+user confirms. This skill never commits, never resets, and never modifies
+anything else.
 
 ## Steps
 
@@ -25,9 +28,38 @@ Read-only. This skill NEVER modifies project files, commits, or resets.
    - the resolved genre: run
      `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py"` and
      report `label_parts` and each pack's role. If it exits non-zero,
-     report the error — do not attempt to fix it (this skill is read-only).
+     report the error and stop — the only writing this skill does is the
+     step 3 migration, and a project that fails to resolve needs a human
+     decision, not a repair.
 
-3. **Report** in a short table + prose: current phase and iteration; the
+3. **Migration check.** If `state.json` has no `genre` key, or its `genre`
+   is null, this project predates genre packs. Report that and offer the
+   migration — do NOT apply it silently, and do NOT let it default.
+
+   The resolver exits 0 on such a project (null and missing both resolve
+   to `general`), so a clean resolve is not evidence that anyone chose a
+   genre. That is exactly why this check reads `state.json` directly.
+
+   - Suggest `fantasy`, because that is what the project's existing scores
+     in `results.tsv` were produced under. Say plainly that choosing
+     anything else changes the rubric's category weights and its pillar
+     dimensions, which makes the new scores incomparable to the old ones.
+   - On the user's confirmation, add `genre`, `genre_secondary: null`, and
+     `genre_modifiers: []` to `state.json`, and rename any `lore_score`
+     key to `pillar_score` in place. Change nothing else. Do not commit —
+     tell the user what changed and let them review it.
+   - If the project has scored history in `results.tsv` AND the chosen
+     genre is anything other than `fantasy`, also append a marker row:
+     `<ISO timestamp>\t<phase>\t0\t0\tgenre-change\tgenre set to <name>; score baseline reset`
+     `novel-foundation` reads the most recent `genre-change` row to decide
+     whether the previous best score is still a valid comparison. Without
+     it, the next iteration is measured against a number produced under
+     different weights and will look like a regression.
+
+   The same marker row and baseline reset apply any time a project's genre
+   changes later, not only at migration.
+
+4. **Report** in a short table + prose: current phase and iteration; the
    resolved genre (primary, secondary, and modifiers with their roles);
    scores against their gates (foundation > 7.5 AND pillar > 7.0;
    chapters > 6.0; revision plateau Δ < 0.5 across 2 cycles); chapters
@@ -35,7 +67,7 @@ Read-only. This skill NEVER modifies project files, commits, or resets.
    the git tree is dirty (uncommitted work from an interrupted run —
    the user should inspect before any phase skill runs).
 
-4. **Recommend exactly one next action:**
+5. **Recommend exactly one next action:**
    - phase `foundation` → `/autonovel:novel-foundation`
    - phase `drafting`  → `/autonovel:novel-draft`
    - phase `revision`  → `/autonovel:novel-revise`; but if
