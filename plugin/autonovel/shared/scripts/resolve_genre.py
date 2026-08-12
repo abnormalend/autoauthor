@@ -11,6 +11,37 @@ novel needs no plugin change.
 
 Exit 0 on success; 1 with a message on stderr for any resolution, validation,
 or conflict error.
+
+Output schema (the JSON printed on stdout when --check is not given) — six
+skills parse this, none of which can see this module's source:
+
+  packs             — [{"name", "role", "path"}, ...], one entry per
+                       loaded pack, in resolution order: primary first,
+                       then secondary (if any), then modifiers in
+                       state.json's genre_modifiers order.
+  primary_label     — the primary pack's own 'label' field, verbatim.
+  display_label     — every loaded pack's 'label', joined with a space,
+                       in the same order as 'packs' — this is what should
+                       be shown to a reader (a title page, a status
+                       line), not 'primary_label' alone.
+  label_parts       — the list display_label was joined from, for a
+                       caller that wants to lay the parts out itself.
+  pillar_label      — the primary pack's 'pillar_label'.
+  weights           — the primary pack's 'weights' dict
+                       (pillar/character/structure/craft -> int, sums to
+                       100).
+  beat_system       — the primary pack's 'beat_system', or "save-the-cat"
+                       if it didn't declare one.
+  shape             — the primary pack's 'shape' dict (chapters/words
+                       ranges, chapter_words, pov_default), or {} if it
+                       declared none.
+  content_register  — merged content_register dicts from every loaded
+                       pack (primary, secondary, and modifiers alike);
+                       see merge() for the collision rule.
+  artifacts         — the union of every non-modifier pack's 'artifacts'
+                       list, in first-seen order; a modifier's own
+                       'artifacts' entries are deliberately excluded —
+                       see merge().
 """
 import argparse
 import json
@@ -18,7 +49,8 @@ import re
 import sys
 from pathlib import Path
 
-from genre_pack import PackError, _names, parse_pack, validate_pack
+from genre_pack import (PackError, format_names, pack_names_in, parse_pack,
+                        validate_pack)
 
 DEFAULT_GENRE = "general"
 PLUGIN_GENRES = Path(__file__).resolve().parent.parent / "genres"
@@ -53,13 +85,10 @@ def load_state(project):
 
 
 def known_names(project):
-    names = {p.stem for p in PLUGIN_GENRES.glob("*.md")}
-    names |= {p.stem for p in (project / "genres").glob("*.md")}
-    names.discard("TEMPLATE")
-    return names
+    return pack_names_in(PLUGIN_GENRES) | pack_names_in(project / "genres")
 
 
-def find_pack(project, name):
+def find_pack(project, name, names):
     if not NAME_RE.fullmatch(name or ""):
         fail(f"invalid genre pack name {name!r}; use lowercase letters, "
              "digits, and hyphens only")
@@ -68,11 +97,11 @@ def find_pack(project, name):
         if candidate.exists():
             return candidate
     fail(f"unknown genre pack {name!r}; looked in {project / 'genres'} and "
-         f"{PLUGIN_GENRES}")
+         f"{PLUGIN_GENRES}; known packs: {format_names(sorted(names))}")
 
 
 def load_pack(project, name, role, names):
-    path = find_pack(project, name)
+    path = find_pack(project, name, names)
     try:
         pack = parse_pack(path)
     except PackError as e:
@@ -81,8 +110,10 @@ def load_pack(project, name, role, names):
     if errors:
         fail(f"{path} is invalid:\n  " + "\n  ".join(errors))
     if role not in pack["meta"].get("role", []):
-        fail(f"pack {name!r} does not declare role {role!r} "
-             f"(it declares {pack['meta'].get('role')})")
+        fail(f"pack {name!r} does not declare role {role!r} (it declares "
+             f"{format_names(pack['meta'].get('role') or [])}); add "
+             f"{role!r} to its 'role' list, or choose a different pack "
+             "for that slot")
     pack["used_as"] = role
     return pack
 
@@ -104,7 +135,8 @@ def resolve(project):
     # without anyone noticing.
     dupes = sorted({m for m in modifiers if modifiers.count(m) > 1})
     if dupes:
-        fail(f"genre_modifiers lists {_names(dupes)} more than once")
+        fail(f"genre_modifiers lists {format_names(dupes)} more than "
+             "once; remove one of them from state.json")
     for modifier in modifiers:
         packs.append(load_pack(project, modifier, "modifier", names))
 
@@ -113,35 +145,80 @@ def resolve(project):
 
 
 def check_conflicts(packs):
-    loaded = {p["meta"]["name"] for p in packs}
+    # The same pack filling two slots (e.g. genre and genre_secondary both
+    # "fantasy") is the same failure the genre_modifiers duplicate guard
+    # above prevents, one slot over — it must be caught here too, since a
+    # pack can legally declare more than one role and so pass load_pack's
+    # role check in both slots.
+    loaded_list = [p["meta"]["name"] for p in packs]
+    dupes = sorted({n for n in loaded_list if loaded_list.count(n) > 1})
+    if dupes:
+        fail(f"pack(s) {format_names(dupes)} fill more than one slot; a "
+             "pack may be used once — check genre, genre_secondary, and "
+             "genre_modifiers in state.json")
+
+    loaded = set(loaded_list)
     for pack in packs:
         name = pack["meta"]["name"]
         clashes = sorted(
             set(pack["meta"].get("conflicts_with") or []) & loaded)
         if clashes:
             fail(f"pack {name!r} conflicts with loaded pack(s) "
-                 f"{_names(clashes)}")
+                 f"{format_names(clashes)}")
 
 
 def merge(packs):
+    # The primary owns every scalar structural field (pillar_label,
+    # weights, beat_system, shape) — it's the pack that owns pillar
+    # dimensions and book shape by definition (see genre_pack.py's
+    # PRIMARY_ONLY_FIELDS), so a secondary or modifier's copy of these,
+    # if it even has one, is never consulted.
     primary = packs[0]
     meta = primary["meta"]
 
     content_register = {}
     artifacts = []
     for pack in packs:
-        content_register.update(pack["meta"].get("content_register") or {})
+        # content_register merges across every loaded pack, not just the
+        # primary — it's the orthogonal axis a modifier exists to set (an
+        # "explicit" heat-level modifier layered onto a primary that
+        # declares none). Two packs setting the SAME key to DIFFERENT
+        # values is a real authoring conflict, not something merge() can
+        # silently resolve: this field is what tells the LLM subagents
+        # doing the actual writing where the content boundaries are, and
+        # the merged value is all they ever see.
+        for key, value in (pack["meta"].get("content_register") or {}).items():
+            if key in content_register and content_register[key] != value:
+                fail(f"packs disagree on content_register {key!r}: "
+                     f"{content_register[key]!r} vs {value!r}; add a "
+                     "'conflicts_with' entry or drop one modifier")
+            content_register[key] = value
+        # A modifier's own 'artifacts' entries are excluded from the
+        # union: artifacts are per-book deliverables (a clue ledger, a
+        # heat-tracking sheet) that the primary/secondary genre owns:
+        # letting every modifier add its own would mean a heat-level or
+        # age-category modifier — an orthogonal axis, not a genre — could
+        # spawn project files the pipeline never asked for.
         for artifact in pack["meta"].get("artifacts") or []:
             if artifact not in artifacts and pack["used_as"] != "modifier":
                 artifacts.append(artifact)
 
+    label_parts = [p["meta"]["label"] for p in packs]
     return {
         "packs": [{"name": p["meta"]["name"], "role": p["used_as"],
                    "path": str(p["path"])} for p in packs],
-        "label": meta["label"],
-        "label_parts": [p["meta"]["label"] for p in packs],
-        "pillar_label": meta.get("pillar_label"),
-        "weights": meta.get("weights"),
+        "primary_label": meta["label"],
+        "display_label": " ".join(label_parts),
+        "label_parts": label_parts,
+        # pillar_label and weights use direct indexing, not .get(): both
+        # are guaranteed present here. packs[0] is always loaded with
+        # role="primary" (load_pack enforces it), and validate_pack
+        # requires pillar_label on every primary and valid weights on
+        # every scoring role (primary is always one, see SCORING_ROLES).
+        # A .get() here would tell downstream readers these could be
+        # null and leave them no way to handle a case that can't happen.
+        "pillar_label": meta["pillar_label"],
+        "weights": meta["weights"],
         "beat_system": meta.get("beat_system", "save-the-cat"),
         "shape": meta.get("shape", {}),
         "content_register": content_register,

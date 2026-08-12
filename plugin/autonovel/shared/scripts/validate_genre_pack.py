@@ -10,7 +10,7 @@ Exit 0 if every pack is valid; 1 otherwise, with errors on stdout.
 import sys
 from pathlib import Path
 
-from genre_pack import PackError, parse_pack, validate_pack
+from genre_pack import PackError, pack_names_in, parse_pack, validate_pack
 
 
 def main(argv):
@@ -20,12 +20,14 @@ def main(argv):
         return 2
 
     paths = [Path(a) for a in argv]
-    known = {p.stem for p in paths}
-    # Packs referenced by conflicts_with may live alongside the ones named on
-    # the command line, so treat every sibling .md as a known name too.
+    # Packs referenced by conflicts_with may live alongside the ones named
+    # on the command line, so every sibling .md in each argument's
+    # directory counts as known too. There's no separate "add each
+    # argument's own stem" step — for any real .md argument, pack_names_in
+    # on its own parent directory already includes it.
+    known = set()
     for path in paths:
-        known |= {p.stem for p in path.parent.glob("*.md")}
-    known.discard("TEMPLATE")
+        known |= pack_names_in(path.parent)
 
     failed = False
     for path in paths:

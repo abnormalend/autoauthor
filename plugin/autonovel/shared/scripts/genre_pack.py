@@ -43,6 +43,10 @@ CORE_PROJECT_FILES = {
     "manuscript.md", "voice_wells.json", "import_source.md",
 }
 
+# The template's filename stem — never a real pack name, so every scan of a
+# genres/ directory for pack names excludes it.
+TEMPLATE_STEM = "TEMPLATE"
+
 # A fenced block, backtick or tilde, 3 or more of the same character,
 # opened and closed by matching markers, with up to 3 spaces of leading
 # indent (CommonMark allows this — e.g. a fence indented under a bullet
@@ -72,6 +76,16 @@ SECTION_RE = re.compile(r"^##\s+(.+?)\s*$", re.M)
 
 class PackError(Exception):
     """Malformed pack. The message is user-facing."""
+
+
+def pack_names_in(directory):
+    """Pack names available in a single genres/ directory: the '.md' file
+    stems, minus TEMPLATE_STEM. Callers combining more than one directory
+    (project genres/ over the plugin's shared/genres/) union the results
+    themselves — this function deliberately knows about only one directory
+    at a time, so the different ways CLIs combine directories stay visible
+    at the call site instead of being hidden behind a shared helper."""
+    return {p.stem for p in Path(directory).glob("*.md")} - {TEMPLATE_STEM}
 
 
 def _mask_fences(text):
@@ -184,7 +198,7 @@ def _pillar_dimensions(body):
     return DIMENSION_RE.findall(masked), DIMENSION_LOOSE_RE.findall(masked)
 
 
-def _names(seq):
+def format_names(seq):
     """Render an iterable of values for an error message: 'craft, pillar'
     instead of the default repr "['craft', 'pillar']". Every element is
     coerced with str() so a stray non-string value — an author guessing at
@@ -232,8 +246,8 @@ def validate_pack(pack, known_names=None):
         unknown = [r for r in role if not isinstance(r, str) or r not in ROLES]
         if unknown:
             errors.append(
-                f"frontmatter 'role' has unknown role(s) {_names(unknown)}; "
-                f"valid roles: {_names(sorted(ROLES))}")
+                f"frontmatter 'role' has unknown role(s) {format_names(unknown)}; "
+                f"valid roles: {format_names(sorted(ROLES))}")
 
     # role_strs drops any non-string junk (already reported above) before
     # any set() is built from it — set(role) directly would raise on an
@@ -266,7 +280,7 @@ def validate_pack(pack, known_names=None):
         if unknown:
             errors.append(
                 f"frontmatter 'conflicts_with' names unknown pack(s) "
-                f"{_names(unknown)}; known packs: {_names(sorted(known_names))}")
+                f"{format_names(unknown)}; known packs: {format_names(sorted(known_names))}")
 
     errors.extend(_validate_shape(meta.get("shape")))
 
@@ -286,7 +300,7 @@ def validate_pack(pack, known_names=None):
         if non_string:
             errors.append(
                 f"frontmatter 'artifacts' must be a list of strings; "
-                f"non-string element(s): {_names(non_string)}")
+                f"non-string element(s): {format_names(non_string)}")
         for artifact in artifacts:
             if isinstance(artifact, str) and artifact in CORE_PROJECT_FILES:
                 errors.append(
@@ -318,7 +332,7 @@ def _validate_weights(weights):
                 "pillar/character/structure/craft to integers"]
     missing = [k for k in WEIGHT_KEYS if k not in weights]
     if missing:
-        return [f"'weights' missing key(s): {_names(missing)}"]
+        return [f"'weights' missing key(s): {format_names(missing)}"]
     # isinstance(v, int) alone accepts bool (bool is an int subclass in
     # Python) — a stray "weights": {"pillar": true, ...} must be reported
     # as a type error, not silently summed as 1 and reported as a sum
@@ -327,7 +341,7 @@ def _validate_weights(weights):
            if isinstance(weights[k], bool) or not isinstance(weights[k], int)]
     if bad:
         return [f"'weights' values must be integers; non-integer key(s): "
-                f"{_names(bad)}"]
+                f"{format_names(bad)}"]
     total = sum(weights[k] for k in WEIGHT_KEYS)
     if total != 100:
         return [f"'weights' sum to {total}, must sum to 100"]
@@ -346,7 +360,7 @@ def _validate_dimensions(dimensions, malformed_dimensions, has_section):
     errors = []
     if malformed_dimensions:
         errors.append(
-            f"pillar dimension(s) {_names(sorted(malformed_dimensions))} "
+            f"pillar dimension(s) {format_names(sorted(malformed_dimensions))} "
             "use a hyphen or en dash; an em dash (—) is required")
     # Malformed bullets are still bullets an author sees on screen, so they
     # count toward the range check — otherwise a 3-bullet section with one
@@ -361,11 +375,11 @@ def _validate_dimensions(dimensions, malformed_dimensions, has_section):
     clash = sorted(set(dimensions) & RESERVED_DIMENSIONS)
     if clash:
         errors.append(
-            f"pillar dimension(s) {_names(clash)} collide with reserved "
-            f"base dimensions; reserved: {_names(sorted(RESERVED_DIMENSIONS))}")
+            f"pillar dimension(s) {format_names(clash)} collide with reserved "
+            f"base dimensions; reserved: {format_names(sorted(RESERVED_DIMENSIONS))}")
     dupes = sorted({d for d in dimensions if dimensions.count(d) > 1})
     if dupes:
-        errors.append(f"duplicate pillar dimension key(s): {_names(dupes)}")
+        errors.append(f"duplicate pillar dimension key(s): {format_names(dupes)}")
     return errors
 
 

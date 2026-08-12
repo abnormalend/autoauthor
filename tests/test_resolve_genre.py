@@ -82,7 +82,7 @@ def test_project_pack_overrides_plugin_pack(tmp_path):
     result = run(tmp_path)
     assert result.returncode == 0, result.stdout + result.stderr
     out = json.loads(result.stdout)
-    assert out["label"] == "Local Fantasy"
+    assert out["primary_label"] == "Local Fantasy"
     assert out["packs"][0]["path"].startswith(str(tmp_path))
 
 
@@ -231,7 +231,8 @@ def test_primary_owns_weights_and_shape(tmp_path):
 def test_label_parts_lists_every_pack_in_order(tmp_path):
     setup_stack(tmp_path)
     out = json.loads(run(tmp_path).stdout)
-    assert out["label"] == "Testprimary"
+    assert out["primary_label"] == "Testprimary"
+    assert out["display_label"] == "Testprimary Test Second Test Mod"
     assert out["label_parts"] == ["Testprimary", "Test Second", "Test Mod"]
 
 
@@ -277,3 +278,76 @@ def test_check_flag_prints_nothing_on_success(tmp_path):
     result = run(tmp_path, "--check")
     assert result.returncode == 0
     assert result.stdout.strip() == ""
+
+
+def test_check_flag_reports_failure_on_bad_stack(tmp_path):
+    # --check is currently only exercised on the success path; nothing
+    # pinned that it still exits 1 with a message (and no JSON) on a bad
+    # stack.
+    write_state(tmp_path, genre="nosuchgenre")
+    result = run(tmp_path, "--check")
+    assert result.returncode == 1
+    assert "nosuchgenre" in result.stderr
+    assert result.stdout.strip() == ""
+
+
+def test_same_pack_in_two_slots_is_rejected(tmp_path):
+    # A pack declaring role: ["primary", "secondary"] (as the real fantasy
+    # pack does) can legally fill either slot, so load_pack's per-slot
+    # role check alone can't catch state.json pointing genre and
+    # genre_secondary at the same pack — that's the same "silently
+    # doubled" failure the genre_modifiers duplicate guard prevents, one
+    # slot over, and it must be caught even though nothing here declares
+    # a conflicts_with.
+    write_state(tmp_path, genre="testsecond", genre_secondary="testsecond")
+    write_project_pack(tmp_path, "testsecond", SECONDARY_META, PRIMARY_BODY)
+    result = run(tmp_path)
+    assert result.returncode == 1
+    assert "fill more than one slot" in result.stderr
+    assert "testsecond" in result.stderr
+
+
+def test_content_register_collision_is_rejected(tmp_path):
+    # content_register is the only thing six LLM subagents see for where
+    # the content boundaries are — two modifiers disagreeing on the same
+    # key must not resolve silently to "whichever loaded last".
+    write_state(tmp_path, genre="testprimary",
+                genre_modifiers=["cozy", "steamy"])
+    write_project_pack(tmp_path, "testprimary", primary_meta("testprimary"),
+                       PRIMARY_BODY)
+    write_project_pack(
+        tmp_path, "cozy",
+        {"name": "cozy", "label": "Cozy", "role": ["modifier"],
+         "content_register": {"heat": "closed-door"}, "conflicts_with": []},
+        MODIFIER_BODY)
+    write_project_pack(
+        tmp_path, "steamy",
+        {"name": "steamy", "label": "Steamy", "role": ["modifier"],
+         "content_register": {"heat": "explicit"}, "conflicts_with": []},
+        MODIFIER_BODY)
+    result = run(tmp_path)
+    assert result.returncode == 1
+    assert "disagree on content_register 'heat'" in result.stderr
+
+
+def test_content_register_identical_values_do_not_conflict(tmp_path):
+    # Two modifiers agreeing on the same key is fine — only a genuine
+    # disagreement is an error.
+    write_state(tmp_path, genre="testprimary",
+                genre_modifiers=["cozy", "alsocozy"])
+    write_project_pack(tmp_path, "testprimary", primary_meta("testprimary"),
+                       PRIMARY_BODY)
+    write_project_pack(
+        tmp_path, "cozy",
+        {"name": "cozy", "label": "Cozy", "role": ["modifier"],
+         "content_register": {"heat": "closed-door"}, "conflicts_with": []},
+        MODIFIER_BODY)
+    write_project_pack(
+        tmp_path, "alsocozy",
+        {"name": "alsocozy", "label": "Also Cozy", "role": ["modifier"],
+         "content_register": {"heat": "closed-door"}, "conflicts_with": []},
+        MODIFIER_BODY)
+    result = run(tmp_path)
+    assert result.returncode == 0, result.stdout + result.stderr
+    out = json.loads(result.stdout)
+    assert out["content_register"] == {"heat": "closed-door"}

@@ -683,10 +683,39 @@ a "source of truth" comment above `RESERVED_DIMENSIONS` pointing at
 that rubric doesn't silently drift out of sync with this list) and a
 comment above `CORE_PROJECT_FILES` noting what it mirrors.
 
-Append to `plugin/autonovel/shared/scripts/genre_pack.py`:
+A later quality-review pass (during Tasks 3-5) added two more things to
+this same top-of-file block: `TEMPLATE_STEM = "TEMPLATE"`, right after
+`CORE_PROJECT_FILES`, and a `pack_names_in(directory)` function, right
+after the `PackError` class — a single-directory "the `.md` stems here,
+minus `TEMPLATE_STEM`" helper that both `validate_genre_pack.py` and
+`resolve_genre.py` (Tasks 3-4) use to enumerate a `genres/` directory's
+pack names, so the `TEMPLATE` exclusion isn't hand-copied in three
+places. That same pass also renamed `_names` below to `format_names` —
+once `resolve_genre.py` started importing it (Task 4), the leading
+underscore was no longer telling the truth about the function's audience.
+
+Append to `plugin/autonovel/shared/scripts/genre_pack.py` (mentally
+splicing `TEMPLATE_STEM`/`pack_names_in` into the positions described
+above; they're included here rather than as a separate diff so this
+block stays a complete, pasteable unit):
 
 ```python
-def _names(seq):
+# The template's filename stem — never a real pack name, so every scan of a
+# genres/ directory for pack names excludes it.
+TEMPLATE_STEM = "TEMPLATE"
+
+
+def pack_names_in(directory):
+    """Pack names available in a single genres/ directory: the '.md' file
+    stems, minus TEMPLATE_STEM. Callers combining more than one directory
+    (project genres/ over the plugin's shared/genres/) union the results
+    themselves — this function deliberately knows about only one directory
+    at a time, so the different ways CLIs combine directories stay visible
+    at the call site instead of being hidden behind a shared helper."""
+    return {p.stem for p in Path(directory).glob("*.md")} - {TEMPLATE_STEM}
+
+
+def formatformat_names(seq):
     """Render an iterable of values for an error message: 'craft, pillar'
     instead of the default repr "['craft', 'pillar']". Every element is
     coerced with str() so a stray non-string value — an author guessing at
@@ -734,8 +763,8 @@ def validate_pack(pack, known_names=None):
         unknown = [r for r in role if not isinstance(r, str) or r not in ROLES]
         if unknown:
             errors.append(
-                f"frontmatter 'role' has unknown role(s) {_names(unknown)}; "
-                f"valid roles: {_names(sorted(ROLES))}")
+                f"frontmatter 'role' has unknown role(s) {format_names(unknown)}; "
+                f"valid roles: {format_names(sorted(ROLES))}")
 
     # role_strs drops any non-string junk (already reported above) before
     # any set() is built from it — set(role) directly would raise on an
@@ -768,7 +797,7 @@ def validate_pack(pack, known_names=None):
         if unknown:
             errors.append(
                 f"frontmatter 'conflicts_with' names unknown pack(s) "
-                f"{_names(unknown)}; known packs: {_names(sorted(known_names))}")
+                f"{format_names(unknown)}; known packs: {format_names(sorted(known_names))}")
 
     errors.extend(_validate_shape(meta.get("shape")))
 
@@ -788,7 +817,7 @@ def validate_pack(pack, known_names=None):
         if non_string:
             errors.append(
                 f"frontmatter 'artifacts' must be a list of strings; "
-                f"non-string element(s): {_names(non_string)}")
+                f"non-string element(s): {format_names(non_string)}")
         for artifact in artifacts:
             if isinstance(artifact, str) and artifact in CORE_PROJECT_FILES:
                 errors.append(
@@ -820,7 +849,7 @@ def _validate_weights(weights):
                 "pillar/character/structure/craft to integers"]
     missing = [k for k in WEIGHT_KEYS if k not in weights]
     if missing:
-        return [f"'weights' missing key(s): {_names(missing)}"]
+        return [f"'weights' missing key(s): {format_names(missing)}"]
     # isinstance(v, int) alone accepts bool (bool is an int subclass in
     # Python) — a stray "weights": {"pillar": true, ...} must be reported
     # as a type error, not silently summed as 1 and reported as a sum
@@ -829,7 +858,7 @@ def _validate_weights(weights):
            if isinstance(weights[k], bool) or not isinstance(weights[k], int)]
     if bad:
         return [f"'weights' values must be integers; non-integer key(s): "
-                f"{_names(bad)}"]
+                f"{format_names(bad)}"]
     total = sum(weights[k] for k in WEIGHT_KEYS)
     if total != 100:
         return [f"'weights' sum to {total}, must sum to 100"]
@@ -848,7 +877,7 @@ def _validate_dimensions(dimensions, malformed_dimensions, has_section):
     errors = []
     if malformed_dimensions:
         errors.append(
-            f"pillar dimension(s) {_names(sorted(malformed_dimensions))} "
+            f"pillar dimension(s) {format_names(sorted(malformed_dimensions))} "
             "use a hyphen or en dash; an em dash (—) is required")
     # Malformed bullets are still bullets an author sees on screen, so they
     # count toward the range check — otherwise a 3-bullet section with one
@@ -863,11 +892,11 @@ def _validate_dimensions(dimensions, malformed_dimensions, has_section):
     clash = sorted(set(dimensions) & RESERVED_DIMENSIONS)
     if clash:
         errors.append(
-            f"pillar dimension(s) {_names(clash)} collide with reserved "
-            f"base dimensions; reserved: {_names(sorted(RESERVED_DIMENSIONS))}")
+            f"pillar dimension(s) {format_names(clash)} collide with reserved "
+            f"base dimensions; reserved: {format_names(sorted(RESERVED_DIMENSIONS))}")
     dupes = sorted({d for d in dimensions if dimensions.count(d) > 1})
     if dupes:
-        errors.append(f"duplicate pillar dimension key(s): {_names(dupes)}")
+        errors.append(f"duplicate pillar dimension key(s): {format_names(dupes)}")
     return errors
 
 
@@ -976,6 +1005,15 @@ Expected: FAIL — `No such file or directory: '.../validate_genre_pack.py'`
 
 - [ ] **Step 3: Write the CLI**
 
+A later quality-review pass (during Tasks 3-5, once `pack_names_in` was
+added to `genre_pack.py` in Task 2 — see above) simplified the
+known-names computation below: `known = {p.stem for p in paths}` was
+redundant — for any real `.md` argument, that argument's own stem is
+already included by the very next loop, which unions in every sibling
+`.md` in its parent directory. Dropped, replaced by using
+`pack_names_in` per argument's parent directory instead of the inline
+glob-and-discard.
+
 Create `plugin/autonovel/shared/scripts/validate_genre_pack.py`:
 
 ```python
@@ -991,7 +1029,7 @@ Exit 0 if every pack is valid; 1 otherwise, with errors on stdout.
 import sys
 from pathlib import Path
 
-from genre_pack import PackError, parse_pack, validate_pack
+from genre_pack import PackError, pack_names_in, parse_pack, validate_pack
 
 
 def main(argv):
@@ -1001,12 +1039,14 @@ def main(argv):
         return 2
 
     paths = [Path(a) for a in argv]
-    known = {p.stem for p in paths}
-    # Packs referenced by conflicts_with may live alongside the ones named on
-    # the command line, so treat every sibling .md as a known name too.
+    # Packs referenced by conflicts_with may live alongside the ones named
+    # on the command line, so every sibling .md in each argument's
+    # directory counts as known too. There's no separate "add each
+    # argument's own stem" step — for any real .md argument, pack_names_in
+    # on its own parent directory already includes it.
+    known = set()
     for path in paths:
-        known |= {p.stem for p in path.parent.glob("*.md")}
-    known.discard("TEMPLATE")
+        known |= pack_names_in(path.parent)
 
     failed = False
     for path in paths:
@@ -1140,7 +1180,7 @@ def test_project_pack_overrides_plugin_pack(tmp_path):
     result = run(tmp_path)
     assert result.returncode == 0, result.stdout + result.stderr
     out = json.loads(result.stdout)
-    assert out["label"] == "Local Fantasy"
+    assert out["primary_label"] == "Local Fantasy"
     assert out["packs"][0]["path"].startswith(str(tmp_path))
 
 
@@ -1260,6 +1300,45 @@ Expected: FAIL — `No such file or directory: '.../resolve_genre.py'`
 
 - [ ] **Step 3: Write the resolver**
 
+Beyond the four gaps the note above already describes (`state.json`
+shape, the duplicate-modifier check, the path-separator name guard, and
+the comma-joined message style — also applied to the role-mismatch
+message below, alongside concrete next-step guidance, and to the
+unknown-pack message, which now lists the known packs), a second
+quality-review pass — run after Task 5's tests were also in place, on the
+`--check` output contract itself — found two more silent-wrong-output
+paths:
+
+- The same pack filling two slots (`genre` and `genre_secondary` both
+  `"fantasy"`, which `fantasy.md`'s `role: ["primary", "secondary"]`
+  makes a live path once Task 14 wires seed generation) silently doubled
+  the label the same way a repeated modifier did — `check_conflicts` now
+  rejects any pack name appearing more than once across `packs`.
+- Two modifiers disagreeing on the same `content_register` key (e.g. a
+  `cozy` pack's `heat: closed-door` against a `steamy` pack's
+  `heat: explicit`) resolved silently to whichever loaded last —
+  `merge()` now rejects a genuine disagreement (identical values from
+  two packs are fine and do not error). Task 5's block below has the
+  tests for both.
+
+The block below is the corrected version; see `resolve_genre.py` for the
+final code. It also renames the merged output's `label` key to
+`primary_label` and adds `display_label` (`" ".join(label_parts)`) — a
+key literally named `label` sitting next to `label_parts` invites an
+LLM consumer to grab it even though `label_parts` is the one meant for
+display; making the
+obvious key the correct one closes that gap. `pillar_label` and `weights`
+in the merged output now use direct dict indexing on the primary's meta,
+not `.get()` — both are guaranteed present by the time `merge()` runs
+(the primary must declare role `"primary"`, and `validate_pack` requires
+`pillar_label` on any primary and valid `weights` on any scoring role),
+so a `.get()` would tell downstream readers these could be null with no
+real case where that happens. The module docstring documents the full
+ten-key output schema, since six skills parse this JSON and none of them
+can see this module's source. `known_names` now builds on `pack_names_in`
+(added to `genre_pack.py` in Task 2, see above) instead of repeating the
+`{p.stem for p in ...} - {"TEMPLATE"}` glob-and-discard pattern inline.
+
 Create `plugin/autonovel/shared/scripts/resolve_genre.py`:
 
 ```python
@@ -1276,6 +1355,37 @@ novel needs no plugin change.
 
 Exit 0 on success; 1 with a message on stderr for any resolution, validation,
 or conflict error.
+
+Output schema (the JSON printed on stdout when --check is not given) — six
+skills parse this, none of which can see this module's source:
+
+  packs             — [{"name", "role", "path"}, ...], one entry per
+                       loaded pack, in resolution order: primary first,
+                       then secondary (if any), then modifiers in
+                       state.json's genre_modifiers order.
+  primary_label     — the primary pack's own 'label' field, verbatim.
+  display_label     — every loaded pack's 'label', joined with a space,
+                       in the same order as 'packs' — this is what should
+                       be shown to a reader (a title page, a status
+                       line), not 'primary_label' alone.
+  label_parts       — the list display_label was joined from, for a
+                       caller that wants to lay the parts out itself.
+  pillar_label      — the primary pack's 'pillar_label'.
+  weights           — the primary pack's 'weights' dict
+                       (pillar/character/structure/craft -> int, sums to
+                       100).
+  beat_system       — the primary pack's 'beat_system', or "save-the-cat"
+                       if it didn't declare one.
+  shape             — the primary pack's 'shape' dict (chapters/words
+                       ranges, chapter_words, pov_default), or {} if it
+                       declared none.
+  content_register  — merged content_register dicts from every loaded
+                       pack (primary, secondary, and modifiers alike);
+                       see merge() for the collision rule.
+  artifacts         — the union of every non-modifier pack's 'artifacts'
+                       list, in first-seen order; a modifier's own
+                       'artifacts' entries are deliberately excluded —
+                       see merge().
 """
 import argparse
 import json
@@ -1283,7 +1393,8 @@ import re
 import sys
 from pathlib import Path
 
-from genre_pack import PackError, _names, parse_pack, validate_pack
+from genre_pack import (PackError, format_names, pack_names_in, parse_pack,
+                        validate_pack)
 
 DEFAULT_GENRE = "general"
 PLUGIN_GENRES = Path(__file__).resolve().parent.parent / "genres"
@@ -1318,13 +1429,10 @@ def load_state(project):
 
 
 def known_names(project):
-    names = {p.stem for p in PLUGIN_GENRES.glob("*.md")}
-    names |= {p.stem for p in (project / "genres").glob("*.md")}
-    names.discard("TEMPLATE")
-    return names
+    return pack_names_in(PLUGIN_GENRES) | pack_names_in(project / "genres")
 
 
-def find_pack(project, name):
+def find_pack(project, name, names):
     if not NAME_RE.fullmatch(name or ""):
         fail(f"invalid genre pack name {name!r}; use lowercase letters, "
              "digits, and hyphens only")
@@ -1333,11 +1441,11 @@ def find_pack(project, name):
         if candidate.exists():
             return candidate
     fail(f"unknown genre pack {name!r}; looked in {project / 'genres'} and "
-         f"{PLUGIN_GENRES}")
+         f"{PLUGIN_GENRES}; known packs: {format_names(sorted(names))}")
 
 
 def load_pack(project, name, role, names):
-    path = find_pack(project, name)
+    path = find_pack(project, name, names)
     try:
         pack = parse_pack(path)
     except PackError as e:
@@ -1346,8 +1454,10 @@ def load_pack(project, name, role, names):
     if errors:
         fail(f"{path} is invalid:\n  " + "\n  ".join(errors))
     if role not in pack["meta"].get("role", []):
-        fail(f"pack {name!r} does not declare role {role!r} "
-             f"(it declares {pack['meta'].get('role')})")
+        fail(f"pack {name!r} does not declare role {role!r} (it declares "
+             f"{format_names(pack['meta'].get('role') or [])}); add "
+             f"{role!r} to its 'role' list, or choose a different pack "
+             "for that slot")
     pack["used_as"] = role
     return pack
 
@@ -1369,7 +1479,8 @@ def resolve(project):
     # without anyone noticing.
     dupes = sorted({m for m in modifiers if modifiers.count(m) > 1})
     if dupes:
-        fail(f"genre_modifiers lists {_names(dupes)} more than once")
+        fail(f"genre_modifiers lists {format_names(dupes)} more than "
+             "once; remove one of them from state.json")
     for modifier in modifiers:
         packs.append(load_pack(project, modifier, "modifier", names))
 
@@ -1378,35 +1489,80 @@ def resolve(project):
 
 
 def check_conflicts(packs):
-    loaded = {p["meta"]["name"] for p in packs}
+    # The same pack filling two slots (e.g. genre and genre_secondary both
+    # "fantasy") is the same failure the genre_modifiers duplicate guard
+    # above prevents, one slot over — it must be caught here too, since a
+    # pack can legally declare more than one role and so pass load_pack's
+    # role check in both slots.
+    loaded_list = [p["meta"]["name"] for p in packs]
+    dupes = sorted({n for n in loaded_list if loaded_list.count(n) > 1})
+    if dupes:
+        fail(f"pack(s) {format_names(dupes)} fill more than one slot; a "
+             "pack may be used once — check genre, genre_secondary, and "
+             "genre_modifiers in state.json")
+
+    loaded = set(loaded_list)
     for pack in packs:
         name = pack["meta"]["name"]
         clashes = sorted(
             set(pack["meta"].get("conflicts_with") or []) & loaded)
         if clashes:
             fail(f"pack {name!r} conflicts with loaded pack(s) "
-                 f"{_names(clashes)}")
+                 f"{format_names(clashes)}")
 
 
 def merge(packs):
+    # The primary owns every scalar structural field (pillar_label,
+    # weights, beat_system, shape) — it's the pack that owns pillar
+    # dimensions and book shape by definition (see genre_pack.py's
+    # PRIMARY_ONLY_FIELDS), so a secondary or modifier's copy of these,
+    # if it even has one, is never consulted.
     primary = packs[0]
     meta = primary["meta"]
 
     content_register = {}
     artifacts = []
     for pack in packs:
-        content_register.update(pack["meta"].get("content_register") or {})
+        # content_register merges across every loaded pack, not just the
+        # primary — it's the orthogonal axis a modifier exists to set (an
+        # "explicit" heat-level modifier layered onto a primary that
+        # declares none). Two packs setting the SAME key to DIFFERENT
+        # values is a real authoring conflict, not something merge() can
+        # silently resolve: this field is what tells the LLM subagents
+        # doing the actual writing where the content boundaries are, and
+        # the merged value is all they ever see.
+        for key, value in (pack["meta"].get("content_register") or {}).items():
+            if key in content_register and content_register[key] != value:
+                fail(f"packs disagree on content_register {key!r}: "
+                     f"{content_register[key]!r} vs {value!r}; add a "
+                     "'conflicts_with' entry or drop one modifier")
+            content_register[key] = value
+        # A modifier's own 'artifacts' entries are excluded from the
+        # union: artifacts are per-book deliverables (a clue ledger, a
+        # heat-tracking sheet) that the primary/secondary genre owns:
+        # letting every modifier add its own would mean a heat-level or
+        # age-category modifier — an orthogonal axis, not a genre — could
+        # spawn project files the pipeline never asked for.
         for artifact in pack["meta"].get("artifacts") or []:
             if artifact not in artifacts and pack["used_as"] != "modifier":
                 artifacts.append(artifact)
 
+    label_parts = [p["meta"]["label"] for p in packs]
     return {
         "packs": [{"name": p["meta"]["name"], "role": p["used_as"],
                    "path": str(p["path"])} for p in packs],
-        "label": meta["label"],
-        "label_parts": [p["meta"]["label"] for p in packs],
-        "pillar_label": meta.get("pillar_label"),
-        "weights": meta.get("weights"),
+        "primary_label": meta["label"],
+        "display_label": " ".join(label_parts),
+        "label_parts": label_parts,
+        # pillar_label and weights use direct indexing, not .get(): both
+        # are guaranteed present here. packs[0] is always loaded with
+        # role="primary" (load_pack enforces it), and validate_pack
+        # requires pillar_label on every primary and valid weights on
+        # every scoring role (primary is always one, see SCORING_ROLES).
+        # A .get() here would tell downstream readers these could be
+        # null and leave them no way to handle a case that can't happen.
+        "pillar_label": meta["pillar_label"],
+        "weights": meta["weights"],
         "beat_system": meta.get("beat_system", "save-the-cat"),
         "shape": meta.get("shape", {}),
         "content_register": content_register,
@@ -1506,7 +1662,8 @@ def test_primary_owns_weights_and_shape(tmp_path):
 def test_label_parts_lists_every_pack_in_order(tmp_path):
     setup_stack(tmp_path)
     out = json.loads(run(tmp_path).stdout)
-    assert out["label"] == "Testprimary"
+    assert out["primary_label"] == "Testprimary"
+    assert out["display_label"] == "Testprimary Test Second Test Mod"
     assert out["label_parts"] == ["Testprimary", "Test Second", "Test Mod"]
 
 
@@ -1552,18 +1709,96 @@ def test_check_flag_prints_nothing_on_success(tmp_path):
     result = run(tmp_path, "--check")
     assert result.returncode == 0
     assert result.stdout.strip() == ""
+
+
+def test_check_flag_reports_failure_on_bad_stack(tmp_path):
+    # --check is currently only exercised on the success path; nothing
+    # pinned that it still exits 1 with a message (and no JSON) on a bad
+    # stack.
+    write_state(tmp_path, genre="nosuchgenre")
+    result = run(tmp_path, "--check")
+    assert result.returncode == 1
+    assert "nosuchgenre" in result.stderr
+    assert result.stdout.strip() == ""
+
+
+def test_same_pack_in_two_slots_is_rejected(tmp_path):
+    # A pack declaring role: ["primary", "secondary"] (as the real fantasy
+    # pack does) can legally fill either slot, so load_pack's per-slot
+    # role check alone can't catch state.json pointing genre and
+    # genre_secondary at the same pack — that's the same "silently
+    # doubled" failure the genre_modifiers duplicate guard prevents, one
+    # slot over, and it must be caught even though nothing here declares
+    # a conflicts_with.
+    write_state(tmp_path, genre="testsecond", genre_secondary="testsecond")
+    write_project_pack(tmp_path, "testsecond", SECONDARY_META, PRIMARY_BODY)
+    result = run(tmp_path)
+    assert result.returncode == 1
+    assert "fill more than one slot" in result.stderr
+    assert "testsecond" in result.stderr
+
+
+def test_content_register_collision_is_rejected(tmp_path):
+    # content_register is the only thing six LLM subagents see for where
+    # the content boundaries are — two modifiers disagreeing on the same
+    # key must not resolve silently to "whichever loaded last".
+    write_state(tmp_path, genre="testprimary",
+                genre_modifiers=["cozy", "steamy"])
+    write_project_pack(tmp_path, "testprimary", primary_meta("testprimary"),
+                       PRIMARY_BODY)
+    write_project_pack(
+        tmp_path, "cozy",
+        {"name": "cozy", "label": "Cozy", "role": ["modifier"],
+         "content_register": {"heat": "closed-door"}, "conflicts_with": []},
+        MODIFIER_BODY)
+    write_project_pack(
+        tmp_path, "steamy",
+        {"name": "steamy", "label": "Steamy", "role": ["modifier"],
+         "content_register": {"heat": "explicit"}, "conflicts_with": []},
+        MODIFIER_BODY)
+    result = run(tmp_path)
+    assert result.returncode == 1
+    assert "disagree on content_register 'heat'" in result.stderr
+
+
+def test_content_register_identical_values_do_not_conflict(tmp_path):
+    # Two modifiers agreeing on the same key is fine — only a genuine
+    # disagreement is an error.
+    write_state(tmp_path, genre="testprimary",
+                genre_modifiers=["cozy", "alsocozy"])
+    write_project_pack(tmp_path, "testprimary", primary_meta("testprimary"),
+                       PRIMARY_BODY)
+    write_project_pack(
+        tmp_path, "cozy",
+        {"name": "cozy", "label": "Cozy", "role": ["modifier"],
+         "content_register": {"heat": "closed-door"}, "conflicts_with": []},
+        MODIFIER_BODY)
+    write_project_pack(
+        tmp_path, "alsocozy",
+        {"name": "alsocozy", "label": "Also Cozy", "role": ["modifier"],
+         "content_register": {"heat": "closed-door"}, "conflicts_with": []},
+        MODIFIER_BODY)
+    result = run(tmp_path)
+    assert result.returncode == 0, result.stdout + result.stderr
+    out = json.loads(result.stdout)
+    assert out["content_register"] == {"heat": "closed-door"}
 ```
 
 - [ ] **Step 2: Run the tests**
 
 Run: `uv run pytest tests/test_resolve_genre.py -v`
-Expected: the seven new tests pass (16 total including Task 4's, once its five
-additional error-handling tests are in place); the two plugin-pack tests
-still fail pending Tasks 7–8.
+Expected: the eleven tests above pass (22 total including Task 4's eleven);
+the two plugin-pack tests still fail pending Tasks 7–8. Four of the eleven
+— `test_check_flag_reports_failure_on_bad_stack`,
+`test_same_pack_in_two_slots_is_rejected`,
+`test_content_register_collision_is_rejected`, and
+`test_content_register_identical_values_do_not_conflict` — were added by
+the `--check`/output-contract quality-review pass described in Task 4's
+Step 3, alongside the original seven.
 
 - [ ] **Step 3: Fix any merge bugs the tests expose**
 
-If `test_artifacts_union_excludes_modifier_contributions` fails, check the `pack["used_as"] != "modifier"` guard in `merge()`. If `test_conflicting_modifiers_are_rejected` fails, check that `check_conflicts` compares against every loaded name, not just the primary.
+If `test_artifacts_union_excludes_modifier_contributions` fails, check the `pack["used_as"] != "modifier"` guard in `merge()`. If `test_conflicting_modifiers_are_rejected` fails, check that `check_conflicts` compares against every loaded name, not just the primary. If `test_same_pack_in_two_slots_is_rejected` fails, check that `check_conflicts` computes its own-pack-repeated check from the full `packs` list, not just `conflicts_with` entries. If either `content_register` test fails, check `merge()`'s per-key comparison against the value already accumulated, not just key presence.
 
 Without the `testya.md` fixture added to `setup_stack` above, every test built on it fails validation instead — `MODIFIER_META`'s `conflicts_with: ["testya"]` needs a real, known pack to resolve against (Task 2's `validate_pack` rejects an unknown `conflicts_with` name), even though `testya` is never loaded via `genre_modifiers` in `setup_stack`'s scenario. Known-but-unloaded is the point: it lets `test_conflicting_modifiers_are_rejected` below be the one test that actually loads it and proves the rejection.
 
@@ -2837,9 +3072,9 @@ Replace the genre-sourcing clause at lines 37–39 (`genre from seed.txt or the
 
 ```markdown
    genre — run `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py"`
-   and offer the `label_parts` joined with spaces as the default
-   `NOVEL-GENRE` (e.g. "Fantasy Romance"); let the user edit it, since
-   hybrid genre names are not reliably composable from pack labels.
+   and offer `display_label` as the default `NOVEL-GENRE` (e.g. "Fantasy
+   Romance"); let the user edit it, since hybrid genre names are not
+   reliably composable from pack labels.
 ```
 
 - [ ] **Step 4: novel/SKILL.md — report genre and relabel the gate**
