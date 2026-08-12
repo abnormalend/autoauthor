@@ -665,3 +665,38 @@ def test_artifacts_null_is_reported(tmp_path):
     meta = {**VALID_PRIMARY_META, "artifacts": None}
     errors = validate(tmp_path, "testgenre", meta)
     assert errors == ["frontmatter 'artifacts' must be a list"]
+
+
+# --- validate_genre_pack.py CLI ----------------------------------------------
+
+import subprocess
+
+VALIDATE_CLI = SCRIPTS / "validate_genre_pack.py"
+
+
+def test_cli_accepts_valid_pack(tmp_path):
+    path = write_pack(tmp_path, "testgenre", VALID_PRIMARY_META,
+                      VALID_PRIMARY_BODY)
+    result = subprocess.run([sys.executable, str(VALIDATE_CLI), str(path)],
+                            capture_output=True, text=True)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "OK" in result.stdout
+
+
+def test_cli_rejects_invalid_pack_with_message(tmp_path):
+    meta = {**VALID_PRIMARY_META, "name": "mismatch"}
+    path = write_pack(tmp_path, "testgenre", meta, VALID_PRIMARY_BODY)
+    result = subprocess.run([sys.executable, str(VALIDATE_CLI), str(path)],
+                            capture_output=True, text=True)
+    assert result.returncode == 1
+    assert "filename stem" in result.stdout + result.stderr
+
+
+def test_cli_validates_all_shipped_packs():
+    genres = Path(__file__).parent.parent / "plugin/autonovel/shared/genres"
+    packs = sorted(p for p in genres.glob("*.md") if p.stem != "TEMPLATE")
+    assert packs, "no genre packs found to validate"
+    result = subprocess.run(
+        [sys.executable, str(VALIDATE_CLI), *[str(p) for p in packs]],
+        capture_output=True, text=True)
+    assert result.returncode == 0, result.stdout + result.stderr
