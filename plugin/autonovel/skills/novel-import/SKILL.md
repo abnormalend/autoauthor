@@ -53,7 +53,23 @@ throughout — extraction documents what is on the page.
    `import_source.md` at the project root (tracked) and leave
    `chapters/` empty — the prose is raw material, not canon.
 
-4. **Extract the layers** following
+4. **Infer the genre.** From the manuscript you have now read in full,
+   propose a primary pack, an optional secondary, and any modifiers, naming
+   the evidence for each (the speculative elements present, the shape of the
+   central conflict, the register, the content). Show the user the available
+   packs from `"${CLAUDE_PLUGIN_ROOT}/shared/genres/"` and your proposal,
+   and ask them to confirm or correct it — same shape as the MYSTERY.md
+   confirmation in the final steps. Write the choice into state.json and
+   verify it resolves:
+
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py" --check
+   ```
+
+   In a fully autonomous run, take your own inference and say so in the
+   handoff report.
+
+5. **Extract the layers** following
    `references/extraction-guide.md` (this skill's directory) in this
    order: chapters on disk first (step 3), then voice (Part 2 +
    voice_wells.json, including the fingerprint run when chapters
@@ -65,17 +81,17 @@ throughout — extraction documents what is on the page.
    chapters as `(ch_NN)` (salvage mode: cite `(source §N)` sections of
    import_source.md).
 
-5. **Write state.json** per the extraction guide's state rules, and
+6. **Write state.json** per the extraction guide's state rules, and
    append one results.tsv row:
    `<ISO timestamp>\tfoundation\t0\t<total manuscript words>\tkeep\timport: <mode>, <N> chapters`
 
-6. **Confirm the mystery.** Show the user the inferred MYSTERY.md and
+7. **Confirm the mystery.** Show the user the inferred MYSTERY.md and
    ask them to confirm or correct it. Apply corrections. (In a fully
    autonomous run, keep the IMPORTED banner and note that
    confirmation is pending — the foundation judge treats undefined
    mysteries as gaps, which is the correct pressure.)
 
-7. **Commit and hand off.** `git add -A && git commit -m "import:
+8. **Commit and hand off.** `git add -A && git commit -m "import:
    <mode>, <N> chapters, <words> words"`. Report: what was extracted
    (per-layer one-liners), unresolved foreshadowing plants found, the
    confirmed/pending mystery, and the next step —

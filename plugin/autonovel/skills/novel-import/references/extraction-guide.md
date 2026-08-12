@@ -28,20 +28,19 @@ is revision fuel, not your call to make.
 
 ## world.md
 
-Read for it: every scene touching the speculative/magic system, every
-named location, every faction or institution mentioned, every custom
-or cultural detail shown or referenced.
+Read for it: every scene touching the genre's central system, if the
+manuscript has one, every named location, every faction or institution
+mentioned, every custom or cultural detail shown or referenced.
 
-Output must contain the same sections as layer-guides.md's `world.md`
-section (Cosmology & History, Magic System — Hard Rules / Soft Rules —
-Protagonist's Exception, Societal Implications, Geography, Factions &
-Politics, Bestiary/Flora, Cultural Details, Internal Consistency
-Rules) — but every entry is reconstructed from what the prose actually
-shows, not proposed fresh.
+Output must contain the sections listed in the resolved genre pack's
+`## World Sections` — but every entry is reconstructed from what the prose
+actually shows, not proposed fresh. A section the manuscript gives no
+material for is recorded as `[not established in manuscript]` rather than
+invented.
 
 Extraction-specific rules:
-- Every rule, cost, and limitation of the magic/speculative system
-  gets a `(ch_NN)` citation to the chapter(s) that demonstrate it. A
+- Every rule, cost, and limitation of the genre's central system, if the
+  manuscript has one, gets a `(ch_NN)` citation to the chapter(s) that demonstrate it. A
   rule the text asserts but never shows in action is still citable to
   where it's asserted — note it as "(stated, not dramatized)".
 - Geography, factions, and culture are written up exactly as the prose
@@ -218,10 +217,8 @@ the fact index across all of them plus any facts scenes establish
 that don't rise to their own section elsewhere (an exact date, a
 character's age stated once, a travel time mentioned in passing).
 
-Output follows layer-guides.md's canon.md categories (Geography,
-Timeline, Magic System Rules, Character Facts, Political/Factional,
-Cultural, Established In-Story) with the same one-fact-per-bullet,
-short-and-checkable format.
+Output follows the resolved pack's `## Canon Categories`, with the same
+one-fact-per-bullet, short-and-checkable format.
 
 Extraction-specific rules:
 - Every entry gets a `(ch_NN)` citation — extraction has no
@@ -266,7 +263,11 @@ Write the state file with the same shape as
     foundation loop's outline pass builds the outline from scratch and
     sets the real `chapters_total` at its Exit. Note this explicitly
     in the handoff report so `0` isn't mistaken for a finished value.
-- Leave `iteration`, `foundation_score`, `lore_score`, `novel_score`,
+- `genre`, `genre_secondary`, `genre_modifiers`: the confirmed inference
+  from step 4. Never leave `genre` null on an import — an imported
+  manuscript always has an observable genre, even if the answer is
+  `general`.
+- Leave `iteration`, `foundation_score`, `pillar_score`, `novel_score`,
   `revision_cycle`, `review_round`, and `debts` at their template
   defaults (0 / 0.0 / `[]`) — the foundation loop sets these as it
   runs.
