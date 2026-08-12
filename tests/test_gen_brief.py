@@ -44,3 +44,51 @@ def test_eval_brief_written_to_cwd_project(tmp_path):
     assert brief.exists()
     content = brief.read_text()
     assert "prose_quality" in content or "prose quality" in content.lower()
+
+
+# --- genre-aware diction rule ---------------------------------------------
+
+def test_brief_names_the_project_genre_in_the_diction_rule(tmp_path):
+    setup_project(tmp_path)
+    (tmp_path / "state.json").write_text(json.dumps({"genre": "fantasy"}))
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "--eval", "5"],
+        capture_output=True, text=True, cwd=tmp_path,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "no generic fantasy diction" in (tmp_path / "briefs/ch05_eval.md").read_text()
+
+
+def test_brief_falls_back_to_neutral_diction_rule(tmp_path):
+    setup_project(tmp_path)
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "--eval", "5"],
+        capture_output=True, text=True, cwd=tmp_path,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "no generic genre diction" in (tmp_path / "briefs/ch05_eval.md").read_text()
+
+
+def test_unknown_genre_falls_back_rather_than_naming_it(tmp_path):
+    """A brief must never fail, or leak an unresolvable name, on bad state."""
+    setup_project(tmp_path)
+    (tmp_path / "state.json").write_text(json.dumps({"genre": "nosuchgenre"}))
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "--eval", "5"],
+        capture_output=True, text=True, cwd=tmp_path,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    brief = (tmp_path / "briefs/ch05_eval.md").read_text()
+    assert "no generic genre diction" in brief
+    assert "nosuchgenre" not in brief
+
+
+def test_malformed_state_json_does_not_break_the_brief(tmp_path):
+    setup_project(tmp_path)
+    (tmp_path / "state.json").write_text("{not json}")
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "--eval", "5"],
+        capture_output=True, text=True, cwd=tmp_path,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "no generic genre diction" in (tmp_path / "briefs/ch05_eval.md").read_text()

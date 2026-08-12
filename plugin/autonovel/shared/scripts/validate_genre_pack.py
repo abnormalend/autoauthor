@@ -2,7 +2,7 @@
 """Validate one or more genre pack files.
 
 Usage:
-  python3 validate_genre_pack.py path/to/fantasy.md [more...]
+  python3 validate_genre_pack.py path/to/<name>.md [more...]
   python3 validate_genre_pack.py "${CLAUDE_PLUGIN_ROOT}/shared/genres/"*.md
 
 That second form is the intended way to check a whole genres/ directory, so

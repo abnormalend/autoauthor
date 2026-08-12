@@ -21,6 +21,8 @@ EDIT_LOGS_DIR = BASE_DIR / "edit_logs"
 EVAL_LOGS_DIR = BASE_DIR / "eval_logs"
 BRIEFS_DIR = BASE_DIR / "briefs"
 VOICE_PATH = BASE_DIR / "voice.md"
+STATE_PATH = BASE_DIR / "state.json"
+PLUGIN_GENRES = Path(__file__).resolve().parent.parent / "genres"
 
 
 # ---------------------------------------------------------------------------
@@ -61,6 +63,34 @@ def word_count(text: str) -> int:
     return len(text.split())
 
 
+def genre_diction_rule() -> str:
+    """Voice rule naming the genre whose stock diction the prose must avoid.
+
+    Reads `genre` from the project's state.json and confirms a pack of that
+    name exists (project `genres/` first, then the plugin's, matching
+    resolve_genre.py's search order). Falls back to a neutral phrasing when
+    no genre is set or the pack is missing — a brief must never fail to
+    generate because of genre resolution.
+    """
+    genre = None
+    if STATE_PATH.exists():
+        try:
+            state = json.loads(STATE_PATH.read_text(encoding="utf-8"))
+            if isinstance(state, dict):
+                genre = state.get("genre")
+        except (json.JSONDecodeError, OSError):
+            genre = None
+
+    noun = "genre"
+    if isinstance(genre, str) and genre:
+        for base in (BASE_DIR / "genres", PLUGIN_GENRES):
+            if (base / f"{genre}.md").exists():
+                noun = genre
+                break
+
+    return f"Vocabulary from craft/trade/body wells — no generic {noun} diction"
+
+
 def extract_voice_rules() -> list[str]:
     """Pull the key guardrail / voice rules from voice.md Part 1 + Part 2."""
     if not VOICE_PATH.exists():
@@ -76,7 +106,7 @@ def extract_voice_rules() -> list[str]:
     rules.append("70%+ in-scene (dialogue and action, not summary)")
     rules.append("Dialogue: clipped, subtext-heavy, 'said' default, no adverb tags")
     rules.append("Sentence rhythm: mixed meter, fragments for pain, long for perception")
-    rules.append("Vocabulary from craft/trade/body wells — no generic fantasy diction")
+    rules.append(genre_diction_rule())
 
     # Part 1 structural slop
     rules.append("No paragraph-template-machine (vary structure)")
