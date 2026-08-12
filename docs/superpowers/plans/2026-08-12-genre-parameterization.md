@@ -779,6 +779,16 @@ def validate_pack(pack, known_names=None):
     if not isinstance(artifacts, list):
         errors.append("frontmatter 'artifacts' must be a list")
     else:
+        # Guard against non-string entries (e.g. an author passing a dict)
+        # the same way 'role' and 'conflicts_with' already do, rather than
+        # silently skipping them — Task 4's merge() puts 'artifacts'
+        # straight into its JSON output, and a dict there would become an
+        # attempt to create a file literally named "{'file': 'x.md'}".
+        non_string = [a for a in artifacts if not isinstance(a, str)]
+        if non_string:
+            errors.append(
+                f"frontmatter 'artifacts' must be a list of strings; "
+                f"non-string element(s): {_names(non_string)}")
         for artifact in artifacts:
             if isinstance(artifact, str) and artifact in CORE_PROJECT_FILES:
                 errors.append(
@@ -883,7 +893,7 @@ def _validate_shape(shape):
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `uv run pytest tests/test_genre_pack.py -v`
-Expected: 55 passed. The test file's validate_pack section was reorganized
+Expected: 56 passed. The test file's validate_pack section was reorganized
 by subject (name / label / role / weights / primary structure / modifier
 restrictions / pillar dimensions / conflicts_with / shape / artifacts)
 rather than by which task or plan revision introduced each test; packs
@@ -894,10 +904,15 @@ block above includes: malformed dimensions, duplicate dimension keys,
 weights missing/wrong-type/holding a non-integer or bool, a
 `## Pillar Dimensions` section missing for a secondary (not just primary)
 pack, shape as a non-object/holding a malformed or boolean range,
-conflicts_with and artifacts as non-lists, missing/non-string name and
-label, and four non-string-element cases (in `role`, `conflicts_with`,
-and `artifacts`) that previously raised `TypeError` instead of returning
-an error string.
+conflicts_with and artifacts as non-lists, an explicit `"artifacts": null`
+(guarding against a regression to `meta.get("artifacts") or []`),
+missing/non-string name and label, non-string elements in `role` and
+`conflicts_with` that previously raised `TypeError` instead of returning
+an error string, and a non-string element in `artifacts` that is now
+reported by name (mirroring `role`/`conflicts_with`) rather than silently
+skipped — closed by a later review because Task 4's `merge()` puts
+`artifacts` straight into its JSON output, where a dict entry would
+become an attempt to create a file literally named `"{'file': 'x.md'}"`.
 
 - [ ] **Step 5: Commit**
 

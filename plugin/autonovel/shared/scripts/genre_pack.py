@@ -277,6 +277,16 @@ def validate_pack(pack, known_names=None):
     if not isinstance(artifacts, list):
         errors.append("frontmatter 'artifacts' must be a list")
     else:
+        # Guard against non-string entries (e.g. an author passing a dict)
+        # the same way 'role' and 'conflicts_with' already do, rather than
+        # silently skipping them — Task 4's merge() puts 'artifacts'
+        # straight into its JSON output, and a dict there would become an
+        # attempt to create a file literally named "{'file': 'x.md'}".
+        non_string = [a for a in artifacts if not isinstance(a, str)]
+        if non_string:
+            errors.append(
+                f"frontmatter 'artifacts' must be a list of strings; "
+                f"non-string element(s): {_names(non_string)}")
         for artifact in artifacts:
             if isinstance(artifact, str) and artifact in CORE_PROJECT_FILES:
                 errors.append(

@@ -642,11 +642,26 @@ def test_artifact_may_not_collide_with_core_file(tmp_path):
     assert errors == ["artifact 'canon.md' collides with a core project file"]
 
 
-def test_artifacts_non_string_element_does_not_crash(tmp_path):
-    # A non-string artifact entry can't collide with a CORE_PROJECT_FILES
-    # string, so it's silently skipped rather than reported — but it must
-    # not crash the `artifact in CORE_PROJECT_FILES` membership test, and a
-    # real collision alongside it must still be caught.
+def test_artifacts_non_string_element_is_reported(tmp_path):
+    # A non-string artifact entry (e.g. an author guessing at a richer
+    # schema, {"file": "x"} instead of a bare filename string) must be
+    # reported rather than silently skipped — mirroring how 'role' and
+    # 'conflicts_with' already report non-string elements — and it must
+    # not crash the `artifact in CORE_PROJECT_FILES` membership test. A
+    # real collision alongside it must still be caught too.
     meta = {**VALID_PRIMARY_META, "artifacts": [{"file": "x"}, "canon.md"]}
     errors = validate(tmp_path, "testgenre", meta)
-    assert errors == ["artifact 'canon.md' collides with a core project file"]
+    assert errors == [
+        "frontmatter 'artifacts' must be a list of strings; non-string "
+        "element(s): {'file': 'x'}",
+        "artifact 'canon.md' collides with a core project file",
+    ]
+
+
+def test_artifacts_null_is_reported(tmp_path):
+    # Guards against a regression to `meta.get("artifacts") or []`, which
+    # would silently treat an explicit "artifacts": null as an empty list
+    # instead of failing loudly the way conflicts_with does.
+    meta = {**VALID_PRIMARY_META, "artifacts": None}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert errors == ["frontmatter 'artifacts' must be a list"]
