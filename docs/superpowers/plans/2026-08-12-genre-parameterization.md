@@ -2777,6 +2777,51 @@ secondary or modifier pack's weights; only the primary's apply.
 overall_score is the weighted mean of the four category means.
 ```
 
+- [ ] **Step 7b: Close the plumbing gaps a judge simulation found**
+
+Steps 1-7 neutralize the rubric correctly, but running it as a clean-room
+judge against both shipped packs surfaced six places where the surrounding
+machinery is under-specified. None is in the pillar criteria — those got
+sharper — but each makes two judges diverge on the same documents.
+
+Apply all six:
+
+1. **Numeric format.** Add next to the WEIGHTING block: dimension scores
+   are integers 0-10; `overall_score` and `pillar_score` are decimals to
+   two places, never rounded to integers. **This is the one that matters
+   most** — a judge who rounds cannot express any value between 7 and 8,
+   which silently turns the `> 7.5` gate into `>= 8`.
+2. **Cross-check 2's example was still magic-shaped.** "can the
+   protagonist's ability do what the climax requires? What established
+   rule resolves the climactic conflict?" reads as the wrong question for
+   a realist pack whose pillar is Setting & Thematic Architecture. Replace
+   with a pack-agnostic form: does the plan establish, before the climax,
+   whatever the climax relies on — a rule, a capability, an institution's
+   power, a relationship's ground?
+3. **Cross-check 4** has the same shape: "character capabilities match the
+   rules the pack's pillar dimensions govern" → "what characters can do
+   matches whatever constrains them in the pack's pillar dimensions — a
+   magic system's rules, an institution's reach, a period's technology, a
+   household's money."
+4. **`weakest_dimension` tie-break.** A plausible mediocre plan produced a
+   genuine five-way tie at score 3. Specify: on a tie, the tied dimension
+   in the most heavily weighted category; if still tied, first-listed.
+   This field drives which layer the foundation loop revises next.
+5. **Operationalize the genre-contract cap.** State that it applies to the
+   final weighted mean after computation, that `pillar_score` is never
+   capped, and that `genre_contract.note` must say whether the cap bound
+   or was inert. Without the `pillar_score` clause, a breaching plan can
+   satisfy the pillar gate while `overall_score` is pinned at 6 — the loop
+   then spins to its iteration cap with no field explaining why.
+6. **Schema placeholders.** `"<each dimension key the pack declares>"` is a
+   literal string a judge may emit verbatim. Make it a parenthetical
+   instruction, and say the object key is always the literal `pillar` —
+   `pillar_label` is for prose only.
+
+Also fix the FINAL CHECK, which is now self-contradictory: it says "revise
+down" a score that Step 7 made a computed mean. It must say to revise the
+dimension scores and recompute.
+
 - [ ] **Step 8: Verify no fantasy terms remain**
 
 Run:

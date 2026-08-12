@@ -74,9 +74,11 @@ CROSS-CHECKS (perform these before scoring):
      share the same sentence structures
 2. Check for missing NEGATIVE SPACE -- what's absent?
    - Are there gaps in the pillar system (as the pack defines it) that
-     would block a specific plot scene? (e.g., can the protagonist's
-     ability do what the climax requires? What established rule resolves
-     the climactic conflict?)
+     would block a specific plot scene? Does the plan establish, BEFORE
+     the climax, whatever the climax relies on — a rule, a capability, an
+     institution's power, a relationship's ground, a fact the reader must
+     already hold? Ask this in whatever terms the pack's pillar is built
+     from; a genre with no system still has something the ending stands on.
    - Are there characters needed for the plot who don't exist?
    - Are there scenes the outline demands that the world can't support?
 3. Check for CONVENIENT GAPS vs DELIBERATE MYSTERY:
@@ -87,8 +89,9 @@ CROSS-CHECKS (perform these before scoring):
      not an iceberg.
 4. Check the canon for INTERNAL CONTRADICTIONS:
    - Cross-reference dates, ages, and timelines
-   - Check that character capabilities match the rules the pack's pillar
-     dimensions govern
+   - Check that what characters can do matches whatever constrains them in
+     the pack's pillar dimensions — a magic system's rules, an
+     institution's reach, a period's technology, a household's money
    - Look for factual conflicts between documents
 
 Score these dimensions (gap + improvement required for each):
@@ -152,12 +155,22 @@ GENRE CONTRACT:
 Read every loaded pack's `## Genre Contract` section. These are binary
 promises, not scored dimensions. Check each one against the OUTLINE — does
 the planned ending satisfy it, does the planned structure make it reachable?
-List every promise the plan would breach. A breach caps overall_score at 6.
+List every promise the plan would breach.
+
+A breach caps `overall_score` at 6. The cap applies to the final weighted
+mean, after it is computed — it does not change any dimension score, and
+`pillar_score` is never capped. State in `genre_contract.note` whether the
+cap actually bound (the mean was above 6 and was pulled down to it) or was
+inert (the mean was already at or below 6).
 
 Respond with JSON:
 {
   "pillar": {
-    "<each dimension key the pack declares>": {"score": N, "gap": "biggest weakness", "fix": "specific improvement", "note": "..."}
+    (one entry per dimension key the primary pack declares — use the key
+     exactly as written in the pack, e.g. "magic_system". The object key
+     here is always the literal `pillar`; `pillar_label` names this
+     category in your prose, never in the JSON.)
+    "<dimension_key>": {"score": N, "gap": "biggest weakness", "fix": "specific improvement", "note": "..."}
   },
   "character": {
     "character_depth": {"score": N, "gap": "...", "fix": "...", "note": "..."},
@@ -183,13 +196,28 @@ Respond with JSON:
 }
 
 `pillar_score` is the mean of the pillar category's dimension scores.
-`weakest_dimension` is a bare dimension key from any category.
+
+`weakest_dimension` is a bare dimension key from any category — the
+lowest-scoring one. On a tie, choose the tied dimension in the most
+heavily weighted category; if still tied, the one listed first in this
+rubric (or, within the pillar, first in the pack). Ties are common and the
+invoking skill revises whichever dimension you name, so do not leave the
+choice to chance.
 
 WEIGHTING: use the `weights` object in the primary pack's frontmatter —
 pillar, character, structure, and craft, summing to 100. Ignore any
 secondary or modifier pack's weights; only the primary's apply.
 overall_score is the weighted mean of the four category means.
 
+NUMERIC FORMAT: individual dimension scores are integers 0-10.
+`overall_score` and `pillar_score` are the computed means — report them as
+DECIMALS to two places (e.g. 4.06, 7.25). Do not round them to integers.
+The invoking skill compares them against fractional thresholds, so an
+integer-only score cannot express any value between 7 and 8 — exactly the
+band the gate sits in.
+
 FINAL CHECK: If your overall_score is above 7, re-read your gap lists.
 If any gap describes a problem that would force a writer to stop and
-invent something during drafting, your score is too high. Revise down.
+invent something during drafting, your score is too high — revise the
+DIMENSION scores down and recompute the means. Do not adjust the computed
+totals directly; they must stay consistent with the dimensions above them.
