@@ -10,11 +10,19 @@ Last updated 2026-08-13. Shipped history is in [CHANGELOG.md](CHANGELOG.md).
 
 ## In flight
 
-Nothing. Phases 0 and 1 landed; next is phase 2, base dimension
-parameterization — the largest single piece and the most
-silent-wrong-prone.
+Nothing. Phases 0, 1 and 2 landed; next is phase 3, which ships
+`short-story` and `novella` and is the first phase that changes what the
+pipeline produces.
 
 ## Recently landed
+
+- **Base dimension parameterization**, 0.7.0, 2026-08-13. Phase 2, and the
+  largest of them. The eight base dimensions moved out of `foundation.md`
+  into `shared/rubrics/base-dimensions.md`, in the same bullet form the
+  pillar dimensions use, and a form now selects which apply. No scoring
+  change for a novel. It also fixed `outline_completeness`, which demanded
+  act structure that five of the fifteen packs do not use — a defect that
+  capped a correctly built romance outline at 4 on a base dimension.
 
 - **Form pack type**, 0.6.0, 2026-08-13. Phase 1. `shared/forms/`, the
   form schema and its validator, and a resolver that returns a `form`
@@ -67,10 +75,6 @@ All from [the form spec](docs/superpowers/specs/2026-08-13-form-parameterization
 in its phase order. Phases 0–2 are behaviour-preserving and A/B-verifiable
 the way the fantasy port was.
 
-- **2. Base dimension parameterization.** Lift `character_depth`,
-  `outline_completeness`, `foreshadowing_balance`, `canon_coverage` and the
-  rest out of `foundation.md`, the way the pillar dimensions were lifted.
-  Largest single piece and the most silent-wrong-prone.
 - **3. `short-story` and `novella` forms**, plus compressed-band sections on
   the genre packs. Also lands what phase 1 deferred: migrating
   `shape.words` off the genre packs into band-scoped overrides, and
@@ -210,14 +214,6 @@ the way the fantasy port was.
   invent criteria. Fix by inlining the axes into the packs, adding CRAFT.md
   to the dispatch, or dropping the requirement. Surfaced by a shakedown
   author who hit it while writing against the pack.
-- **`outline_completeness` assumes act structure that five packs do not
-  use.** `rubrics/foundation.md:146` scores "5+ only if act structure
-  exists" and `templates/outline.md` scaffolds `## Act 1`. But `romance`,
-  `paranormal-romance`, `dark-romance`, `romantasy`, and
-  `romantic-suspense` run on Romancing the Beat's four Parts or a braided
-  threat/relationship ladder. A literal judge caps a correctly structured
-  romance outline at 4 on a base dimension. A third of the pack set is
-  exposed.
 - **Interaction dimensions and their Genre Contract promises are the same
   test at two severities, with no stated boundary.** Two shakedown authors
   reported this independently about different packs —

@@ -86,6 +86,7 @@ from pathlib import Path
 # in, and turns a state.json typo into a clear message instead of a
 # baffling "unknown genre pack" for a name that was never a real attempt at
 # one.
+import base_dimensions
 import form_pack
 import gate_solver
 from genre_pack import (CONTENT_AXES, NAME_RE, PackError, format_names,
@@ -234,7 +235,52 @@ def resolve(project):
 
     form = load_form(project, state.get("form") or DEFAULT_FORM)
     check_form_against_primary(form, packs[0])
-    return packs, form
+    return packs, form, load_base_dimensions(form, packs[0])
+
+
+def load_base_dimensions(form, primary):
+    """The base dimensions this form applies, by category.
+
+    Three checks the packs cannot make on their own, in the order they
+    would bite: the file itself has to be well formed, the form's drops
+    must not empty a category the primary still weights, and a form's
+    added dimension must not collide with a name the genre already uses
+    for a pillar dimension — which no single-pack validator can see,
+    because one is in the form and the other is in the genre.
+    """
+    try:
+        parsed = base_dimensions.parse_base_dimensions()
+    except PackError as e:
+        fail(str(e))
+    errors = base_dimensions.validate_base_dimensions(parsed)
+    if errors:
+        fail(f"{base_dimensions.BASE_DIMENSIONS_PATH} is invalid:\n  "
+             + "\n  ".join(errors))
+
+    scored, dropped = base_dimensions.resolve_for_form(parsed,
+                                                       form["meta"])
+
+    empty = base_dimensions.empty_categories(scored)
+    if empty:
+        fail(f"form {form['meta']['name']!r} drops every dimension in "
+             f"{format_names(empty)}, but the primary pack's weights still "
+             f"give that category {format_names(str(primary['meta']['weights'][c]) for c in empty)} "
+             "percent of overall_score, and the mean of no dimensions is "
+             "undefined. Drop fewer, or add a replacement.")
+
+    clash = sorted(set(base_dimensions.added_keys(form["meta"]))
+                   & set(primary["dimensions"]))
+    if clash:
+        fail(f"form {form['meta']['name']!r} adds base dimension(s) "
+             f"{format_names(clash)}, which genre {primary['meta']['name']!r} "
+             "already declares as pillar dimensions; the same key cannot be "
+             "scored in two categories")
+
+    return {
+        "path": str(base_dimensions.BASE_DIMENSIONS_PATH),
+        "scored": scored,
+        "dropped": dropped,
+    }
 
 
 def check_conflicts(packs):
@@ -281,7 +327,7 @@ def _label_parts(packs):
     return parts
 
 
-def merge(packs, form):
+def merge(packs, form, base_dims):
     # The primary owns every scalar structural field (pillar_label,
     # weights, beat_system, shape) — it's the pack that owns pillar
     # dimensions and book shape by definition (see genre_pack.py's
@@ -339,6 +385,11 @@ def merge(packs, form):
             "layers": form["meta"]["layers"],
             "path": str(form["path"]),
         },
+        # Which base dimensions this form applies, by category, and which
+        # it dropped. `dropped` is reported for the same reason
+        # content_register_sources is: a dimension missing from a verdict
+        # should be explicable, not look like a judge that forgot one.
+        "base_dimensions": base_dims,
     }
 
 
@@ -377,10 +428,10 @@ def main(argv):
                         help="validate only; print nothing on success")
     args = parser.parse_args(argv)
 
-    packs, form = resolve(Path.cwd())
+    packs, form, base_dims = resolve(Path.cwd())
     if args.check:
         return 0
-    print(json.dumps(merge(packs, form), indent=2))
+    print(json.dumps(merge(packs, form, base_dims), indent=2))
     return 0
 
 

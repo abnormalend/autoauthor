@@ -1,7 +1,15 @@
 # Outline
 
 ## Structure
-<!-- Total chapters, act breakdown, target word count -->
+<!-- Total chapters, target word count, and the architecture this book
+     uses. Name it in the vocabulary of the genre pack's `beat_system`,
+     not in acts by default: acts under Save the Cat, the four Parts
+     under Romancing the Beat, a threat-and-relationship ladder under a
+     braided system. The headings below are the Save the Cat case —
+     replace them with your pack's own divisions. `outline_completeness`
+     is scored against the system the pack names, and an outline that
+     invents act headings a romance pack never asked for is not thereby
+     better structured. -->
 
 ## Themes
 <!-- Core themes the story explores -->

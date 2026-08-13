@@ -22,7 +22,15 @@ SCORING_ROLES = {"primary", "secondary"}
 # Dimensions the base rubric already scores. A pack's pillar dimensions may
 # not collide with these — that is what stops a literary pack from
 # double-counting prose against the base craft category.
-# Source of truth: plugin/autoauthor/shared/rubrics/foundation.md
+#
+# Source of truth: plugin/autoauthor/shared/rubrics/base-dimensions.md.
+# Mirrored here rather than read from it, because this is a module constant
+# used during validation and a validator that does file I/O to answer a
+# name-collision question fails in a way nobody expects. The mirror is
+# pinned by test_base_dimensions.py, which fails if the two ever disagree.
+# A form pack may DROP any of these for its length; they stay reserved
+# either way, since a genre reusing a dropped key would still collide the
+# moment a longer form loaded.
 RESERVED_DIMENSIONS = {
     "character_depth", "character_distinctiveness", "character_secrets",
     "outline_completeness", "foreshadowing_balance",
@@ -260,6 +268,18 @@ def _pillar_dimensions(body):
     section = section_body(body, "Pillar Dimensions")
     if section is None:
         return [], [], {}, {}
+    return dimension_bullets(section)
+
+
+def dimension_bullets(section):
+    """Parse a block of dimension bullets into
+    (dimensions, malformed, caps, prose_caps).
+
+    Three places use this shape and must agree on what it means: a genre
+    pack's '## Pillar Dimensions', the base rubric's per-category sections,
+    and a form pack's '## Base Dimensions'. They agree because they call
+    this.
+    """
     masked = _mask_fences(section)
     dimensions, caps, prose_caps = [], {}, {}
     matches = list(DIMENSION_RE.finditer(masked))

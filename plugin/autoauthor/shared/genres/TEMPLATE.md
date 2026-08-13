@@ -226,10 +226,10 @@ pointing at nothing. A modifier needs no `shape` at all.
 divides are:
 
 - **pillar** — your own `## Pillar Dimensions`.
-- **character** — `character_depth`, `character_distinctiveness`,
-  `character_secrets`.
-- **structure** — `outline_completeness`, `foreshadowing_balance`.
-- **craft** — `internal_consistency`, `voice_clarity`, `canon_coverage`.
+- **character**, **structure**, **craft** — the base dimensions, defined
+  in `shared/rubrics/base-dimensions.md`. Which of them apply is the
+  FORM's decision, not yours: a shorter form drops the ones its length
+  cannot earn. Weight the categories, never the individual dimensions.
 
 Weights set each category's share of `overall_score` and nothing else —
 the pillar bar is a separate, independent gate, so lowering `pillar`
@@ -315,10 +315,10 @@ magic system".
 Three to six scored dimensions. Each bullet MUST read `- key — criteria`
 or `- key [cap N] — criteria` with an em dash; the validator extracts keys
 and caps from that shape — see Calibration. Keys must not
-collide with the base dimensions (`character_depth`,
-`character_distinctiveness`, `character_secrets`, `outline_completeness`,
-`foreshadowing_balance`, `internal_consistency`, `voice_clarity`,
-`canon_coverage`).
+collide with the base dimensions, which are listed in
+`shared/rubrics/base-dimensions.md` and reserved — the validator will name
+the collision if you hit one. That reservation is what stops a literary
+pack from scoring prose twice, once as its pillar and once as base craft.
 
 Mind the bullet shape here. The parser reads every **unindented** bullet
 in this section whose first word is a bare lowercase identifier —

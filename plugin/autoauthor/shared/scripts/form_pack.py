@@ -19,6 +19,7 @@ lengths that actually change behaviour arrive after.
 """
 import re
 
+import base_dimensions
 from genre_pack import (NAME_RE, RESERVED_DIMENSIONS, format_names,
                         parse_pack)
 
@@ -95,7 +96,7 @@ def validate_form(form):
     errors.extend(_validate_words(meta.get("words"), meta.get("target_words")))
     errors.extend(_validate_gate(meta.get("gate")))
     errors.extend(_validate_layers(meta.get("layers")))
-    errors.extend(_validate_base_dimensions(meta.get("base_dimensions")))
+    errors.extend(_validate_base_dimensions(meta.get("base_dimensions"), form))
 
     if "role" in meta:
         errors.append(
@@ -178,50 +179,91 @@ def _validate_layers(layers):
     return errors
 
 
-def _validate_base_dimensions(base):
+def _validate_base_dimensions(base, form=None):
     """Which base dimensions this length applies.
 
     `drop` is the point of the field: `foreshadowing_balance` scores a
     ledger a short story has no room to keep, and scoring it anyway
     penalizes the story for being correctly what it is.
+
+    `add` is keyed by CATEGORY rather than being a flat list, because a
+    dimension that belongs to no category has no weight and cannot reach
+    `overall_score`. The criteria for an added dimension live in this
+    form's own '## Base Dimensions' section — frontmatter says which
+    category, prose says what it means, exactly as a genre pack works.
     """
     if base is None:
         return []
     if not isinstance(base, dict):
-        return ["'base_dimensions' must be a JSON object with 'drop' and "
-                "'add' lists"]
+        return ["'base_dimensions' must be a JSON object with a 'drop' list "
+                "and an 'add' object keyed by category"]
     errors = []
     unknown_keys = sorted(set(base) - {"drop", "add"})
     if unknown_keys:
         errors.append(
             f"'base_dimensions' has unknown key(s) {format_names(unknown_keys)}; "
             "only 'drop' and 'add' are read")
-    for key in ("drop", "add"):
-        value = base.get(key, [])
-        if not isinstance(value, list) or not all(
-                isinstance(v, str) for v in value):
-            errors.append(f"'base_dimensions.{key}' must be a list of strings")
+
+    drop = base.get("drop", [])
+    if not isinstance(drop, list) or not all(isinstance(d, str) for d in drop):
+        errors.append("'base_dimensions.drop' must be a list of strings")
+    else:
+        unknown = [d for d in drop if d not in RESERVED_DIMENSIONS]
+        if unknown:
+            errors.append(
+                f"'base_dimensions.drop' names {format_names(unknown)}, "
+                "which are not base dimensions; droppable: "
+                f"{format_names(sorted(RESERVED_DIMENSIONS))}")
+
+    add = base.get("add", {})
+    if not isinstance(add, dict):
+        return errors + [
+            "'base_dimensions.add' must be a JSON object keyed by category "
+            f"({format_names(base_dimensions.CATEGORIES)}), e.g. "
+            '{"structure": ["compression"]} — a dimension in no category '
+            "carries no weight"]
+
+    unknown_categories = sorted(set(add) - set(base_dimensions.CATEGORIES))
+    if unknown_categories:
+        errors.append(
+            f"'base_dimensions.add' has unknown categor(ies) "
+            f"{format_names(unknown_categories)}; valid: "
+            f"{format_names(base_dimensions.CATEGORIES)}")
+
+    added = []
+    for category, keys in add.items():
+        if not isinstance(keys, list) or not all(
+                isinstance(k, str) for k in keys):
+            errors.append(
+                f"'base_dimensions.add.{category}' must be a list of strings")
             continue
-        if key == "drop":
-            unknown = [d for d in value if d not in RESERVED_DIMENSIONS]
-            if unknown:
-                errors.append(
-                    f"'base_dimensions.drop' names {format_names(unknown)}, "
-                    "which are not base dimensions; droppable: "
-                    f"{format_names(sorted(RESERVED_DIMENSIONS))}")
-        else:
-            clash = sorted(set(value) & RESERVED_DIMENSIONS)
-            if clash:
-                errors.append(
-                    f"'base_dimensions.add' names {format_names(clash)}, "
-                    "which already exist as base dimensions")
-            malformed = [d for d in value
-                         if not re.fullmatch(r"[a-z][a-z0-9_]*", d)]
-            if malformed:
-                errors.append(
-                    f"'base_dimensions.add' key(s) {format_names(malformed)} "
-                    "must be lowercase identifiers, like the dimensions they "
-                    "sit beside")
+        added.extend(keys)
+
+    clash = sorted(set(added) & RESERVED_DIMENSIONS)
+    if clash:
+        errors.append(
+            f"'base_dimensions.add' names {format_names(clash)}, which "
+            "already exist as base dimensions")
+    malformed = [k for k in added if not re.fullmatch(r"[a-z][a-z0-9_]*", k)]
+    if malformed:
+        errors.append(
+            f"'base_dimensions.add' key(s) {format_names(malformed)} must be "
+            "lowercase identifiers, like the dimensions they sit beside")
+    dupes = sorted({k for k in added if added.count(k) > 1})
+    if dupes:
+        errors.append(
+            f"'base_dimensions.add' declares {format_names(dupes)} in more "
+            "than one category")
+
+    if form is not None and added:
+        defined = set(base_dimensions.form_added_criteria(form))
+        undefined = [k for k in added if k not in defined]
+        if undefined:
+            errors.append(
+                f"'base_dimensions.add' names {format_names(undefined)} with "
+                "no criteria; add a '- <key> — ...' bullet under a "
+                "'## Base Dimensions' section in this form — a judge scores "
+                "from prose, and a dimension with none cannot be scored")
     return errors
 
 

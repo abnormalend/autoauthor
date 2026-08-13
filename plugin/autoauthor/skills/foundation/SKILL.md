@@ -73,10 +73,18 @@ chapters untouched).
    no drafting context) with exactly this prompt shape:
    "Read the rubric at `<absolute plugin path>/shared/rubrics/foundation.md`
    and the genre pack(s) at `<resolved pack paths, primary first, each
-   labeled with its role>`, and follow the rubric exactly. The project
-   directory is `<absolute project path>`. The input files are: voice.md,
-   world.md, characters.md, outline.md, canon.md (all in the project
-   directory). Return ONLY the JSON object the rubric specifies."
+   labeled with its role>`, and follow the rubric exactly. The form is
+   `<form.name>` at `<form.path>` and its band is `<form.band>`. The base
+   dimensions file is `<base_dimensions.path>`; score exactly these keys,
+   by category: `<base_dimensions.scored as reported, verbatim>`. The
+   project directory is `<absolute project path>`. The input files are:
+   `<the documents form.layers calls for, named>`. Return ONLY the JSON
+   object the rubric specifies."
+
+   Every angle-bracketed value comes from the resolver output kept in
+   Setup step 2. Pass `base_dimensions.scored` through verbatim — do not
+   summarize it, and do not substitute the eight you remember, which is
+   the whole failure this parameterization exists to prevent.
    Save the returned JSON verbatim to
    `eval_logs/<UTC yyyymmdd_hhmmss>_foundation.json`.
    Fence-wrapped but otherwise valid JSON is VALID — strip the fences,

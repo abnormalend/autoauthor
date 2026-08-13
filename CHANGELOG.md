@@ -6,6 +6,59 @@ is not the same as updating the plugin — see [README](README.md#install).
 
 ---
 
+## 0.7.0 — 2026-08-13
+
+Phase 2 of the form work, and the largest of them: the base dimensions
+stop being a fixed list written into the foundation rubric. No scoring
+changes for a novel — the `novel` form drops nothing — but one long-standing
+defect is fixed on the way out, and it affected a third of the pack set.
+
+**Added**
+
+- `shared/rubrics/base-dimensions.md`. The eight dimensions every work is
+  scored on outside its genre, lifted out of `foundation.md` exactly as the
+  pillar dimensions were lifted out before them, in the same
+  `- key [cap N] — criteria` bullet form. Two caps that were already caps
+  in prose are now declared: `internal_consistency` at 4, and
+  `outline_completeness` at 4, which had been phrased inversely as
+  "score 5+ only if".
+- `base_dimensions.py`, which turns a form's `drop`/`add` into the list the
+  judge is handed, and `foundation.md` now scores exactly that list. A
+  short form drops what its length cannot earn — `foreshadowing_balance`
+  scores a tracked ledger, `canon_coverage` assumes a canon file — and
+  scoring those anyway penalizes a work for being correctly what it is.
+- The resolver reports `base_dimensions.scored` by category and
+  `base_dimensions.dropped`, so a dimension missing from a verdict is
+  explicable rather than looking like a judge that forgot one.
+
+**Fixed**
+
+- **`outline_completeness` demanded act structure five packs do not use.**
+  It scored "5+ only if act structure exists" while the sentence above it
+  said to score against the beat system the pack actually names. `romance`,
+  `paranormal-romance`, `dark-romance`, `romantasy` and `romantic-suspense`
+  run on Romancing the Beat's four Parts or a braided threat/relationship
+  ladder, so a literal judge capped a correctly built romance outline at 4
+  for using the structure its own pack prescribes. The criteria now name
+  the alternatives, and `templates/outline.md` no longer presents acts as
+  the only architecture.
+
+**Changed**
+
+- `base_dimensions.add` on a form pack is keyed by category rather than
+  being a flat list. A dimension in no category carries no weight and
+  cannot reach `overall_score`. Criteria for an added dimension live in
+  that form's own `## Base Dimensions` section — frontmatter says which
+  category, prose says what it means, exactly as a genre pack works.
+- Two more cross-pack checks in the resolver, both invisible to either
+  validator alone: a form that empties a category the primary still
+  weights, and a form whose added dimension collides with a name the genre
+  already uses as a pillar dimension.
+- `genre_pack.RESERVED_DIMENSIONS` is now a mirror of the new file rather
+  than of the rubric, pinned by a test that fails if the two disagree.
+
+---
+
 ## 0.6.0 — 2026-08-13
 
 Phase 1 of the form work: the form pack type exists. Only `novel` ships,

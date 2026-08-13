@@ -8,7 +8,7 @@
   "gate": {"overall": 7.5, "pillar": 7.0},
   "layers": ["voice", "world", "characters", "mystery", "outline",
              "foreshadowing", "canon"],
-  "base_dimensions": {"drop": [], "add": []}
+  "base_dimensions": {"drop": [], "add": {}}
 }
 ---
 
@@ -46,6 +46,13 @@ is. A breach caps `overall_score` at 6 and never touches `pillar_score`.
     target length. A genre's chapter granularity is a genre fact — a
     thriller's 1,900-word chapters against a fantasy's 3,200 — and the
     total is a form fact.
+
+## Base Dimensions
+
+All eight apply unchanged; a novel is the length every one of them was
+written for. `base_dimensions.drop` stays empty here and earns its keep in
+the shorter forms, where `foreshadowing_balance` scores a ledger the story
+has no room to keep.
 
 ## Foundation Guidance
 

@@ -5,12 +5,13 @@ precision. You were given ONLY this rubric and the files listed below —
 you have no other context, no stake in the scores, and no memory of how
 the text was produced. Judge what is on the page.
 
-INPUT FILES (read all of them from the project directory you were given):
-- voice.md
-- world.md
-- characters.md
-- outline.md
-- canon.md
+INPUT FILES: the dispatching prompt names them, and they are the planning
+documents the work's FORM calls for. At novel length that is all five —
+voice.md, world.md, characters.md, outline.md, canon.md — and a shorter
+form builds fewer. Read every file you were named, from the project
+directory you were given, and do not go looking for one you were not:
+a document the form does not call for is absent by design, and scoring
+its absence penalizes the work for being correctly what it is.
 
 GENRE PACKS: the dispatching prompt gives you the absolute path of one
 primary genre pack and, optionally, a secondary pack and any number of
@@ -18,6 +19,15 @@ modifier packs. Read them all. They define the pillar dimensions you score,
 the category weights you apply, and the genre contract you check. If no pack
 path was given, return exactly
 {"error": "no genre pack supplied — the invoking skill must resolve one"}
+and nothing else.
+
+FORM AND BASE DIMENSIONS: the same prompt gives you the absolute path of a
+form pack and of the base dimensions file, plus the list of base dimension
+keys to score, by category. Read both files. The form sets the scale of the
+work — how long it is, which planning layers it earns, which base
+dimensions apply — and a genre criterion is read at that scale, never at
+novel scale by default. If no base dimension list was given, return exactly
+{"error": "no base dimensions supplied — the invoking skill must resolve a form"}
 and nothing else.
 
 OUTPUT: Return ONLY a single JSON object matching the schema at the end
@@ -50,28 +60,21 @@ MANDATORY: For EVERY dimension, before scoring, you must identify:
   (b) A specific, actionable improvement that would raise the score
   If you cannot find a gap, explain why you believe one doesn't exist.
 
-VOICE DEFINITION:
-Read voice.md from the project directory.
-
-WORLD BIBLE:
-Read world.md from the project directory.
-
-CHARACTER REGISTRY:
-Read characters.md from the project directory.
-
-OUTLINE:
-Read outline.md from the project directory.
-
-CANON (established facts):
-Read canon.md from the project directory.
+Read each named input file from the project directory before scoring
+anything. At novel length they are the voice definition (voice.md), the
+world bible (world.md), the character registry (characters.md), the
+outline (outline.md), and the established facts (canon.md). A shorter form
+names fewer, and the ones it names carry the same weight.
 
 CROSS-CHECKS (perform these before scoring):
 1. Check all example dialogue lines against ANTI-SLOP patterns:
    - Look for structural formulas repeated across characters
      ("not X, but Y" / "either X, or Y" / "there's a difference")
    - Check for AI rhetorical tics disguised as character voice
-   - Deduct from character_distinctiveness if multiple characters
-     share the same sentence structures
+   - Deduct from whichever base dimension you were given for character
+     voice distinctiveness, if multiple characters share the same
+     sentence structures. If the form dropped it, note the finding under
+     the nearest craft dimension instead of restoring one.
 2. Check for missing NEGATIVE SPACE -- what's absent?
    - Are there gaps in the pillar system (as the pack defines it) that
      would block a specific plot scene? Does the plan establish, BEFORE
@@ -130,51 +133,28 @@ them — with ten dimensions instead of five, a capped score moves the mean
 half as far and the caps stop biting. A secondary still influences the
 book's overall score; it just cannot loosen the primary's gate.
 
-CHARACTER:
-- character_depth: Wound/want/need/lie chains that are CAUSALLY LINKED
-  (not just thematically associated). The lie must logically follow
-  from the wound. The want must be the wrong solution to the lie.
-  The need must directly oppose the want. Check each chain for
-  logical gaps. Also check: are ANY characters missing wound/want/need
-  chains who probably need them?
-- character_distinctiveness: Remove all dialogue tags from the example
-  lines. Can you identify the speaker from sentence structure alone?
-  Check for REPEATED STRUCTURAL FORMULAS across characters (e.g.,
-  multiple characters using "X. Not Y." or balanced antithesis).
-  Check that metaphor domains don't overlap. Check that speech
-  patterns reflect character background (a 14-year-old should not
-  sound like a 60-year-old merchant).
-- character_secrets: Each major character's secret should be something
-  that, if revealed, changes the plot's trajectory. Vague secrets
-  ("he knows more than he says") score lower than specific ones
-  ("he knows the harmonic means X, which would invalidate Y").
+CHARACTER, STRUCTURE, CRAFT (the base dimensions):
 
-STRUCTURE:
-- outline_completeness: Chapters with beats, POV, emotional arc,
-  try-fail cycle type. Beats present at the correct % marks in the
-  vocabulary of the primary pack's `beat_system` — Save the Cat when the
-  pack declares none. Score the outline against the beat system the pack
-  actually names, never against a system it did not choose.
-  Score 0 if empty. Score 5+ only if act structure exists.
-- foreshadowing_balance: Every planted thread has a planned payoff.
-  Score 0 if ledger is empty regardless of implicit threads in
-  other documents -- foreshadowing must be TRACKED to count.
+Score exactly the keys the dispatching prompt reports under
+`base_dimensions.scored`, in the categories it reports them under. Their
+criteria are in the base dimensions file whose path that prompt gives you
+— read it in full before scoring any of them, and score each against what
+it says there, not against what a dimension's name suggests.
 
-CRAFT:
-- internal_consistency: Actively hunt for contradictions. Cross-ref
-  dates, ages, character counts, named locations. Flag any case
-  where documents disagree. A single major contradiction caps this
-  at 6. Three or more caps at 4.
-- voice_clarity: Voice definition must be specific and ACTIONABLE.
-  Exemplar passages must demonstrate the voice. Anti-exemplars must
-  define boundaries. Check exemplar dialogue for AI slop patterns.
-  A voice doc that is beautiful but contains slop in its own examples
-  is undermined -- deduct.
-- canon_coverage: Facts logged, sourced, and sufficient to catch
-  contradictions. Check: if a writer introduced a NEW fact in
-  chapter 5, could they verify it against the canon? Is the canon
-  granular enough? Are there known facts from other docs that
-  AREN'T in the canon?
+This list is NOT fixed. The work's form decides which base dimensions
+apply, because the criteria were written for a novel: `foreshadowing_
+balance` scores a tracked ledger, `canon_coverage` assumes a canon file,
+`character_depth` wants a causally linked wound/want/need/lie chain. A
+shorter form drops what its length cannot earn, and may add dimensions of
+its own — those have their criteria in the FORM pack rather than in the
+base file, under its `## Base Dimensions` section.
+
+Score what you were given and nothing else. Do not restore a dimension
+you expected to see and did not: an absence here is a decision the form
+made, and scoring a dropped dimension anyway reintroduces exactly the
+penalty dropping it exists to remove. Do not invent one either. If a
+category comes back with no keys at all, that is an error — return
+{"error": "base dimension category <name> is empty"} rather than guessing.
 
 GENRE CONTRACT:
 Read every loaded pack's `## Genre Contract` section. These are binary
@@ -207,18 +187,16 @@ Respond with JSON:
     "<dimension_key>": {"score": N, "gap": "biggest weakness", "fix": "specific improvement", "note": "..."}
   },
   "character": {
-    "character_depth": {"score": N, "gap": "...", "fix": "...", "note": "..."},
-    "character_distinctiveness": {"score": N, "gap": "...", "fix": "...", "note": "..."},
-    "character_secrets": {"score": N, "gap": "...", "fix": "...", "note": "..."}
+    (one entry per key reported under base_dimensions.scored.character —
+     copy each key exactly, never a paraphrase, and include every one of
+     them and no others. Same for the two categories below.)
+    "<dimension_key>": {"score": N, "gap": "...", "fix": "...", "note": "..."}
   },
   "structure": {
-    "outline_completeness": {"score": N, "gap": "...", "fix": "...", "note": "..."},
-    "foreshadowing_balance": {"score": N, "gap": "...", "fix": "...", "note": "..."}
+    "<dimension_key>": {"score": N, "gap": "...", "fix": "...", "note": "..."}
   },
   "craft": {
-    "internal_consistency": {"score": N, "gap": "...", "fix": "...", "note": "..."},
-    "voice_clarity": {"score": N, "gap": "...", "fix": "...", "note": "..."},
-    "canon_coverage": {"score": N, "gap": "...", "fix": "...", "note": "..."}
+    "<dimension_key>": {"score": N, "gap": "...", "fix": "...", "note": "..."}
   },
   "genre_contract": {"violations": ["list any promises the plan would breach"], "note": "..."},
   "slop_in_planning_docs": {"found": ["list any AI slop patterns found in exemplar dialogue, voice examples, or character descriptions"], "note": "..."},
@@ -236,10 +214,10 @@ above for why they differ.
 
 `weakest_dimension` is a bare dimension key from any category — the
 lowest-scoring one. On a tie, choose the tied dimension in the most
-heavily weighted category; if still tied, the one listed first in this
-rubric (or, within the pillar, first in the pack). Ties are common and the
-invoking skill revises whichever dimension you name, so do not leave the
-choice to chance.
+heavily weighted category; if still tied, the one that appears first in
+the list you were given for that category (or, within the pillar, first in
+the pack). Ties are common and the invoking skill revises whichever
+dimension you name, so do not leave the choice to chance.
 
 WEIGHTING: use the `weights` object in the primary pack's frontmatter —
 pillar, character, structure, and craft, summing to 100. Ignore any

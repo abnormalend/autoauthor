@@ -30,7 +30,7 @@ VALID_FORM_META = {
     "target_words": 85000,
     "gate": {"overall": 7.5, "pillar": 7.0},
     "layers": ["voice", "outline"],
-    "base_dimensions": {"drop": [], "add": []},
+    "base_dimensions": {"drop": [], "add": {}},
 }
 
 VALID_FORM_BODY = """
@@ -71,7 +71,7 @@ def test_the_novel_form_carries_the_values_the_pipeline_already_used():
     assert meta["band"] == "extended"
     assert meta["layers"] == ["voice", "world", "characters", "mystery",
                               "outline", "foreshadowing", "canon"]
-    assert meta["base_dimensions"] == {"drop": [], "add": []}
+    assert meta["base_dimensions"] == {"drop": [], "add": {}}
 
 
 def test_every_layer_a_form_can_ask_for_is_defined_somewhere():
@@ -134,20 +134,20 @@ def test_layers_must_be_known(tmp_path):
 
 def test_dropped_base_dimensions_must_actually_be_base_dimensions(tmp_path):
     meta = {**VALID_FORM_META,
-            "base_dimensions": {"drop": ["magic_system"], "add": []}}
+            "base_dimensions": {"drop": ["magic_system"], "add": {}}}
     errors = validate(tmp_path, "testform", meta)
     assert any("not base dimensions" in e for e in errors)
     # ...and a real one is fine. This is the field's entire purpose: a
     # short story keeps no foreshadowing ledger, so scoring one penalizes
     # the story for being correctly what it is.
     meta = {**VALID_FORM_META,
-            "base_dimensions": {"drop": ["foreshadowing_balance"], "add": []}}
+            "base_dimensions": {"drop": ["foreshadowing_balance"], "add": {}}}
     assert validate(tmp_path, "testform", meta) == []
 
 
 def test_an_added_base_dimension_may_not_shadow_an_existing_one(tmp_path):
     meta = {**VALID_FORM_META,
-            "base_dimensions": {"drop": [], "add": ["voice_clarity"]}}
+            "base_dimensions": {"drop": [], "add": {"craft": ["voice_clarity"]}}}
     errors = validate(tmp_path, "testform", meta)
     assert any("already exist as base dimensions" in e for e in errors)
 
