@@ -4171,6 +4171,48 @@ these by hand and record the results in the commit message:
 2. Take an existing fantasy project, run the migration, and run one
    foundation iteration. Confirm the score lands within ~0.5 of its last
    pre-change score — the lossless-port check.
+
+   **RESULT (2026-08-13): PASSED, by a better test than this one.**
+
+   No pre-change fantasy project existed to compare against, so the
+   baseline was reconstructed instead: the old rubric was recovered with
+   `git show fd179bc:plugin/autonovel/shared/rubrics/foundation.md`, one
+   deliberately mid-quality fantasy planning set was written, and two
+   clean-room judges scored the *same* input — A on the old hardcoded
+   rubric, B on the neutral rubric plus `fantasy.md`. That isolates the
+   variable better than a real project would have, since a real project's
+   own drift would have been confounded with the port.
+
+   Every dimension landed within 1 point and the pillar aggregate was
+   identical at 7.00. Recomputing each judge's weighted mean from its own
+   dimension scores:
+
+   | | A (old) | B (new) |
+   |---|---|---|
+   | true weighted mean | **6.913** | **6.833** |
+   | reported | 7 (rounded to integer) | 6.0 (contract cap) |
+
+   The underlying assessments differ by **0.08** — inside the ±0.3
+   prediction. The port did not change how a fantasy plan is scored.
+
+   The 1-point gap in the *reported* figure is the genre-contract cap
+   firing, a capability the old rubric did not have. B computed 6.83,
+   found three contract breaches, and applied the cap; its note records
+   that the cap bound, that no dimension score was altered, and that
+   `pillar_score` stayed at 7.00. **This interaction is worth knowing:
+   a fantasy plan whose climax runs on an unestablished capability
+   cannot exit foundation on `overall_score` no matter how strong the
+   rest is** — the old rubric could only shave `magic_system` for the
+   same fault. That is correct behaviour and not obvious.
+
+   Incidental corroboration for Task 9 Step 7b: judge A reported `7` for
+   a true value of `6.913`, because the old rubric never forbade rounding
+   to an integer. Seeing it happen on live data is better evidence than
+   the reasoning that motivated the fix.
+
+   Package retained at `~/autonovel-ab-test/` (plan, extracted old
+   rubric, `compare.py`, both result JSONs). Re-runnable if the fantasy
+   pack is ever edited.
 3. Set `genre_secondary` on a fantasy project and confirm `resolve_genre.py`
    reports both packs and that a foundation judge dispatch includes both
    paths.
