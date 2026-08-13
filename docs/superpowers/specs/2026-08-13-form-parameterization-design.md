@@ -84,17 +84,45 @@ pipeline)?*
 Bands are the unit genre packs write against, so that 15 packs do not each
 need six length-scoped sections.
 
-| Form | Words | Band | Notes |
-|---|---|---|---|
-| `flash` | < 1,000 | compressed | single image or turn; no arc apparatus |
-| `short-story` | 1,000–7,500 | compressed | single effect; one or two characters |
-| `novelette` | 7,500–17,500 | intermediate | one thread with room to develop |
-| `novella` | 17,500–40,000 | intermediate | reduced apparatus; one subplot at most |
-| `novel` | 40,000–120,000 | extended | today's behavior; the default |
-| `epic` | 120,000+ | extended | multi-POV, subplot braid, series-aware |
+| Form | Words | Band | Ship? | Anchor |
+|---|---|---|---|---|
+| *drabble / micro* | 100–1,000 | — | no | — |
+| `flash` | < 1,000 | compressed | defer | *Sticks* |
+| **`short-story`** | 1,000–7,500 | compressed | **v1** | *The Lottery* (~3,800) |
+| `novelette` | 7,500–17,500 | intermediate | no | *The Bloody Chamber* |
+| **`novella`** | 17,500–40,000 | intermediate | **v1** | *Binti*, *A Christmas Carol* |
+| **`novel`** | 40,000–120,000 | extended | **v1** | most of the market |
+| `epic` | 120,000+ | extended | defer | *The Way of Kings* (~387k) |
 
-Boundaries follow the SFWA/Nebula categories, which is what readers and
-markets already use.
+Boundaries follow the SFWA/Nebula categories, which Hugo also uses — what
+markets and submission guidelines already assume. The 40,000 novel floor is
+the surprising one; it is genuinely where "novel" starts for awards purposes
+even though commercial fiction rarely sells below 70,000.
+
+**Ship three: `short-story`, `novella`, `novel`.** These are the lengths with
+real markets and genuinely different apparatus. The other three fail the
+same test the genre work used for hybrids — *name something that
+distinguishes this from its neighbour, or do not give it a file.*
+
+- **`novelette` is an awards category, not a market category.** Nothing is
+  acquired, sold, or browsed as a novelette; the bucket exists so the Hugos
+  have something between short story and novella. It collapses into
+  `short-story` or `novella` depending on which apparatus it needs, and it
+  shares the `intermediate` band with `novella` regardless. Not a form.
+- **`flash` sits below the useful floor of a five-phase pipeline.** A
+  900-word story costs more to run through seed → foundation → draft →
+  revise → review → export than to write. Deferred, not rejected: if the
+  compressed band proves out, a two-phase flash path might be worth it.
+- **`epic` is the likeliest of the three to survive the test.** Multi-POV
+  and subplot braiding are real structural facts a 90,000-word novel does
+  not have, and they are nameable as dimensions. Deferred until someone
+  writes them down; until then it is `novel` with a wider `words` range.
+
+`novella` is the strongest argument for this whole axis after `short-story`.
+It has become a real commercial category in the last decade — Tordotcom built
+an imprint on it, and it is a native ebook length — and it is the length most
+poorly served by a novel pipeline: too long to wing, too short to earn a
+world bible and a foreshadowing ledger.
 
 `extended` is the implicit default: a genre pack that declares no band
 sections behaves exactly as it does today. The minimum authoring cost per
@@ -310,8 +338,10 @@ Extends `validate_genre_pack.py` and `genre_pack.py`:
 2. **Base dimension parameterization** — lift the base dimensions out of
    `rubrics/foundation.md` the way the pillar dimensions were lifted. This is
    the largest single piece and the one with the most silent-wrong risk.
-3. **`short-story` and `novella` forms**, plus compressed-band sections on
-   the genre packs. Band arithmetic tests land here.
+3. **`short-story` and `novella` forms** — the full v1 set alongside `novel`
+   from phase 1 — plus compressed-band sections on the genre packs and
+   intermediate-band sections where compressed is too severe. Band
+   arithmetic tests land here.
 4. **Rename to autoauthor**, with migration.
 5. **`structure: collection`**, absorbing autoanthology.
 6. **`structure: series`**.
@@ -330,14 +360,20 @@ against the current rubric, the way the fantasy port was.
 
 ## Open questions
 
-1. Does `flash` earn a form, or is it below the useful floor of a
-   five-phase pipeline? A 900-word story may cost more to run than to write.
-2. Should `gate` be a form override, or should the gate be computed from
-   the surviving dimension count? The latter is more principled and harder
-   to reason about.
-3. `epic` and `novel` may not differ enough to be separate forms. Merge
-   unless a distinct dimension can be named — the same test the genre work
-   used for hybrids.
-4. Does `series` need a form-level or structure-level home for the series
+1. Should `gate` be a form override, or computed from the surviving
+   dimension count? The latter is more principled and harder to reason
+   about, and it changes the shape of phases 1 and 2 — worth settling before
+   planning.
+2. Does `series` need a form-level or structure-level home for the series
    bible? It is a planning layer above foundation, which no current phase
    owns.
+
+**Settled** (were open in the first draft):
+
+- *Does `flash` earn a form?* No — below the useful floor of a five-phase
+  pipeline. Deferred, with a two-phase path as the only way it comes back.
+- *Do `epic` and `novel` differ enough?* Not yet demonstrated. `epic` stays
+  merged into `novel` until multi-POV and subplot braiding are written as
+  actual dimensions rather than asserted as a difference.
+- *Does `novelette` belong?* No — an awards bucket with no market behind it,
+  sharing a band with `novella` anyway.
