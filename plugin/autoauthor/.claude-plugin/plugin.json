@@ -1,6 +1,6 @@
 {
   "name": "autoauthor",
   "description": "Autonomous novel-writing pipeline: seed, foundation, drafting, revision, review, and export skills with score-gated iteration and clean-room subagent judges.",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "author": { "name": "Brent Rogers" }
 }

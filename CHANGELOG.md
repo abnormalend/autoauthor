@@ -6,6 +6,69 @@ is not the same as updating the plugin — see [README](README.md#install).
 
 ---
 
+## 0.10.0 — 2026-08-13
+
+Phase 5, and the first of the structure axis. The pipeline can hold a
+collection: N complete works, a shared bible, a running order, and the one
+pass that sees all of them at once.
+
+**The distinction this rests on.** Scale is a pack, because it changes
+which dimensions apply. Structure is not, because it changes the state
+schema and the phase graph — a collection has a work list, a directory per
+work, and a cross-work phase before export, and none of that is
+expressible as criteria. `structure` is a `state.json` field.
+
+**Added**
+
+- `structure: "collection"`. A container project holds `bible/` and
+  `works/<name>/`, each child an ordinary project with its own state,
+  phase and layers. Absent or null means `standalone`, so every existing
+  project keeps working untouched.
+- `structure.py`. Container discovery, child enumeration, and inheritance.
+  A child takes `genre`, `genre_secondary`, `genre_modifiers` and `form`
+  from its container and may not set them itself — those are what make N
+  works one book. **The inheritance runs downward, inverting the pack
+  precedent deliberately:** with packs the project copy wins because
+  specificity is the point, and here the container wins because coherence
+  is.
+- `convergence.py`. The measurement no other judge in this pipeline can
+  make. Every judge reads exactly one work with no memory of the others —
+  that isolation is what makes their verdicts worth anything, and it is
+  exactly what blinds them to N works written to one voice document
+  drifting toward each other. This computes the coefficient of variation
+  for each prose metric across the collection; high variance is healthy.
+- `rubrics/collection-pass.md` and the `collection` skill. Seven
+  dimensions — repetition, facet coverage, range, binding delivery,
+  independence, running order, collection engagement — gated at 7.0. The
+  pass does not re-grade prose: the revision phase already did that with
+  the room to do it properly, and a finding here has to be a statement
+  about the collection.
+
+**Ported from `autoanthology`, with its corrections**
+
+The cross-work pass is that fork's real contribution, and it arrives with
+the lesson its first real run produced. Convergence metrics split into
+STYLE and SCALE: `word_count` and everything downstream of it converge
+because the works share a target length, which is now guaranteed rather
+than likely since every work in a collection inherits one form. Reporting
+those as convergence sends a judge hunting for prose repetition that is
+not there — five of that run's seven flagged metrics were this, and only
+one was something the rubric knew what to do with.
+
+**The running order is declared, not derived**
+
+`works` in the container's state.json IS the running order, and a
+disagreement with what is on disk is refused rather than reconciled. A
+work present but unlisted, a listed work that does not exist, or a
+repeat — each stops the resolve. Directory prefixes like `01-` are a
+naming convention; the opener and the closer do specific work and an
+editor chooses them.
+
+`autoanthology` is not retired yet. That waits until a collection has run
+end to end.
+
+---
+
 ## 0.9.0 — 2026-08-13
 
 Length coverage for the rest of the pack set. Every genre pack now either

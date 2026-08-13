@@ -63,6 +63,13 @@ skills parse this, none of which can see this module's source:
                        supplied them after the intermediate -> compressed
                        fallback, or null when the pack's default criteria
                        apply.
+  structure         — {"name", "is_container", "container", "inherited"},
+                       plus "works" (the running order) on a container.
+                       'name' is standalone unless state.json says
+                       otherwise; 'container' is the absolute path of the
+                       project this one is a work of, or null; 'inherited'
+                       names the keys that came from there rather than
+                       from this project's own state.json.
   content_register  — merged intensity levels from every loaded pack
                        (primary, secondary, and modifiers alike), clamped
                        per axis to the MOST RESTRICTIVE level any of them
@@ -103,6 +110,7 @@ import base_dimensions
 import form_pack
 import gate_solver
 import genre_pack
+import structure as structure_mod
 from genre_pack import (CONTENT_AXES, NAME_RE, PackError, format_names,
                         pack_names_in,
                         parse_pack, validate_pack)
@@ -121,7 +129,7 @@ def fail(message):
 def load_state(project):
     path = project / "state.json"
     if not path.exists():
-        fail(f"no state.json in {project} — run this from a novel project "
+        fail(f"no state.json in {project} — run this from a project "
              "directory")
     try:
         state = json.loads(path.read_text(encoding="utf-8"))
@@ -130,6 +138,19 @@ def load_state(project):
     if not isinstance(state, dict):
         fail(f"state.json must be a JSON object, got a JSON "
              f"{type(state).__name__}")
+
+    # A work inside a container takes its genre and form from above. The
+    # container owns them because they are what make N works one book —
+    # see structure.py, where the inheritance runs the opposite way to the
+    # pack override precedent and for the opposite reason.
+    try:
+        found = structure_mod.find_container(project)
+        if found:
+            container_dir, container_state = found
+            state = structure_mod.inherit(container_state, state)
+            state["_container"] = str(container_dir)
+    except structure_mod.StructureError as e:
+        fail(str(e))
     return state
 
 
@@ -269,9 +290,36 @@ def resolve(project):
 
     check_conflicts(packs)
 
+    try:
+        structure = structure_mod.structure_of(state)
+    except structure_mod.StructureError as e:
+        fail(str(e))
+
     form = load_form(project, state.get("form") or DEFAULT_FORM)
     pillar = check_form_against_primary(form, packs[0])
-    return packs, form, load_base_dimensions(form, packs[0]), pillar
+    return (packs, form, load_base_dimensions(form, packs[0]), pillar,
+            _structure_block(project, state, structure))
+
+
+def _structure_block(project, state, structure):
+    """What this project is, and where it sits.
+
+    Reported even for `standalone`, which is every project that existed
+    before this axis: a caller should be able to branch on one key rather
+    than infer from the absence of others.
+    """
+    block = {"name": structure,
+             "is_container": structure in structure_mod.CONTAINER_STRUCTURES,
+             "container": state.get("_container"),
+             "inherited": state.get("_inherited") or []}
+    if block["is_container"]:
+        errors = structure_mod.validate_container(project, state)
+        if errors:
+            fail(f"{project} is not a valid {structure}:\n  "
+                 + "\n  ".join(errors))
+        block["works"] = [p.name for p in
+                          structure_mod.ordered_children(project, state)]
+    return block
 
 
 def load_base_dimensions(form, primary):
@@ -363,7 +411,7 @@ def _label_parts(packs):
     return parts
 
 
-def merge(packs, form, base_dims, pillar):
+def merge(packs, form, base_dims, pillar, structure):
     # The primary owns every scalar structural field (pillar_label,
     # weights, beat_system, shape) — it's the pack that owns pillar
     # dimensions and book shape by definition (see genre_pack.py's
@@ -435,6 +483,7 @@ def merge(packs, form, base_dims, pillar):
         # content_register_sources is: a dimension missing from a verdict
         # should be explicable, not look like a judge that forgot one.
         "base_dimensions": base_dims,
+        "structure": structure,
     }
 
 
@@ -473,10 +522,11 @@ def main(argv):
                         help="validate only; print nothing on success")
     args = parser.parse_args(argv)
 
-    packs, form, base_dims, pillar = resolve(Path.cwd())
+    packs, form, base_dims, pillar, structure = resolve(Path.cwd())
     if args.check:
         return 0
-    print(json.dumps(merge(packs, form, base_dims, pillar), indent=2))
+    print(json.dumps(merge(packs, form, base_dims, pillar, structure),
+                     indent=2))
     return 0
 
 

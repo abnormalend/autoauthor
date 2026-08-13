@@ -10,14 +10,19 @@ Last updated 2026-08-13. Shipped history is in [CHANGELOG.md](CHANGELOG.md).
 
 ## In flight
 
-Nothing. The form axis is complete: phases 0 through 4 have landed and
-every genre pack either supports a shorter form or says in writing why it
-does not. What remains of the original spec is the STRUCTURE axis — phases
-5, 6 and 7 — which changes the state schema and the phase graph rather
-than the scoring, and is therefore a different kind of work from
-everything above.
+Nothing. Phases 0 through 5 have landed. What remains of the original
+spec is `series` and `serial`.
 
 ## Recently landed
+
+- **`structure: collection`**, 0.10.0, 2026-08-13. Phase 5, and the first
+  of the structure axis. A container project with a shared bible, a
+  declared running order, and `works/` beneath it; children inherit genre
+  and form downward, which inverts the pack precedent on purpose.
+  `convergence.py` and `rubrics/collection-pass.md` port autoanthology's
+  real contribution — the pass that sees every work at once — along with
+  the correction its first run produced, that scale metrics converge
+  because the form set one target and are not evidence about voice.
 
 - **Length coverage for the whole pack set**, 0.9.0, 2026-08-13. Phase 4.
   Compressed sections for `thriller`, `romance` and `erotica`; an
@@ -95,9 +100,12 @@ All from [the form spec](docs/superpowers/specs/2026-08-13-form-parameterization
 in its phase order. Phases 0–2 are behaviour-preserving and A/B-verifiable
 the way the fantasy port was.
 
-- **5. `structure: collection`** — absorbs `autoanthology`, which is a
-  pre-0.2.0 fork carrying four genre packs in the old prose format and none
-  of the genre or form work.
+- **5b. Verify a collection end to end**, then retire `autoanthology`.
+  The machinery landed in 0.10.0 and nothing has run through it: no
+  collection has been seeded, drafted, or passed. `seed` does not yet
+  offer to create a container, and `export` does not yet assemble one.
+  Those are the two gaps between "a collection resolves" and "a
+  collection ships".
 - **6. `structure: series`** — series bible at the project root, `books/`
   beneath, per-book canon that may add to series canon but never contradict
   it.

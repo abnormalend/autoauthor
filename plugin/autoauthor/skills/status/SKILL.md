@@ -76,7 +76,21 @@ anything else.
    the git tree is dirty (uncommitted work from an interrupted run —
    the user should inspect before any phase skill runs).
 
-5. **Recommend exactly one next action:**
+4b. **If this is a container** (`structure.is_container` is true), the
+   report is about the collection, not about a work. Give the running
+   order from `structure.works`, each work's own phase and score read
+   from its `state.json`, and `collection_score` against its 7.0 gate.
+   Then recommend against the EARLIEST unfinished work rather than the
+   container: a collection whose third story is undrafted needs that
+   story drafted, and the collection pass cannot tell you anything until
+   most of them exist. Name the work directory in the recommendation so
+   the user knows where to `cd`.
+
+   The container itself has only two phases of its own: `collection`,
+   which runs `/autoauthor:collection`, and `export`.
+
+5. **Recommend exactly one next action** (for a standalone project, or
+   for the work the step above named):
    - phase `foundation` → `/autoauthor:foundation`
    - phase `drafting`  → `/autoauthor:draft`
    - phase `revision`  → `/autoauthor:revise`; but if

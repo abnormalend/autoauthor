@@ -1,0 +1,292 @@
+"""The structure axis: how many works there are, and how they relate.
+
+Not a pack, and the reason is the line the whole form axis kept insisting
+on. Scale changes which dimensions apply, so it is a pack. Structure
+changes the state schema and the phase graph, and no pack can do either.
+"""
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+
+REPO = Path(__file__).parent.parent
+SCRIPTS = REPO / "plugin/autoauthor/shared/scripts"
+sys.path.insert(0, str(SCRIPTS))
+
+import structure  # noqa: E402
+
+RESOLVE_CLI = SCRIPTS / "resolve_genre.py"
+CONVERGENCE_CLI = SCRIPTS / "convergence.py"
+
+
+def make_container(tmp_path, works=("01-first", "02-second"), **state):
+    container = tmp_path / "collection"
+    (container / "bible").mkdir(parents=True)
+    for slug in works:
+        work = container / structure.WORKS_DIR / slug
+        (work / "chapters").mkdir(parents=True)
+        (work / "state.json").write_text(json.dumps({"phase": "draft"}),
+                                         encoding="utf-8")
+    payload = {"structure": "collection", "genre": "mystery",
+               "form": "short-story", "works": list(works)}
+    payload.update(state)
+    (container / "state.json").write_text(json.dumps(payload),
+                                          encoding="utf-8")
+    return container
+
+
+def resolve(directory):
+    return subprocess.run([sys.executable, str(RESOLVE_CLI)], cwd=directory,
+                          capture_output=True, text=True)
+
+
+# --- the default is the thing that already existed -------------------------
+
+def test_a_state_with_no_structure_is_standalone():
+    """Every project created before this axis keeps working untouched —
+    the same defaulting rule as `genre` and `form`."""
+    assert structure.structure_of({}) == "standalone"
+    assert structure.structure_of({"structure": None}) == "standalone"
+    assert not structure.is_container({})
+
+
+def test_an_unknown_structure_is_refused():
+    with pytest.raises(structure.StructureError, match="unknown structure"):
+        structure.structure_of({"structure": "trilogy"})
+
+
+def test_a_standalone_project_reports_the_structure_block(tmp_path):
+    (tmp_path / "state.json").write_text(json.dumps({"genre": "mystery"}),
+                                         encoding="utf-8")
+    result = resolve(tmp_path)
+    assert result.returncode == 0, result.stderr
+    block = json.loads(result.stdout)["structure"]
+    assert block == {"name": "standalone", "is_container": False,
+                     "container": None, "inherited": []}
+
+
+# --- containers and their children -----------------------------------------
+
+def test_a_container_resolves_and_reports_its_running_order(tmp_path):
+    container = make_container(tmp_path)
+    result = resolve(container)
+    assert result.returncode == 0, result.stderr
+    block = json.loads(result.stdout)["structure"]
+    assert block["is_container"] is True
+    assert block["works"] == ["01-first", "02-second"]
+
+
+def test_a_child_inherits_genre_and_form_from_its_container(tmp_path):
+    """The inheritance runs downward, which inverts the pack precedent
+    deliberately: with packs the project copy wins because specificity is
+    the point, and here the container wins because coherence is."""
+    container = make_container(tmp_path)
+    result = resolve(container / structure.WORKS_DIR / "01-first")
+    assert result.returncode == 0, result.stderr
+    resolved = json.loads(result.stdout)
+    assert resolved["packs"][0]["name"] == "mystery"
+    assert resolved["form"]["name"] == "short-story"
+    assert set(resolved["structure"]["inherited"]) == {"genre", "form"}
+    assert resolved["structure"]["container"] == str(container.resolve())
+
+
+def test_a_child_may_not_set_what_makes_the_works_one_book(tmp_path):
+    container = make_container(tmp_path)
+    work = container / structure.WORKS_DIR / "01-first"
+    work.joinpath("state.json").write_text(
+        json.dumps({"phase": "draft", "genre": "fantasy"}), encoding="utf-8")
+    result = resolve(container)
+    assert result.returncode == 1
+    assert "sets genre itself" in result.stderr
+
+
+def test_a_project_beside_a_container_is_not_adopted_by_it(tmp_path):
+    """Proximity is not membership. A project created inside another
+    project's tree must not silently inherit its genre."""
+    container = make_container(tmp_path)
+    stray = container / "notes-project"
+    stray.mkdir()
+    stray.joinpath("state.json").write_text(json.dumps({"genre": "thriller"}),
+                                            encoding="utf-8")
+    resolved = json.loads(resolve(stray).stdout)
+    assert resolved["packs"][0]["name"] == "thriller"
+    assert resolved["structure"]["container"] is None
+
+
+def test_containers_do_not_nest(tmp_path):
+    container = make_container(tmp_path)
+    work = container / structure.WORKS_DIR / "01-first"
+    work.joinpath("state.json").write_text(
+        json.dumps({"phase": "draft", "structure": "collection"}),
+        encoding="utf-8")
+    result = resolve(container)
+    assert result.returncode == 1
+    assert "structure of its own" in result.stderr
+
+
+# --- the running order is a real editorial decision ------------------------
+
+def test_a_work_on_disk_but_not_in_the_order_is_refused(tmp_path):
+    """Silently exporting a book with a story missing is the failure this
+    prevents. The order is not derived from the filesystem."""
+    container = make_container(tmp_path, works=("01-first", "02-second"))
+    (container / structure.WORKS_DIR / "03-third" / "chapters").mkdir(
+        parents=True)
+    (container / structure.WORKS_DIR / "03-third" / "state.json").write_text(
+        json.dumps({"phase": "draft"}), encoding="utf-8")
+    result = resolve(container)
+    assert result.returncode == 1
+    assert "03-third exists" in result.stderr
+
+
+def test_an_order_naming_a_work_that_does_not_exist_is_refused(tmp_path):
+    container = make_container(tmp_path)
+    state = json.loads((container / "state.json").read_text())
+    state["works"].append("03-ghost")
+    (container / "state.json").write_text(json.dumps(state), encoding="utf-8")
+    result = resolve(container)
+    assert result.returncode == 1
+    assert "03-ghost" in result.stderr and "does not exist" in result.stderr
+
+
+def test_a_repeated_work_in_the_order_is_refused(tmp_path):
+    container = make_container(tmp_path)
+    state = json.loads((container / "state.json").read_text())
+    state["works"] = ["01-first", "01-first", "02-second"]
+    (container / "state.json").write_text(json.dumps(state), encoding="utf-8")
+    result = resolve(container)
+    assert result.returncode == 1
+    assert "more than once" in result.stderr
+
+
+def test_the_order_is_the_declared_one_not_the_filesystem_one(tmp_path):
+    """Directory names are a naming convention, not an ordering mechanism
+    — the opener and closer do specific work and an editor chooses them."""
+    container = make_container(tmp_path, works=("02-second", "01-first"))
+    block = json.loads(resolve(container).stdout)["structure"]
+    assert block["works"] == ["02-second", "01-first"]
+
+
+def test_a_container_needs_a_bible(tmp_path):
+    container = make_container(tmp_path)
+    (container / "bible").rmdir()
+    result = resolve(container)
+    assert result.returncode == 1
+    assert "no bible/ directory" in result.stderr
+
+
+# --- convergence -----------------------------------------------------------
+
+def draft(work, texts):
+    for i, text in enumerate(texts, start=1):
+        work.joinpath("chapters", f"ch_{i:02d}.md").write_text(
+            text, encoding="utf-8")
+
+
+PROSE_A = ("She opened the door. The hall was cold and smelled of rain. "
+           "Somewhere below, a radio played something old and slow. "
+           "She counted the steps down, the way she always had, and stopped "
+           "at seven because the eighth one creaked. ") * 12
+PROSE_B = ("Marcus drove. Rain. The wipers could not keep up with it and he "
+           "did not slow down, because slowing down was how you got caught "
+           "thinking. Ahead the road bent left toward the water and he took "
+           "it fast, hands loose, radio off, thinking about nothing at all. "
+           ) * 12
+
+
+def test_convergence_needs_a_container(tmp_path):
+    (tmp_path / "state.json").write_text(json.dumps({"genre": "mystery"}),
+                                         encoding="utf-8")
+    result = subprocess.run([sys.executable, str(CONVERGENCE_CLI)],
+                            cwd=tmp_path, capture_output=True, text=True)
+    assert result.returncode == 2
+    assert "a standalone project has one" in result.stderr
+
+
+def test_convergence_reports_per_work_metrics(tmp_path):
+    container = make_container(tmp_path)
+    draft(container / structure.WORKS_DIR / "01-first", [PROSE_A])
+    draft(container / structure.WORKS_DIR / "02-second", [PROSE_B])
+    result = subprocess.run([sys.executable, str(CONVERGENCE_CLI), "--quiet"],
+                            cwd=container, capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    report = json.loads(
+        (container / "edit_logs/convergence.json").read_text())
+    assert sorted(report["drafted"]) == ["01-first", "02-second"]
+    assert report["undrafted"] == []
+    assert report["convergence"]
+
+
+def test_an_undrafted_work_is_named_not_counted(tmp_path):
+    container = make_container(tmp_path, works=("01-first", "02-second"))
+    draft(container / structure.WORKS_DIR / "01-first", [PROSE_A])
+    subprocess.run([sys.executable, str(CONVERGENCE_CLI), "--quiet"],
+                   cwd=container, capture_output=True, text=True)
+    report = json.loads(
+        (container / "edit_logs/convergence.json").read_text())
+    assert report["drafted"] == ["01-first"]
+    assert report["undrafted"] == ["02-second"]
+    # One work cannot converge with anything.
+    assert report["convergence"] == {}
+
+
+def test_scale_metrics_are_reported_separately_from_style_ones():
+    """The correction autoanthology's first real run produced: five of its
+    seven converged metrics were downstream of a shared target length, and
+    only one was something the rubric knew what to do with. Reporting them
+    together sends a judge hunting for prose repetition that is not there.
+    """
+    import convergence
+
+    per_work = {
+        # Identical word_count and sentence_count (scale), different
+        # simile_density (style).
+        "a": {"word_count": 5000, "sentence_count": 300, "simile_density": 2.0},
+        "b": {"word_count": 5010, "sentence_count": 301, "simile_density": 9.0},
+    }
+    _, style, scale = convergence.convergence_report(per_work)
+    assert scale == ["sentence_count", "word_count"]
+    assert style == []
+
+
+def test_a_metric_with_a_zero_mean_is_omitted():
+    import convergence
+
+    _, style, scale = convergence.convergence_report(
+        {"a": {"em_dashes": 0}, "b": {"em_dashes": 0}})
+    assert style == [] and scale == []
+
+
+def test_the_pooled_scratch_file_does_not_survive(tmp_path):
+    """It is written inside the work directory, so a leak would land in
+    the user's git repo."""
+    container = make_container(tmp_path)
+    work = container / structure.WORKS_DIR / "01-first"
+    draft(work, [PROSE_A])
+    draft(container / structure.WORKS_DIR / "02-second", [PROSE_B])
+    subprocess.run([sys.executable, str(CONVERGENCE_CLI), "--quiet"],
+                   cwd=container, capture_output=True, text=True)
+    assert not list(work.glob(".convergence*"))
+
+
+# --- the rubric and the skill ----------------------------------------------
+
+def test_the_collection_rubric_scores_seven_dimensions():
+    import genre_pack
+
+    rubric = (REPO / "plugin/autoauthor/shared/rubrics/collection-pass.md"
+              ).read_text(encoding="utf-8")
+    dimensions, malformed, caps, prose_caps = genre_pack.dimension_bullets(
+        genre_pack.section_body(rubric, "Dimensions"))
+    assert malformed == []
+    assert dimensions == ["repetition", "facet_coverage", "range",
+                          "binding_delivery", "independence", "running_order",
+                          "collection_engagement"]
+    assert caps == prose_caps, "a declared cap disagrees with its criteria"
+
+
+def test_the_collection_skill_exists_and_is_named_for_its_directory():
+    skill = REPO / "plugin/autoauthor/skills/collection/SKILL.md"
+    assert "name: collection" in skill.read_text(encoding="utf-8")
