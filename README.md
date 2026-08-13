@@ -365,6 +365,8 @@ iterations discarded on regression.
 
 ## For contributors
 
+[ROADMAP.md](ROADMAP.md) tracks direction and open work, including what is
+deliberately *not* being built and why.
 [PIPELINE.md](PIPELINE.md) is the original technical specification.
 `docs/superpowers/specs/` and `docs/superpowers/plans/` carry the design
 documents, including the genre-parameterization work. The plugin's own tests
