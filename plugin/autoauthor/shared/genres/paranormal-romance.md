@@ -114,6 +114,27 @@ written a Grand Gesture; it has written a loophole.
 - revelation_structure [cap 6] — Who knows what the other is, and when, and what knowing costs. Excellent looks like each disclosure being a decision made by the one disclosing, at a price, placed where the escalation ladder can respond, with the documents naming what materially changes in the two chapters after it: who is now in danger, what can no longer be said, who else must now be told or lied to. A gap looks like an accidental reveal that costs nothing — walked in on mid-shift, saw the fangs — or a lead who absorbs the truth within a page. Test: locate in the outline the chapter where each lead first learns what the other is, and the chapter where a third party learns. If any reveal is followed by three or more chapters in which the relationship's state is unchanged, score 6 max. Second test: if the documents cannot name what knowing costs the one who learns — danger, exile, a lie they now maintain, a person they can no longer see — score 6 max. If the black moment IS the reveal and is resolved by the fact simply being accepted, score 6 max. Where both leads know everything from chapter 1 — legitimate when both are supernatural — score instead the first scene in which each sees the other's nature operate at full cost and cannot un-see it, and apply the same tests to those scenes.
 - transformation_price [cap 6] — The ending crosses a line this couple cannot cross for free: turning or refusing to turn, mortality accepted, a binding that cannot be undone, a rank or territory surrendered, a claim that closes every other door. Excellent looks like the price stated in the documents before the final quarter, known to both leads, and paid on the page by one of them, measured in something the reader watched them value. A gap looks like forever asserted rather than bought — "they would find a way" — or a cure, exception, prophecy clause, or newly discovered property of the bond that dissolves the cost. Test: name what the happy ending costs, name who pays it, and name the chapter where the reader was first told the price. If that chapter falls after the 75% mark, score 6 max. If the price is paid by a third party or absorbed by the world rather than by a lead, score 6 max. A book that leaves its couple mortal, finite, and out of time can score 9-10 here: the requirement is that the choice was made and priced, never that anyone was turned.
 
+## At Intermediate Length
+
+Four dimensions, and no compressed section: paranormal romance needs a
+condition established, a bond tested, and a reveal paid, and five thousand
+words cannot hold all three without one of them becoming an assertion. At
+novella length it can, which is where the interconnected-standalone
+convention actually lives.
+
+The two that go are the two that need a book to demonstrate. A rule set
+scored across scenes and a power line traced through structural safeguards
+are both novel instruments; what survives is whether the supernatural
+matters, whether the leads still choose, what the reveal does, and what
+the ending costs.
+
+- supernatural_indispensability [cap 6] — Swap the supernatural condition for an ordinary one — an illness, a criminal record, a job that moves them every year — and re-read the black moment. If it survives the swap unchanged, score 6 max. At this length there is no room for lore that is not doing work in the relationship, so species labels with no stated rule that constrains a scene between these two are the same finding, not a milder one.
+- bond_versus_choice [cap 6] — A destined pull may exist; it may not do the choosing. Name the moment each lead chooses the other against something the pull did not decide for them. If either is instead overridden — the bond would not let her, he could not stay away — score 6 max.
+- revelation_structure [cap 6] — Who learns what, when, and what it costs them to know. At twelve chapters a reveal followed by two chapters of unchanged relationship state is the whole middle. If any reveal leaves the relationship where it found it for two or more consecutive chapters, score 6 max. If the black moment IS the reveal and resolves by the fact being accepted, score 6 max.
+- transformation_price [cap 6] — The ending crosses a line this couple cannot cross for free, and a lead pays. If the price is paid by a third party or absorbed by the world, score 6 max. If it falls after the 75% mark with no earlier scene establishing what it would cost, score 6 max.
+- supernatural_constraints — not scored at this band.
+- power_asymmetry — not scored at this band.
+
 ## Genre Contract
 
 These bind the central couple and the supernatural condition they live

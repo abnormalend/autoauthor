@@ -76,6 +76,29 @@ two novellas.
 - black_moment_cost [cap 6] — The break must be caused by the barrier the book has been building, and it must cost something the reader watched them earn. Excellent looks like each lead making a defensible choice that is nonetheless the one that loses them the other person. A gap looks like a break caused by an overheard half-sentence, a lie of omission with no motive behind it, or a third party's manufactured interference. Test: name what is actually lost at the black moment, and name who chose it. If the answer to the second is "neither of them" or "a misunderstanding," score 6 max. If the black moment is resolved by the same information that caused it simply being stated, score 6 max.
 - mutual_transformation [cap 6] — Both leads change, and each is the specific cause of the other's change. Excellent looks like two wound/want/need/lie chains where each lead's need is exactly the thing the other person's existence makes undeniable. A gap looks like one lead arriving finished and functioning as the cure for the other — the fixer and the fixed. Test: for EACH lead, name the belief they hold in chapter 1 that they cannot hold at the end, and name the scene in which the other lead makes it untenable. If you can do this for only one of the two, score 6 max. A lead whose only arc is "learns to trust again," with no scene where that trust is specifically tested and specifically costly, does not count as an arc.
 
+## At Compressed Length
+
+Three dimensions. A five-thousand-word romance is two people, one thing
+between them, and one turn that costs. Progression tracked across chapters
+and both leads changing are what the length cannot buy — which is why the
+category exists at novella length and thins below it.
+
+- attraction_specificity [cap 6] — Two specifics per lead, not three: what each notices about the other that no one else would, and what that says about the noticer. If the documents cannot supply two for BOTH leads, score 6 max. Attraction stated as a quality — beautiful, dangerous, kind — rather than as something one of them perceives is the failure mode here.
+- barrier_integrity [cap 6] — One barrier, and it must survive the length. Test: name the conversation that would end it, and say why neither lead can have it. If either could have it in the story's first quarter without ceasing to be who they are, score 6 max — a barrier that thin has nowhere to hide in four thousand words.
+- black_moment_cost [cap 6] — Something is given up, and it is not information. If the black moment is resolved by the same fact that caused it simply being stated, score 6 max. If nothing is surrendered by either lead, score 6 max.
+- relationship_progression — not scored at this band.
+- mutual_transformation — not scored at this band.
+
+## At Intermediate Length
+
+All five still apply — a novella is where category romance actually lives,
+and it has the room for the full curve. Three tighten; the other two are
+read exactly as written above.
+
+- attraction_specificity [cap 6] — As written, but the documents must supply the three specifics for both leads without leaning on backstory the novella has no room to dramatize. A specific the reader is told rather than shown counts as absent. If the documents cannot supply three for BOTH leads, score 6 max.
+- relationship_progression [cap 6] — The window narrows with the chapter count. If TWO or more consecutive chapters leave the relationship in the state they found it, score 6 max — at twelve chapters a single idling pair is a twelfth of the book.
+- black_moment_cost [cap 6] — As written, and with less room to earn the recovery: the beats between the black moment and the ending must be on the page rather than summarized. If the resolution arrives in narration rather than in a scene, score 6 max.
+
 ## Genre Contract
 
 These bind the central romantic relationship. When this pack is loaded as a

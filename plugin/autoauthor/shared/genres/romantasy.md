@@ -88,6 +88,19 @@ Three notes on scoring:
 - hea_cost_in_system [cap 6] — The ending must be paid for in the magic system's own currency, at the exchange rate the rules already established. Excellent looks like this: at the end, at least one lead has paid a specific, permanent, rule-established price — power surrendered, a lifespan altered, a bond severed, a name given up, a debt assumed — and the reader watches them pay it on the page. Test: name the rule in `world.md` that sets the price, name who pays it, and name what is permanently different afterwards. If the answer to any of the three is missing, or if the price is paid by a third party, or if the ending's cost is "they were tested and proved worthy", score 6 max. Second test: a cost announced and then reversed inside the same book — the power returns, the wound closes off-page, the severed bond turns out to have been renewable — was not paid; score 6 max. Third test: if the couple can only be together because the rules admitted an exception not stated before the final quarter, that is a First Law breach as well as an unpaid price. Score 6 max here, note it once, and do not deduct again under `magic_system`.
 - plot_braid_convergence [cap 6] — Two plot lines, one ending. Excellent looks like a world plot with stakes that stand up on their own and a climax in which the decision that resolves it is the same decision that settles the relationship. Test one, independence: suppose the two leads got together in chapter 5 and stayed happy. Would the world plot still have a book in it — a threat, a stake, a cost, a reason to keep reading? If not, this is paranormal romance with a map, and the convergence it achieves is trivial; score 6 max. Test two, convergence: name the single action at the climax. Then state in one sentence what it does to the world plot and in one sentence what it does to the relationship. If those two sentences describe events in different chapters, the book has two endings stacked rather than one climax; score 6 max. Test three, the braid gap: read `braid.md`. Find the longest run of consecutive chapters whose rows show only one of the two plots advancing. If that run reaches four, the book is alternating between two novellas; score 6 max. An absent or unfilled `braid.md` is scored as a gap here and in `relationship_progression`, because those two dimensions have no other evidence to read.
 
+## Lengths
+
+Novel only, and by the widest margin in the set. Its own `shape` runs
+110,000-140,000 words — the top of the novel band and into what an `epic`
+form would cover — because it carries a magic system, a full romance arc,
+and a braid ledger tying them together at the convergence points.
+
+`plot_braid_convergence` is the pack's whole argument: the two plots must
+resolve through each other rather than in sequence. Two plots need two
+plots' worth of room, and a compressed version would have to drop the
+braid, at which point the correct answer is `fantasy` with a `romance`
+secondary rather than this pack at a length it was not built for.
+
 ## Genre Contract
 
 These bind the whole book. The first two are fantasy's promise and this

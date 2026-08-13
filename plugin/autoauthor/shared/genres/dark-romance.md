@@ -139,6 +139,24 @@ the reader already had has written a delay.
 - aftermath_consequence [cap 6] — What happens to these people lands on them, and does not reset between chapters. Excellent looks like named, persisting change: what she cannot do now that she could in chapter 1, what he flinches at, what the body remembers, what the relationship can no longer contain, who else was altered — plus at least one chapter whose whole business is aftermath rather than escalation. A gap looks like a book that reboots between scenes, where a coercive or violent chapter is followed by one in which neither party's behaviour reflects it. Test: take the three most severe events in the outline and, for each, name one behaviour in a later chapter that makes sense only because that event happened. If any of the three has no answer, score 6 max. Second test: count the chapters given to aftermath rather than to escalation. If there are none, score 6 max.
 - narrative_stance [cap 6] — The text knows what it is depicting. This genre is allowed to make the darkness pleasurable; it is not allowed to be ignorant of it. Excellent looks like harm that registers somewhere in the text every time it occurs — in the interiority of the person it happens to, in a consequence a later chapter pays, in another character who names it plainly, or in the darker lead's own awareness — while the book still lets the reader want what it is offering. A gap runs in two directions: the book that serves coercion as the erotic payoff with nothing anywhere registering it as harm, and the book that apologizes in the narration every few pages, which is disclaiming rather than stance. Test: for the three most coercive scenes in the outline, name where the harm registers — the line of interiority, the later consequence, the character who says it. If any of the three has no answer, score 6 max. Second test: if the book's awareness arrives only as narration instructing the reader how to feel, rather than as an interior line or a consequence, score 6 max. Note that a complete absence of any such awareness across the whole book is a Genre Contract breach, which the rubric handles separately; do not double-count it here.
 
+## Lengths
+
+Novel only. This pack is deliberately without a compressed or intermediate
+section, and that is a design decision rather than an unwritten one.
+
+`darkness_load_bearing` asks how many chapters need rewriting if the
+darkness is removed, and `power_shift_tracking` wants the balance to move
+at least three times without any three consecutive rows leaving it
+unmoved. Both are measurements over a book's duration. `redemption_cost`
+totals a ledger in both directions across an entire arc. A version of this
+pack that dropped to three dimensions at short length would be scoring
+something else and calling it dark romance — and the genre's real hazard,
+that the darkness reads as decoration, is exactly what gets easier to hide
+in a shorter work.
+
+Write it at novel length, or write it as `romance` with the heat and
+content register the story needs.
+
 ## Genre Contract
 
 These bind the central relationship and the book built around it. They

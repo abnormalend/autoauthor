@@ -54,6 +54,19 @@ Three things are worth distinguishing before scoring.
 - protagonist_competence [cap 6] — Setbacks only mean something if the reader has seen the protagonist be good at something. Excellent looks like a specific, demonstrated skill — shown in use, early, on a problem they solve — that the antagonist then defeats or turns against them. A gap looks like a protagonist defined by what is done to them: reactive throughout, surviving by luck, or conversely a protagonist who never fails because their competence has no stated edge. Test: name the protagonist's competence in one phrase, find the chapter in the first quarter where it is demonstrated on a problem they actually solve, and find the later chapter where it fails or is used against them. If any of the three is missing, score 6 max. Second test: count the chapters in which the protagonist acts on a plan of their own rather than responding to the antagonist's move. If that is under a third of the book, score 6 max — a protagonist who only reacts is a passenger, and their defeats read as weather.
 - personal_stakes [cap 6] — The threat must land on someone the reader can name, and stay landed. Excellent looks like a danger whose worst outcome is specific and intimate — this child, this job, this sister, this reputation, this one person finding out — and which stays that way even when the scale grows. A gap looks like stakes that inflate into abstraction: a city, a network, a country, thousands of unnamed people, an outcome no scene can show. Test: state the worst thing that happens if the protagonist fails, in one sentence, naming the people it happens to. If that sentence contains no named character, score 6 max. Second test: check the final act. If the book abstracts upward at the climax — the personal jeopardy replaced by a larger one the reader has no relationship with — score 6 max. Note that suffering is not stakes: pain inflicted on a character the plan has not made the reader care about raises the volume, not the tension, and does not earn points here.
 
+## At Compressed Length
+
+Three dimensions. A short thriller is a clock and a person: the antagonist
+is a pressure the reader feels rather than a capability the book can
+demonstrate, and a ladder needs rungs across quarters that do not exist
+here.
+
+- clock_pressure [cap 6] — At this length the clock is not a device in the story, it is the story's shape. It should be running by the end of the first page. Test: name the deadline and name what happens when it expires. If the plan cannot answer both, or if the clock is established after the first quarter of the wordcount, score 6 max.
+- protagonist_competence [cap 6] — One decision under pressure, made by the protagonist, that a reader can see the reasoning behind. Test: name it, and name what it costs. If the protagonist's only actions are reactions to what is done to them, score 6 max — at this length a passenger has no time to become a driver.
+- personal_stakes [cap 6] — What this specific person loses, in one sentence with a name in it. If that sentence contains no named character, score 6 max. Abstraction is fatal faster here: a novel can spend fifty pages making a city matter, and a short story cannot.
+- antagonist_capability — not scored at this band.
+- escalation_ladder — not scored at this band.
+
 ## Genre Contract
 
 These bind the book's central line of threat. When this pack is loaded as a

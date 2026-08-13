@@ -81,6 +81,19 @@ ladder collide. The outline labels chapters with those beat names, and
 - braided_escalation [cap 6] — Both ladders must rise, interleaved, and neither may go flat while the other climbs. Excellent looks like a chapter-by-chapter braid in which each threat rung is answered by a relationship rung within two chapters and each relationship rung raises what the threat can take; and like a Collision where the black moment and the threat's peak are one event under two readings rather than two events filed near each other. A gap looks like a book that alternates in blocks — five chapters of investigation, then four of courtship — or an escalation ladder with a rung going down. Test: build the braid map (see `## Artifacts`) and mark, per chapter, whether the relationship state changed and whether the threat state changed. If four or more consecutive chapters change only one strand, score 6 max. Second test: locate the black moment and the threat's worst move. If they are more than three chapters apart, or if the black moment is caused by a third party's interference while the threat merely continues in parallel, score 6 max. Third test: compare the cost of each act's turn to the one before it, on both strands. If any later turn costs less than an earlier one, score 6 max.
 - convergent_resolution [cap 6] — The act that ends the danger and the act that wins the relationship must be the same act, or the first must be caused by the second. Excellent looks like a single decision at the climax that a named lead makes, at a stated cost, which simultaneously neutralizes the threat and answers the barrier — the grand gesture and the takedown as one move. A gap looks like sequential resolution: the antagonist is dealt with, and then, three pages later, the couple talks it out. Test: name the climactic decision, name which lead makes it, name what it costs them, and name how it does both jobs. If the danger ends instead by an arrest a third party makes, by the antagonist's unforced error, or by a rescuer arriving unbidden, score 6 max, and note that the same fault is a contract breach — record it once, there. Second test: for EACH lead, name the belief they hold in chapter 1 that they cannot hold at the end, and the scene in which the other lead and the danger together made it untenable. If you can do this for only one of the two, score 6 max. Third test: measure the gap between the threat's resolution and the couple's. If the reunion needs a chapter of talking after the danger is fully over to happen at all, the two plots resolved separately; score 6 max.
 
+## Lengths
+
+Novel only. `braided_escalation` scores whether four or more consecutive
+chapters change only one strand, and `antagonist_method_and_retrospect`
+asks for at least three earlier appearances of the antagonist's method
+with the earliest before the midpoint. Both are counts over a chapter
+sequence a shorter work does not have.
+
+The genre's promise is that the threat and the relationship escalate each
+other. Below novel length one of the two becomes a subplot, and a subplot
+is not a braid — that is `thriller` with a romance secondary, or `romance`
+with a threat, and either is a better fit than this pack compressed.
+
 ## Genre Contract
 
 These bind the book's central relationship and its central line of threat,

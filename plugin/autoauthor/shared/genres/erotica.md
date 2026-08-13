@@ -70,6 +70,20 @@ scene. A missing or unfilled ledger is a real gap in the plan.
 - embodiment [cap 6] — Physical specificity and interiority, at once, sustained. This is where show-don't-tell is most demanding, because the two easy failures pull opposite ways: choreography with nobody inside it, and feeling with no body attached. Excellent looks like sensation reported through a particular nervous system — this character's history, injuries, embarrassments, appetites, and vocabulary — with the interior line running unbroken through the scene rather than resuming afterwards. A gap looks like anatomical stage directions, or a paragraph of abstract rapture that could be about anything. Test: take any 300 words of erotic prose and count the details that only this character, in this body, in this room, could supply. If fewer than three, score 6 max. Second test: check whether the POV character's thinking continues through the encounter. If the interiority stops at the start of the scene and resumes after it, score 6 max.
 - erotic_consequence [cap 6] — Every encounter must change something that cannot be changed back. Excellent looks like a ladder in which each encounter alters what the participants know about each other, what they can no longer say casually, what they now owe, or what they can no longer have — so that the encounters cannot be reordered. A gap looks like a set of interchangeable set pieces between which the characters reset to their starting positions. Test: for each row of the ledger, name what is true afterwards that was not true before, in terms other than "they had sex". If three or more rows have no answer, score 6 max. Second test: try moving the final encounter to the first position. If nothing in the book breaks, the sequence has no arc; score 6 max.
 
+## At Compressed Length
+
+Three dimensions. Variation across encounters and consequence tracked past
+the last one are what a book's duration buys; a short story has one
+encounter and its immediate aftermath, and what it must get right is who
+these people are, what they have agreed, and whether the reader is in a
+body.
+
+- desire_architecture [cap 6] — What each principal wants, and what they want that they will not say. Two sentences per principal, and they must differ. If for any principal the two say the same thing twice, score 6 max — at this length a want with no shadow behind it leaves nothing for the encounter to discover.
+- consent_and_power [cap 6] — The terms are set on the page, and a limit is named. Test: for each participant, what did they agree to, and where in the scene can you point to it? If any participant has no answer, score 6 max. If the story depicts power exchange and the plan shows no moment where its terms are established, score 6 max.
+- embodiment [cap 6] — Is the reader in a body, or watching one? Test three passages for interiority that continues THROUGH the encounter rather than resuming after it. If the interiority stops at the start of the scene and picks up afterward, score 6 max — that gap is the single most common failure at this length, because it is what happens when a writer defaults to choreography.
+- escalation_variation — not scored at this band.
+- erotic_consequence — not scored at this band.
+
 ## Genre Contract
 
 These bind the book's erotic content. When this pack is loaded as a

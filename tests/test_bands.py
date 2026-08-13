@@ -313,3 +313,94 @@ def test_effective_shape_rounds_the_target_to_a_round_number():
         "extended")
     assert shape["target_words"] == 88000
     assert shape["chapters"] == 28
+
+
+# --- which pack works at which length --------------------------------------
+#
+# Pinned deliberately. A pack without a band section is refused below novel
+# length, so this table is the product's length coverage, and a pack losing
+# a section would otherwise show up only as a user being told no.
+
+BAND_COVERAGE = {
+    "general": {"compressed"},
+    "fantasy": {"compressed"},
+    "science-fiction": {"compressed"},
+    "mystery": {"compressed"},
+    "thriller": {"compressed"},
+    "erotica": {"compressed"},
+    "romance": {"compressed", "intermediate"},
+    "paranormal-romance": {"intermediate"},
+    # Novel-only, each for a reason written into the pack itself.
+    "dark-romance": set(),
+    "romantasy": set(),
+    "romantic-suspense": set(),
+    # Modifiers declare no pillar dimensions, so they have none to rescope.
+    "cozy": set(), "ya": set(), "historical": set(), "inspirational": set(),
+}
+
+
+def declared_bands(path):
+    body = genre_pack.parse_pack(path)["body"]
+    return {band for band, heading in genre_pack.BAND_SECTIONS.items()
+            if genre_pack.section_body(body, heading) is not None}
+
+
+def test_band_coverage_is_what_it_is_meant_to_be():
+    actual = {p.stem: declared_bands(p) for p in shipped(GENRES)}
+    assert actual == BAND_COVERAGE
+
+
+def test_a_pack_may_support_a_middle_length_and_not_a_short_one(tmp_path):
+    """`paranormal-romance` declares intermediate and no compressed: it
+    needs a condition established, a bond tested and a reveal paid, and
+    five thousand words cannot hold all three without one becoming an
+    assertion. Thirty thousand can."""
+    assert resolve(tmp_path, "paranormal-romance", "short-story").returncode == 1
+    ok = resolve(tmp_path, "paranormal-romance", "novella")
+    assert ok.returncode == 0, ok.stderr
+    assert json.loads(ok.stdout)["pillar"]["source_band"] == "intermediate"
+
+
+def test_a_band_may_rescope_without_dropping_anything(tmp_path):
+    """`romance` at novella length keeps all five dimensions and rewrites
+    three. A band section is not only a way to remove things — the novella
+    is where category romance actually lives, and it has room for the full
+    curve read at its own scale."""
+    resolved = json.loads(resolve(tmp_path, "romance", "novella").stdout)
+    pillar = resolved["pillar"]
+    assert pillar["source_band"] == "intermediate"
+    assert pillar["dropped"] == []
+    assert len(pillar["dimensions"]) == 5
+    assert len(pillar["rescoped"]) == 3
+
+
+def test_a_compressed_section_serves_the_intermediate_band_too(tmp_path):
+    """The fallback, on a shipped pack rather than a fixture."""
+    resolved = json.loads(resolve(tmp_path, "thriller", "novella").stdout)
+    assert resolved["pillar"]["source_band"] == "compressed"
+
+
+def test_every_novel_only_pack_says_why():
+    """A design decision recorded where the next person finds the gap.
+    Without this, 'romantasy has no compressed section' reads as an
+    oversight, and the fix someone reaches for is a bad compressed
+    section rather than a different pack."""
+    for name, bands in BAND_COVERAGE.items():
+        pack = genre_pack.parse_pack(GENRES / f"{name}.md")
+        if bands or not pack["dimensions"]:
+            continue
+        note = genre_pack.section_body(pack["body"], "Lengths")
+        assert note and len(note.split()) > 40, (
+            f"{name} is novel-only and does not explain why; add a "
+            "'## Lengths' section")
+
+
+def test_the_compressed_forms_are_usable_at_all(tmp_path):
+    """Seven packs at short-story length, eight at novella — the eighth
+    being the one that supports a middle length and not a short one. If
+    these drop, the forms shipped in 0.8.0 have quietly stopped being
+    reachable."""
+    for form, expected in (("short-story", 7), ("novella", 8)):
+        usable = [p.stem for p in shipped(GENRES)
+                  if resolve(tmp_path, p.stem, form).returncode == 0]
+        assert len(usable) == expected, (form, usable)

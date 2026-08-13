@@ -10,12 +10,23 @@ Last updated 2026-08-13. Shipped history is in [CHANGELOG.md](CHANGELOG.md).
 
 ## In flight
 
-Nothing. Phases 0 through 3 landed. Next is either finishing the band
-coverage below (eight packs still novel-only) or phase 5, `structure:
-collection` — the first of the structure axis, which changes the state
-schema and the phase graph rather than the scoring.
+Nothing. The form axis is complete: phases 0 through 4 have landed and
+every genre pack either supports a shorter form or says in writing why it
+does not. What remains of the original spec is the STRUCTURE axis — phases
+5, 6 and 7 — which changes the state schema and the phase graph rather
+than the scoring, and is therefore a different kind of work from
+everything above.
 
 ## Recently landed
+
+- **Length coverage for the whole pack set**, 0.9.0, 2026-08-13. Phase 4.
+  Compressed sections for `thriller`, `romance` and `erotica`; an
+  intermediate section for `romance` that rewrites criteria without
+  dropping any dimension; an intermediate-only section for
+  `paranormal-romance`, the first pack to support a middle length and not
+  a short one. `dark-romance`, `romantasy` and `romantic-suspense` stay
+  novel-only with the reasoning written into each pack, and a test
+  requires that explanation to exist.
 
 - **`short-story` and `novella`**, 0.8.0, 2026-08-13. Phase 3, and the
   first phase that changes what the pipeline produces. Length bands on
@@ -84,15 +95,6 @@ All from [the form spec](docs/superpowers/specs/2026-08-13-form-parameterization
 in its phase order. Phases 0–2 are behaviour-preserving and A/B-verifiable
 the way the fantasy port was.
 
-- **4. Band sections for the remaining packs.** Eight are novel-only:
-  `thriller`, `romance`, `erotica`, `paranormal-romance`, `dark-romance`,
-  `romantasy`, `romantic-suspense`, and any new pack. Not all of them
-  should get one — `romantasy` is a magic system plus a full romance arc
-  plus a 22-row braid, and declaring it novel-only is a design statement
-  rather than a gap. The ones with real short markets are `erotica` and
-  `romance` (novella especially), then `thriller`. Aim for three surviving
-  dimensions per compressed band; two is where the arithmetic stops
-  working.
 - **5. `structure: collection`** — absorbs `autoanthology`, which is a
   pre-0.2.0 fork carrying four genre packs in the old prose format and none
   of the genre or form work.

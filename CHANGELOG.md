@@ -6,6 +6,51 @@ is not the same as updating the plugin — see [README](README.md#install).
 
 ---
 
+## 0.9.0 — 2026-08-13
+
+Length coverage for the rest of the pack set. Every genre pack now either
+supports a shorter form or says in writing why it does not.
+
+**Added**
+
+| Pack | short story | novella |
+|---|---|---|
+| `general`, `fantasy`, `science-fiction`, `mystery`, `thriller`, `erotica` | yes | yes, via the compressed section |
+| `romance` | yes | yes, its own intermediate section |
+| `paranormal-romance` | no | yes |
+| `dark-romance`, `romantasy`, `romantic-suspense` | no | no |
+
+- Compressed sections for `thriller`, `romance` and `erotica` — three
+  dimensions each, chosen by what the length can actually demonstrate. A
+  short thriller is a clock and a person, so the antagonist's capability
+  and the escalation ladder go. A short romance is two people and one
+  barrier, so progression across chapters and both leads transforming go.
+  Short erotica has one encounter, so variation across encounters and
+  consequence past the last one go.
+- An **intermediate section for `romance`** that drops nothing and rewrites
+  three criteria. A band section is not only a way to remove dimensions:
+  the novella is where category romance actually lives and it has room for
+  the full curve, read at its own scale.
+- An **intermediate-only section for `paranormal-romance`**. It needs a
+  condition established, a bond tested and a reveal paid; five thousand
+  words cannot hold all three without one becoming an assertion, and thirty
+  thousand can. First pack to support a middle length and not a short one.
+
+**Recorded, not fixed**
+
+`dark-romance`, `romantasy` and `romantic-suspense` stay novel-only, and
+each now carries a `## Lengths` section saying why — in the pack, where
+the next person notices the gap, rather than only in the roadmap. All
+three measure something over a book's duration: chapters that would need
+rewriting, a power balance moving three times, four consecutive chapters
+changing one strand of a braid. A compressed version would be scoring
+something else under the same name. Each names the better alternative at
+that length, which in every case is a different pack rather than this one
+compressed. A test requires the explanation to exist and to be more than a
+sentence.
+
+---
+
 ## 0.8.0 — 2026-08-13
 
 Phase 3, and the first phase that changes what the pipeline produces. It
