@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-SCRIPTS = Path(__file__).parent.parent / "plugin/autonovel/shared/scripts"
+SCRIPTS = Path(__file__).parent.parent / "plugin/autoauthor/shared/scripts"
 sys.path.insert(0, str(SCRIPTS))
 
 import genre_pack  # noqa: E402
@@ -712,7 +712,7 @@ def test_cli_rejects_invalid_pack_with_message(tmp_path):
 
 
 def test_cli_validates_all_shipped_packs():
-    genres = Path(__file__).parent.parent / "plugin/autonovel/shared/genres"
+    genres = Path(__file__).parent.parent / "plugin/autoauthor/shared/genres"
     packs = sorted(p for p in genres.glob("*.md") if p.stem != "TEMPLATE")
     assert packs, "no genre packs found to validate"
     result = subprocess.run(
@@ -725,7 +725,7 @@ def test_cli_skips_template_so_the_bare_glob_succeeds():
     """The docstring's advertised `genres/*.md` glob picks up TEMPLATE.md,
     which has no frontmatter. The CLI must skip it — visibly — instead of
     failing, since that glob is how a whole genres/ directory gets checked."""
-    genres = Path(__file__).parent.parent / "plugin/autonovel/shared/genres"
+    genres = Path(__file__).parent.parent / "plugin/autoauthor/shared/genres"
     paths = sorted(genres.glob("*.md"))
     assert any(p.stem == "TEMPLATE" for p in paths), "TEMPLATE.md is missing"
     result = subprocess.run(

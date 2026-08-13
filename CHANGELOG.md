@@ -1,8 +1,74 @@
 # Changelog
 
-Versions are the plugin's, declared in `plugin/autonovel/.claude-plugin/plugin.json`
+Versions are the plugin's, declared in `plugin/autoauthor/.claude-plugin/plugin.json`
 and mirrored in `.claude-plugin/marketplace.json`. Updating the marketplace
 is not the same as updating the plugin — see [README](README.md#install).
+
+---
+
+## 0.4.0 — 2026-08-13
+
+**Renamed from autonovel to autoauthor.** Breaking: you must **reinstall**,
+not update, because the marketplace id changed.
+
+```bash
+/plugin marketplace add abnormalend/autoauthor
+```
+```bash
+/plugin install autoauthor@autoauthor-dev
+```
+
+The old plugin can be removed once the new one resolves. Existing novel
+projects keep working — see Migration below.
+
+**Why now.** The product is growing past novels: short stories, novellas,
+collections and series are all specced. "autonovel" was already wrong on the
+tin, and every skill named `novel-*` misdescribed itself. The rename was
+scheduled as phase 4 of the form work and moved ahead of phases 0–3 because
+everything those phases create — structured caps across fifteen packs, the
+form pack type, band sections on every genre pack — would otherwise have
+been born under the old name and needed rewriting afterward.
+
+**Changed**
+
+- Plugin `autonovel` → `autoauthor`; marketplace `autonovel-dev` →
+  `autoauthor-dev`; plugin directory `plugin/autonovel/` →
+  `plugin/autoauthor/`.
+- All eight skills drop the redundant `novel-` prefix, and the router is
+  named for what it does:
+
+  | before | after |
+  |---|---|
+  | `/autonovel:novel` | `/autoauthor:status` |
+  | `/autonovel:novel-seed` | `/autoauthor:seed` |
+  | `/autonovel:novel-import` | `/autoauthor:import` |
+  | `/autonovel:novel-foundation` | `/autoauthor:foundation` |
+  | `/autonovel:novel-draft` | `/autoauthor:draft` |
+  | `/autonovel:novel-revise` | `/autoauthor:revise` |
+  | `/autonovel:novel-review` | `/autoauthor:review` |
+  | `/autonovel:novel-export` | `/autoauthor:export` |
+
+- `state.json`: `novel_score` → `work_score`.
+
+**Migration.** One key. Run `/autoauthor:status` inside any existing
+project — it detects a `novel_score` key, renames it to `work_score`, and
+tells you what changed without committing. This check is independent of the
+0.2.0 genre migration and fires on its own, since a 0.3.x project already
+has a `genre` and still carries the old key. Nothing else in a project
+directory carries the old name: chapters, `results.tsv`, `canon.md`,
+`outline.md` and the rest are all name-agnostic.
+
+**Not changed.** The dated design record under `docs/superpowers/` was
+deliberately left under the old names, for the same reason `PIPELINE.md`
+still records `lore_score` — a design document edited to match later
+decisions stops being evidence of what was decided. See
+[docs/superpowers/README.md](docs/superpowers/README.md) for a translation
+table.
+
+**Attribution.** The README now credits the upstream project this began
+from — autonovel by emozilla / Jeffrey Quesnelle at Nous Research — and
+records the licensing position. Note that "autonovel" continues to refer to
+*their* project throughout; this rename does not reach it.
 
 ---
 
@@ -125,14 +191,14 @@ fantasy novel.
 - `overall_score` and `pillar_score` are now reported as two-decimal means.
   Integer-only scores could not express any value between 7 and 8 — exactly
   the band the gate sits in.
-- Genre selection moved into `novel-seed` step 2, before the project
+- Genre selection moved into `seed` step 2, before the project
   directory exists, closing a window where an interrupted run could build an
   entire book as general fiction silently.
 - The marketplace manifest moved to the repo root, which is where
   git-sourced marketplaces look for it.
 
 **Migration:** projects created before 0.2.0 have no `genre` field. Running
-`/autonovel:novel` inside one detects this, explains that existing scores
+`/autoauthor:status` inside one detects this, explains that existing scores
 came from the fantasy rubric, and migrates on confirmation.
 
 ---
@@ -144,9 +210,9 @@ plugin.
 
 **Added**
 
-- Eight skills: `novel` (status and routing), `novel-seed`,
-  `novel-import`, `novel-foundation`, `novel-draft`, `novel-revise`,
-  `novel-review`, `novel-export`.
+- Eight skills: `novel` (status and routing), `seed`,
+  `import`, `foundation`, `draft`, `revise`,
+  `review`, `export`.
 - Score-gated phases — each runs a modify → evaluate → keep-or-discard loop
   against a rubric rather than finishing a checklist, and a phase that
   cannot clear its bar keeps working.

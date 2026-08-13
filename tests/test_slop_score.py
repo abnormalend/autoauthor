@@ -3,7 +3,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-SCRIPT = Path(__file__).parent.parent / "plugin/autonovel/shared/scripts/slop_score.py"
+SCRIPT = Path(__file__).parent.parent / "plugin/autoauthor/shared/scripts/slop_score.py"
 FIXTURES = Path(__file__).parent / "fixtures"
 
 

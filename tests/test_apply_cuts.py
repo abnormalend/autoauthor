@@ -3,7 +3,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-SCRIPT = Path(__file__).parent.parent / "plugin/autonovel/shared/scripts/apply_cuts.py"
+SCRIPT = Path(__file__).parent.parent / "plugin/autoauthor/shared/scripts/apply_cuts.py"
 
 CHAPTER = """# Chapter 3: The Meeting
 

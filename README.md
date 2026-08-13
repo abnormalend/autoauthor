@@ -1,4 +1,4 @@
-# autonovel
+# autoauthor
 
 Write a complete novel with Claude Code. You supply a premise; a pipeline of
 skills builds the world, drafts the chapters, revises them against a panel of
@@ -27,17 +27,17 @@ writing pipeline.
 Add the marketplace, then install the plugin:
 
 ```
-abnormalend/autonovel
+abnormalend/autoauthor
 ```
 
 In Claude Code CLI:
 
 ```bash
-/plugin marketplace add abnormalend/autonovel
+/plugin marketplace add abnormalend/autoauthor
 ```
 
 ```bash
-/plugin install autonovel@autonovel-dev
+/plugin install autoauthor@autoauthor-dev
 ```
 
 Verify you got it:
@@ -46,14 +46,14 @@ Verify you got it:
 python3 -c "
 import json,os,pathlib
 d=json.loads((pathlib.Path.home()/'.claude/plugins/installed_plugins.json').read_text())
-e=d['plugins']['autonovel@autonovel-dev'][0]
+e=d['plugins']['autoauthor@autoauthor-dev'][0]
 g=os.path.join(e['installPath'],'shared','genres')
 print('version:', e['version'])
 print('packs  :', len([f for f in os.listdir(g) if f.endswith('.md')])-1 if os.path.isdir(g) else 'MISSING')
 "
 ```
 
-You want `0.3.1` and `15`. [CHANGELOG.md](CHANGELOG.md) says what each
+You want `0.4.0` and `15`. [CHANGELOG.md](CHANGELOG.md) says what each
 version changed.
 
 ---
@@ -61,7 +61,7 @@ version changed.
 ## Quick start
 
 ```bash
-/autonovel:novel-seed
+/autoauthor:seed
 ```
 
 It asks three things — where the project should live, what genre, and your
@@ -70,17 +70,17 @@ never lives inside this repo.
 
 ```bash
 cd ~/novels/your-book
-/autonovel:novel-foundation
+/autoauthor:foundation
 ```
 
 That runs until the plan is good enough to draft from, typically 3–8
 iterations. Then:
 
 ```bash
-/autonovel:novel-draft
+/autoauthor:draft
 ```
 
-Lost at any point? `/autonovel:novel` reads your project and tells you what
+Lost at any point? `/autoauthor:status` reads your project and tells you what
 phase you're in and what to run next.
 
 ---
@@ -89,31 +89,31 @@ phase you're in and what to run next.
 
 ```mermaid
 flowchart TD
-    A["/autonovel:novel-seed<br/>premise + genre becomes a project"]
-    I["/autonovel:novel-import<br/>bring in an existing manuscript"]
+    A["/autoauthor:seed<br/>premise + genre becomes a project"]
+    I["/autoauthor:import<br/>bring in an existing manuscript"]
     A --> F
     I --> F
 
-    F["/autonovel:novel-foundation<br/>world, characters, outline, voice, canon"]
+    F["/autoauthor:foundation<br/>world, characters, outline, voice, canon"]
     F -->|"clears the gate"| D
     F -.->|"below the gate: revise the weakest layer"| F
 
-    D["/autonovel:novel-draft<br/>chapters, one at a time"]
+    D["/autoauthor:draft<br/>chapters, one at a time"]
     D -->|"every chapter clears its bar"| R
     D -.->|"chapter scores low: rewrite it"| D
 
-    R["/autonovel:novel-revise<br/>adversarial cuts plus reader panel"]
+    R["/autoauthor:revise<br/>adversarial cuts plus reader panel"]
     R -->|"scores plateau"| V
     R -.->|"still improving: another cycle"| R
 
-    V["/autonovel:novel-review<br/>critic, then professor of fiction"]
+    V["/autoauthor:review<br/>critic, then professor of fiction"]
     V -->|"only hedged criticisms left"| X
     V -.->|"real defects remain"| V
 
-    X["/autonovel:novel-export<br/>LaTeX PDF and ePub"]
+    X["/autoauthor:export<br/>LaTeX PDF and ePub"]
     X --> Z["finished book"]
 
-    S["/autonovel:novel<br/>status, run anytime"]
+    S["/autoauthor:status<br/>status, run anytime"]
     S -.-> F
     S -.-> D
     S -.-> R
@@ -148,14 +148,14 @@ than a weak chapter does.
 
 | Skill | What it does |
 |---|---|
-| `/autonovel:novel` | Status and routing. Reads your project, reports scores against their gates, tells you the one thing to run next. Read-only. |
-| `/autonovel:novel-seed` | Creates the project, picks the genre, writes the premise. The only skill you run outside a project directory. |
-| `/autonovel:novel-import` | Brings an existing manuscript in — to revise it, continue it, or salvage its ideas for a fresh draft. |
-| `/autonovel:novel-foundation` | Builds the five planning layers and iterates until they clear the gate. No prose yet. |
-| `/autonovel:novel-draft` | Writes chapters sequentially, each scored against the previous chapter and the plan. |
-| `/autonovel:novel-revise` | Adversarial cuts, a four-persona reader panel, targeted rewrites. Repeats until scores plateau. |
-| `/autonovel:novel-review` | Whole-manuscript review as a literary critic and then a professor of fiction. Fixes the top items, repeats. |
-| `/autonovel:novel-export` | Typesets a print-ready LaTeX PDF and builds the ePub. |
+| `/autoauthor:status` | Status and routing. Reads your project, reports scores against their gates, tells you the one thing to run next. Read-only. |
+| `/autoauthor:seed` | Creates the project, picks the genre, writes the premise. The only skill you run outside a project directory. |
+| `/autoauthor:import` | Brings an existing manuscript in — to revise it, continue it, or salvage its ideas for a fresh draft. |
+| `/autoauthor:foundation` | Builds the five planning layers and iterates until they clear the gate. No prose yet. |
+| `/autoauthor:draft` | Writes chapters sequentially, each scored against the previous chapter and the plan. |
+| `/autoauthor:revise` | Adversarial cuts, a four-persona reader panel, targeted rewrites. Repeats until scores plateau. |
+| `/autoauthor:review` | Whole-manuscript review as a literary critic and then a professor of fiction. Fixes the top items, repeats. |
+| `/autoauthor:export` | Typesets a print-ready LaTeX PDF and builds the ePub. |
 
 ---
 
@@ -252,7 +252,7 @@ wrong — wrong dash, weights that don't sum to 100, a dimension key that
 collides with a built-in one:
 
 ```bash
-python3 ~/.claude/plugins/cache/autonovel-dev/autonovel/*/shared/scripts/validate_genre_pack.py mypack.md
+python3 ~/.claude/plugins/cache/autoauthor-dev/autoauthor/*/shared/scripts/validate_genre_pack.py mypack.md
 ```
 
 Ask Claude Code to validate it for you and it will find the path itself.
@@ -308,9 +308,9 @@ chapter gets rewritten.
 
 ## Common tasks
 
-**Check where you are.** `/autonovel:novel` — anytime, from inside a project.
+**Check where you are.** `/autoauthor:status` — anytime, from inside a project.
 
-**Bring in a book you already started.** `/autonovel:novel-import` handles
+**Bring in a book you already started.** `/autoauthor:import` handles
 three cases: *revise* a finished draft, *continue* an unfinished one, or
 *salvage* the ideas from prose you want to rewrite from scratch.
 
@@ -319,7 +319,7 @@ appends a marker to `results.tsv` and resets the score baseline, because
 scores from different genres aren't comparable.
 
 **Upgrading from a pre-0.2.0 project.** Older projects have no `genre` field.
-Run `/autonovel:novel` inside one — it detects this, explains that your
+Run `/autoauthor:status` inside one — it detects this, explains that your
 existing scores came from the fantasy rubric, and migrates on your
 confirmation. Don't skip it: a missing genre silently resolves to general
 fiction.

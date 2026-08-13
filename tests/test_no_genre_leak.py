@@ -1,4 +1,4 @@
-"""Guard: no genre-specific content outside plugin/autonovel/shared/genres/.
+"""Guard: no genre-specific content outside plugin/autoauthor/shared/genres/.
 
 The successor to the De-Bells rule. The original plan scrubbed content from
 the project's first novel out of the machinery; this keeps the machinery free
@@ -17,7 +17,7 @@ different places:
 import re
 from pathlib import Path
 
-PLUGIN = Path(__file__).parent.parent / "plugin/autonovel"
+PLUGIN = Path(__file__).parent.parent / "plugin/autoauthor"
 
 SCANNED_DIRS = ["shared/rubrics", "shared/craft", "shared/templates",
                 "shared/scripts", "skills"]
@@ -40,7 +40,7 @@ COMPS_RE = re.compile(
 # template stays strict, because a comp appearing in one of those is a leak.
 COMPS_EXEMPT_FILES = {
     "shared/craft/CRAFT.md",
-    "skills/novel-foundation/references/layer-guides.md",
+    "skills/foundation/references/layer-guides.md",
 }
 
 # ANTI-SLOP.md and voice.md list 'realm' and 'tapestry' as banned slop words,
@@ -58,7 +58,7 @@ ALLOWED = {
 # program's `lore_score` — a record of what was, not an assumption about
 # what should be. Scoped to the migration and pinned by
 # test_router_names_fantasy_only_in_the_migration.
-LEAK_EXEMPT_FILES = {"skills/novel/SKILL.md"}
+LEAK_EXEMPT_FILES = {"skills/status/SKILL.md"}
 
 # Attributions on genre-neutral craft frameworks. These must survive the
 # comps exemption above — see the module docstring.
@@ -110,7 +110,7 @@ def test_router_names_fantasy_only_in_the_migration():
     exists to tell a legacy user which rubric produced their old scores.
     A hit anywhere else means genre logic crept into the router itself.
     """
-    path = PLUGIN / "skills/novel/SKILL.md"
+    path = PLUGIN / "skills/status/SKILL.md"
     lines = path.read_text(encoding="utf-8").splitlines()
 
     starts = [i for i, l in enumerate(lines) if l.startswith("3. **Migration check.")]
@@ -122,7 +122,7 @@ def test_router_names_fantasy_only_in_the_migration():
              for i in range(len(lines))
              if LEAK_RE.search(lines[i]) and not lo <= i < hi]
     assert not stray, (
-        "genre terms in skills/novel/SKILL.md outside the migration step:\n  "
+        "genre terms in skills/status/SKILL.md outside the migration step:\n  "
         + "\n  ".join(stray))
 
 
@@ -152,7 +152,7 @@ def test_comps_exemption_covers_only_craft_reference_files():
     """
     assert COMPS_EXEMPT_FILES == {
         "shared/craft/CRAFT.md",
-        "skills/novel-foundation/references/layer-guides.md",
+        "skills/foundation/references/layer-guides.md",
     }
     for rel in COMPS_EXEMPT_FILES:
         assert (PLUGIN / rel).exists(), f"exempt file no longer exists: {rel}"

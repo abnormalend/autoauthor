@@ -4,8 +4,8 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).parent.parent.resolve()
-SCRIPT = REPO / "plugin/autonovel/shared/scripts/resolve_genre.py"
-PLUGIN_GENRES = REPO / "plugin/autonovel/shared/genres"
+SCRIPT = REPO / "plugin/autoauthor/shared/scripts/resolve_genre.py"
+PLUGIN_GENRES = REPO / "plugin/autoauthor/shared/genres"
 
 
 def run(project, *args):
@@ -16,7 +16,7 @@ def run(project, *args):
 def write_state(project, **fields):
     state = {"phase": "foundation", "iteration": 0, "foundation_score": 0.0,
              "pillar_score": 0.0, "chapters_drafted": 0, "chapters_total": 0,
-             "novel_score": 0.0, "revision_cycle": 0, "review_round": 0,
+             "work_score": 0.0, "revision_cycle": 0, "review_round": 0,
              "debts": []}
     state.update(fields)
     (project / "state.json").write_text(json.dumps(state), encoding="utf-8")

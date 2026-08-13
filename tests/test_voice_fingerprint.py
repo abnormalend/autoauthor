@@ -3,7 +3,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-SCRIPT = Path(__file__).parent.parent / "plugin/autonovel/shared/scripts/voice_fingerprint.py"
+SCRIPT = Path(__file__).parent.parent / "plugin/autoauthor/shared/scripts/voice_fingerprint.py"
 
 CH1 = "# Chapter 1\n\n" + "The rope held. She counted knots and waited for the tide to turn. " * 40
 CH2 = "# Chapter 2\n\n" + "Salt crusted the rail. He spat and hauled the net hand over hand. " * 40

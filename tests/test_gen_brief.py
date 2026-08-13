@@ -3,7 +3,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-SCRIPT = Path(__file__).parent.parent / "plugin/autonovel/shared/scripts/gen_brief.py"
+SCRIPT = Path(__file__).parent.parent / "plugin/autoauthor/shared/scripts/gen_brief.py"
 
 CHAPTER = "# Chapter 5: The Descent\n\n" + ("The tunnel narrowed. " * 200)
 

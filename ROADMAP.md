@@ -15,6 +15,11 @@ the fix for the advisory-caps defect.
 
 ## Recently landed
 
+- **Rename to `autoauthor`**, 0.4.0, 2026-08-13. Was phase 4 of the form
+  work; shipped ahead of phases 0–3 so that everything they create is born
+  correctly named. Breaking — requires reinstall, not update. The dated
+  design record under `docs/superpowers/` keeps the old names deliberately.
+
 - **Pack shakedown**, 2026-08-13 —
   [result](docs/superpowers/2026-08-13-pack-shakedown-result.md). Four
   planted-defect planning sets, four clean-room judges. One pack caught its
@@ -45,8 +50,6 @@ the way the fantasy port was.
   Largest single piece and the most silent-wrong-prone.
 - **3. `short-story` and `novella` forms**, plus compressed-band sections on
   the genre packs.
-- **4. Rename to `autoauthor`**, with migration. Bundled here because the
-  installed base is effectively zero and grows monotonically.
 - **5. `structure: collection`** — absorbs `autoanthology`, which is a
   pre-0.2.0 fork carrying four genre packs in the old prose format and none
   of the genre or form work.
@@ -135,11 +138,11 @@ the way the fantasy port was.
   `.get()` after they were renamed, silently dropping feedback from every
   revision brief, covered by no plan task and no test. A fixture verdict per
   rubric, asserting the keys the skills actually read, needs no live judge.
-- **`novel-import` has never been exercised.** It infers a genre from a
+- **`import` has never been exercised.** It infers a genre from a
   finished manuscript and writes it into `state.json` — now across fifteen
   packs rather than nine, including distinctions that are genuinely fine
   (paranormal romance vs romantasy). The one skill this work never touched.
-- **`novel-export` is untested and its input just changed.** It reads
+- **`export` is untested and its input just changed.** It reads
   `display_label` for `NOVEL-GENRE`; that is now a deduplicating function.
   Export has also never run under any non-fantasy pack.
 - **Modifier stacking is only checked pairwise.** Three modifiers put four
@@ -159,7 +162,7 @@ the way the fantasy port was.
 - **Packs require a framework the judge never receives.** Eleven of twelve
   genre packs demand "three sliders with justification" in Cast
   Requirements. The sliders are defined only in `shared/craft/CRAFT.md`,
-  which `novel-foundation` lists as required reading for *itself* (step 3)
+  which `foundation` lists as required reading for *itself* (step 3)
   but does not include in the judge dispatch — the judge gets
   `foundation.md`, the packs, and the project directory. So the judge is
   asked to verify a framework it was never given, and will guess, skip, or

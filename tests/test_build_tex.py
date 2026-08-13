@@ -2,7 +2,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-SCRIPT = Path(__file__).parent.parent / "plugin/autonovel/shared/typeset/build_tex.py"
+SCRIPT = Path(__file__).parent.parent / "plugin/autoauthor/shared/typeset/build_tex.py"
 
 CH1 = """# Chapter 1: The Landing
 
