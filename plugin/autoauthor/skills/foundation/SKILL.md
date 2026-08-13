@@ -49,13 +49,18 @@ phase. Typical runs take 5–15 iterations.
 
 ## Filling empty layers
 
-Fill the layers IN THIS ORDER, following the matching section of
-layer-guides.md for each: voice discovery (from seed.txt — trial
-passages against the seed's world concept; voice.md Part 2 +
-voice_wells.json) → world.md → characters.md → MYSTERY.md →
-outline.md part 1 → foreshadowing ledger (outline.md part 2) →
-canon.md. Every hard fact added to any layer gets a canon.md entry at
-the same time. Commit once: `foundation: initial layers`.
+Fill ONLY the layers `form.layers` names, in this order, skipping any the
+form does not call for: voice discovery (from seed.txt — trial passages
+against the seed's world concept; voice.md Part 2 + voice_wells.json) →
+world.md → characters.md → MYSTERY.md → outline.md part 1 →
+foreshadowing ledger (outline.md part 2) → canon.md. Follow the matching
+section of layer-guides.md for each, and read the form pack's
+`## Foundation Guidance` first — layer-guides.md is written at novel
+scale, and the form says what each layer means at this length. A layer
+the form does not name is not a gap: building it anyway spends the work's
+budget on apparatus its length cannot earn. Every hard fact added to any
+layer gets a canon.md entry at the same time, where the form calls for
+canon. Commit once: `foundation: initial layers`.
 
 If some layers already contain real content (an interrupted run, or
 an imported project), do not refill them — fill only the still-

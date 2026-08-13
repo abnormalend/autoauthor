@@ -9,8 +9,7 @@
   "content_register": {},
   "conflicts_with": [],
   "shape": {
-    "chapters": [22, 26],
-    "words": [80000, 95000],
+    "words": {"extended": [80000, 95000]},
     "chapter_words": 3200,
     "pov_default": "third limited past"
   },
@@ -73,6 +72,19 @@ THIRD LAW: "Expand what you have before adding something new."
 - geography_and_culture — Locations distinct with sensory signatures. Cultures with specific customs that GENERATE CONFLICT. Economy that creates class tension. Check: could two different scenes set in two different locations feel meaningfully different based on what's here?
 - lore_interconnection [cap 6] — Does changing one element force changes in at least two others? Test by mentally removing the magic system — does the political structure collapse? Does the class system change? Count the elements that survive removal unchanged: if two or more of the political structure, the class system, and the economy still stand, the lore is modular and detachable, score 6 max. Where all three stand, that is also a Genre Contract breach; record it there and do not lower this dimension a second time for the same finding.
 - iceberg_depth [cap 6] — Implied depth versus stated depth. But CHECK: does the author actually know the answers to the mysteries, or are they handwaving? If a planning doc says "the answer will be revealed" without specifying WHAT the answer is, that's a gap wearing an iceberg costume. Test: pick three mysteries the documents gesture at, and for each ask whether the actual answer is written down somewhere in them. Zero answered caps at 6; three answered while the reader is still meant to be in the dark supports 8+.
+
+## At Compressed Length
+
+Three dimensions, not five. World history and geography are what a novel
+has room to build and a short story has room only to imply — which is
+`iceberg_depth`'s job, and it becomes the most important dimension here
+rather than the least.
+
+- magic_system [cap 6] — One rule, stated and paid. Do not score societal implications: a five-thousand-word story that explains three is a worse story than one that explains none. Judge whether the single rule constrains the one decision the story turns on, and whether the reader held the constraint before it bound. A rule stated and never binding a choice scores 6 max.
+- lore_interconnection [cap 6] — One link, not three. Name the single fact about this world the ending depends on, and what would be different if it were otherwise. If the ending survives deleting every world fact the story states, score 6 max.
+- iceberg_depth [cap 6] — The dimension that matters most here and costs least: the story implies a world it never describes. Test: pick two things it gestures at and ask whether the plan says what they actually are. If neither is answered anywhere, score 6 max — at this length a gap wearing an iceberg costume is the whole failure mode, because there is no room for anything else to distract from it.
+- world_history — not scored at this band.
+- geography_and_culture — not scored at this band.
 
 ## Genre Contract
 

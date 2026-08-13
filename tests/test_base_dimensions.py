@@ -203,8 +203,11 @@ def _form(tmp_path, criteria_for=None, **overrides):
     """Write a project-local form. By default it writes a criteria bullet
     for every key it adds, since a form missing those is its own separate
     error; pass criteria_for=[] to exercise that one deliberately."""
-    meta = {"name": "testform", "label": "Test", "band": "compressed",
-            "words": [1000, 200000], "target_words": 5000,
+    # `extended`, so these exercise base dimensions rather than tripping
+    # the separate rule that a shorter form needs a length-scoped section
+    # in the genre pack beside it.
+    meta = {"name": "testform", "label": "Test", "band": "extended",
+            "words": [1000, 200000], "target_words": 60000,
             "gate": {"overall": 7.0, "pillar": 6.5},
             "layers": ["voice", "outline"],
             "base_dimensions": {"drop": [], "add": {}}}

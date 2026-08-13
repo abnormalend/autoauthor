@@ -47,9 +47,22 @@ skills parse this, none of which can see this module's source:
                        100).
   beat_system       — the primary pack's 'beat_system', or "save-the-cat"
                        if it didn't declare one.
-  shape             — the primary pack's 'shape' dict (chapters/words
-                       ranges, chapter_words, pov_default), or {} if it
-                       declared none.
+  shape             — the RECONCILED shape: 'words' and 'target_words'
+                       for this band, 'words_source' naming which pack the
+                       range came from, the genre's 'chapter_words' and
+                       'pov_default', and 'chapters' DERIVED as
+                       target_words / chapter_words. No pack declares a
+                       chapter count; a declared one could contradict the
+                       word range, and several packs' did.
+  pillar            — {"band", "source_band", "dimensions", "caps",
+                       "rescoped", "dropped"}: which pillar dimensions are
+                       scored at this length, with the caps that apply
+                       here. 'rescoped' names the ones the genre pack's
+                       band section rewrites criteria for and 'dropped'
+                       the ones it removes; 'source_band' is which section
+                       supplied them after the intermediate -> compressed
+                       fallback, or null when the pack's default criteria
+                       apply.
   content_register  — merged intensity levels from every loaded pack
                        (primary, secondary, and modifiers alike), clamped
                        per axis to the MOST RESTRICTIVE level any of them
@@ -89,6 +102,7 @@ from pathlib import Path
 import base_dimensions
 import form_pack
 import gate_solver
+import genre_pack
 from genre_pack import (CONTENT_AXES, NAME_RE, PackError, format_names,
                         pack_names_in,
                         parse_pack, validate_pack)
@@ -186,27 +200,49 @@ def check_form_against_primary(form, primary):
     validate_form or validate_pack.
     """
     meta, name = form["meta"], primary["meta"]["name"]
+    band = meta["band"]
 
-    words = (primary["meta"].get("shape") or {}).get("words")
+    dimensions, caps, replaced, dropped, source = genre_pack.band_criteria(
+        primary, band)
+
+    # A pack with no length-scoped section is fine at extended length —
+    # its criteria ARE its extended criteria. Below that it is not fine,
+    # and the failure is silent: a five-thousand-word story judged on
+    # whether its world has "at least 3 societal implications explored
+    # with specificity" loses for being correctly what it is. That is the
+    # exact defect this axis exists to prevent, so it is refused rather
+    # than degraded.
+    if band != "extended" and source is None:
+        fail(f"genre {name!r} has no '## {genre_pack.BAND_SECTIONS[band]}' "
+             f"section, and the {meta['name']!r} form is {band} length. Its "
+             "criteria were written for a novel and would penalize a shorter "
+             "work for being correctly what it is. Add the section to the "
+             "pack, or choose a longer form.")
+
+    words = (primary["meta"].get("shape") or {}).get("words", {}).get(band)
     if words and not form_pack.ranges_overlap(words, meta["words"]):
-        fail(f"genre {name!r} runs {words[0]:,}-{words[1]:,} words and the "
-             f"{meta['name']!r} form is {meta['words'][0]:,}-"
-             f"{meta['words'][1]:,}; there is no length that satisfies "
-             "both. Choose a form that fits the genre, or a genre pack "
-             "written for this length.")
+        fail(f"genre {name!r} runs {words[0]:,}-{words[1]:,} words at {band} "
+             f"length and the {meta['name']!r} form is {meta['words'][0]:,}-"
+             f"{meta['words'][1]:,}; there is no length that satisfies both. "
+             "Choose a form that fits the genre, or a genre pack written for "
+             "this length.")
 
-    # The gate the loop actually enforces has to be one the pack's own
-    # caps can reach. gate_solver rejects a pack below the 7.0 floor at
-    # authoring time; this catches a FORM that raises the bar above what
-    # the genre beside it can support, which no single-pack check can see.
-    ceiling = gate_solver.max_gate(len(primary["dimensions"]),
-                                   sorted(primary["caps"].values()))
+    # The gate the loop actually enforces has to be one the pack's own caps
+    # can reach AT THIS BAND. Dropping a dimension shrinks the divisor the
+    # caps were calibrated against, so a band is a different design with a
+    # different ceiling — and neither pack can check this alone, since the
+    # ceiling is the genre's and the gate is the form's.
+    ceiling = gate_solver.max_gate(len(dimensions), sorted(caps.values()))
     gate = meta["gate"]["pillar"]
     if ceiling is not None and gate > ceiling:
         fail(f"form {meta['name']!r} gates the pillar at {gate}, but genre "
-             f"{name!r} tops out at {ceiling} — with its caps, no book can "
-             "clear that bar. Lower the form's gate or give the genre pack "
-             "more dimensions (see TEMPLATE.md, Calibration).")
+             f"{name!r} tops out at {ceiling} with {len(dimensions)} "
+             f"dimension(s) at {band} length — no book can clear that bar. "
+             "Lower the form's gate or give the genre pack more dimensions "
+             "(see TEMPLATE.md, Calibration).")
+
+    return {"band": band, "source_band": source, "dimensions": dimensions,
+            "caps": caps, "rescoped": replaced, "dropped": dropped}
 
 
 def resolve(project):
@@ -234,8 +270,8 @@ def resolve(project):
     check_conflicts(packs)
 
     form = load_form(project, state.get("form") or DEFAULT_FORM)
-    check_form_against_primary(form, packs[0])
-    return packs, form, load_base_dimensions(form, packs[0])
+    pillar = check_form_against_primary(form, packs[0])
+    return packs, form, load_base_dimensions(form, packs[0]), pillar
 
 
 def load_base_dimensions(form, primary):
@@ -327,7 +363,7 @@ def _label_parts(packs):
     return parts
 
 
-def merge(packs, form, base_dims):
+def merge(packs, form, base_dims, pillar):
     # The primary owns every scalar structural field (pillar_label,
     # weights, beat_system, shape) — it's the pack that owns pillar
     # dimensions and book shape by definition (see genre_pack.py's
@@ -366,7 +402,16 @@ def merge(packs, form, base_dims):
         "pillar_label": meta["pillar_label"],
         "weights": meta["weights"],
         "beat_system": meta.get("beat_system", "save-the-cat"),
-        "shape": meta.get("shape", {}),
+        # Reconciled between the two packs rather than passed through:
+        # the form owns total length, the genre owns chapter granularity,
+        # and the chapter count follows from both.
+        "shape": form_pack.effective_shape(form["meta"],
+                                           meta.get("shape", {}),
+                                           form["meta"]["band"]),
+        # Which pillar dimensions survive at this band, with the caps that
+        # apply here. `rescoped` names the ones the band section rewrites
+        # criteria for; `dropped` names the ones it takes out entirely.
+        "pillar": pillar,
         "content_register": content_register,
         "content_register_sources": register_sources,
         "artifacts": artifacts,
@@ -428,10 +473,10 @@ def main(argv):
                         help="validate only; print nothing on success")
     args = parser.parse_args(argv)
 
-    packs, form, base_dims = resolve(Path.cwd())
+    packs, form, base_dims, pillar = resolve(Path.cwd())
     if args.check:
         return 0
-    print(json.dumps(merge(packs, form, base_dims), indent=2))
+    print(json.dumps(merge(packs, form, base_dims, pillar), indent=2))
     return 0
 
 

@@ -10,11 +10,20 @@ Last updated 2026-08-13. Shipped history is in [CHANGELOG.md](CHANGELOG.md).
 
 ## In flight
 
-Nothing. Phases 0, 1 and 2 landed; next is phase 3, which ships
-`short-story` and `novella` and is the first phase that changes what the
-pipeline produces.
+Nothing. Phases 0 through 3 landed. Next is either finishing the band
+coverage below (eight packs still novel-only) or phase 5, `structure:
+collection` — the first of the structure axis, which changes the state
+schema and the phase graph rather than the scoring.
 
 ## Recently landed
+
+- **`short-story` and `novella`**, 0.8.0, 2026-08-13. Phase 3, and the
+  first phase that changes what the pipeline produces. Length bands on
+  genre packs, band arithmetic checked per band and across the full genre ×
+  form matrix, and the shape migration phase 1 deferred: `shape.words` is
+  band-keyed and `shape.chapters` is derived. Four packs ship compressed
+  sections; the rest are refused below novel length rather than judged on
+  criteria written for eighty thousand words.
 
 - **Base dimension parameterization**, 0.7.0, 2026-08-13. Phase 2, and the
   largest of them. The eight base dimensions moved out of `foundation.md`
@@ -75,13 +84,15 @@ All from [the form spec](docs/superpowers/specs/2026-08-13-form-parameterization
 in its phase order. Phases 0–2 are behaviour-preserving and A/B-verifiable
 the way the fantasy port was.
 
-- **3. `short-story` and `novella` forms**, plus compressed-band sections on
-  the genre packs. Also lands what phase 1 deferred: migrating
-  `shape.words` off the genre packs into band-scoped overrides, and
-  deriving `chapters` from `target_words / chapter_words`. Both were held
-  back because collapsing fifteen genuinely different word ranges into one
-  form default would have moved behaviour in a phase whose contract was
-  that nothing did.
+- **4. Band sections for the remaining packs.** Eight are novel-only:
+  `thriller`, `romance`, `erotica`, `paranormal-romance`, `dark-romance`,
+  `romantasy`, `romantic-suspense`, and any new pack. Not all of them
+  should get one — `romantasy` is a magic system plus a full romance arc
+  plus a 22-row braid, and declaring it novel-only is a design statement
+  rather than a gap. The ones with real short markets are `erotica` and
+  `romance` (novella especially), then `thriller`. Aim for three surviving
+  dimensions per compressed band; two is where the arithmetic stops
+  working.
 - **5. `structure: collection`** — absorbs `autoanthology`, which is a
   pre-0.2.0 fork carrying four genre packs in the old prose format and none
   of the genre or form work.
@@ -244,11 +255,6 @@ Questions to answer, not work to schedule.
   the largest untested surface in the project.
 - **`clean-bill` carries 5 open craft debts** in its `canon.md`. Project
   work, not repo work, but it is the only non-fantasy project that exists.
-- **Shape arithmetic is loose.** Several packs' `chapters × chapter_words`
-  only partially intersects their declared `words` — `mystery` spans
-  70,400–83,200 against 80,000–95,000. Becomes unrepresentable once the form
-  axis makes `chapters` derived, so it is deliberately not being fixed
-  first.
 
 ## Not doing
 

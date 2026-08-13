@@ -96,6 +96,13 @@ def validate_form(form):
     errors.extend(_validate_words(meta.get("words"), meta.get("target_words")))
     errors.extend(_validate_gate(meta.get("gate")))
     errors.extend(_validate_layers(meta.get("layers")))
+    unit = meta.get("chapter_words")
+    if unit is not None and not (isinstance(unit, int)
+                                 and not isinstance(unit, bool) and unit > 0):
+        errors.append("'chapter_words' must be a positive integer; a form "
+                      "declares one only to override the genre's, which a "
+                      "compressed form must because its unit is not a "
+                      "chapter")
     errors.extend(_validate_base_dimensions(meta.get("base_dimensions"), form))
 
     if "role" in meta:
@@ -265,6 +272,62 @@ def _validate_base_dimensions(base, form=None):
                 "'## Base Dimensions' section in this form — a judge scores "
                 "from prose, and a dimension with none cannot be scored")
     return errors
+
+
+def effective_shape(form_meta, genre_shape, band):
+    """Reconcile a form's length with a genre's, for one band.
+
+    The division of labour: a FORM owns how long the whole work is, a
+    GENRE owns chapter granularity — 1,900-word chapters in one genre
+    against 3,200 in another is a genre fact, not a length fact — and the
+    chapter COUNT belongs to neither, because it follows from both.
+
+    A genre may still narrow the length within a form, per band, and most
+    do: one pack runs 110,000-140,000 where another runs 75,000, and
+    collapsing every pack onto one form default would lose that. Where the
+    genre says nothing about this band, the form's own range and target
+    apply unchanged.
+
+    Returns the resolved shape plus `words_source`, naming which pack the
+    range came from, so an unexpected target is explicable.
+    """
+    # A form may override chapter granularity, and a compressed one must:
+    # the genre owns it at novel length, where a chapter is the genre's own
+    # unit, but a five-thousand-word story's unit is a scene and dividing
+    # it by a novel genre's 3,200-word chapters yields one and a
+    # remainder. Where the form says nothing, the genre's value stands.
+    chapter_words = (form_meta.get("chapter_words")
+                     or genre_shape.get("chapter_words"))
+    chapter_words_source = ("form" if form_meta.get("chapter_words")
+                            else "genre")
+
+    genre_words = (genre_shape.get("words") or {}).get(band)
+    if genre_words:
+        words, source = genre_words, "genre"
+        target = _round_to(sum(words) / 2, 1000)
+        # A genre range may legitimately straddle the form's ceiling — see
+        # ranges_overlap — but the target it implies must be a length the
+        # form actually covers, or the work is being aimed outside its own
+        # form.
+        target = min(max(target, form_meta["words"][0]), form_meta["words"][1])
+    else:
+        words, source = form_meta["words"], "form"
+        target = form_meta["target_words"]
+
+    chapters = max(1, round(target / chapter_words)) if chapter_words else None
+    return {
+        "words": words,
+        "words_source": source,
+        "target_words": target,
+        "chapter_words": chapter_words,
+        "chapter_words_source": chapter_words_source,
+        "chapters": chapters,
+        "pov_default": genre_shape.get("pov_default"),
+    }
+
+
+def _round_to(value, step):
+    return int(round(value / step) * step)
 
 
 def ranges_overlap(a, b):

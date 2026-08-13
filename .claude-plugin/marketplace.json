@@ -5,12 +5,12 @@
   "owner": {
     "name": "Brent Rogers"
   },
-  "version": "0.7.0",
+  "version": "0.8.0",
   "plugins": [
     {
       "name": "autoauthor",
       "description": "Autonomous novel-writing pipeline: seed, foundation, drafting, revision, review, and export skills, with swappable genre packs and score-gated iteration.",
-      "version": "0.7.0",
+      "version": "0.8.0",
       "author": {
         "name": "Brent Rogers"
       },

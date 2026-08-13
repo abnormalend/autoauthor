@@ -178,22 +178,33 @@ def _main(argv):
             print(f"{path}: {e}")
             failed = True
             continue
-        dimensions = pack["dimensions"]
-        if not dimensions:
+        if not pack["dimensions"]:
             continue
-        caps = sorted(pack["caps"].values())
-        ceiling = max_gate(len(dimensions), caps)
-        _, averages = required(len(dimensions), caps, PILLAR_GATE)
-        at_gate = ", ".join(f"k={k}:{avg:.2f}"
-                            for k, avg in enumerate(averages[:2], start=1))
-        problem = unreachable(len(dimensions), caps)
-        mark = "FAIL" if problem else "ok  "
-        print(f"{mark} {path.stem:20} N={len(dimensions)} "
-              f"{format_caps(caps):28} at {PILLAR_GATE} [{at_gate}]  "
-              f"ceiling {ceiling}")
-        if problem:
-            print(f"       {problem}")
-            failed = True
+        # One row per band the pack actually supports. A band drops
+        # dimensions, which shrinks the divisor the caps are calibrated
+        # against, so each is a separate design and gets its own ceiling.
+        for band in genre_pack.BANDS:
+            dimensions, caps, _, _, source = genre_pack.band_criteria(
+                pack, band)
+            if band != "extended" and source is None:
+                continue
+            caps = sorted(caps.values())
+            ceiling = max_gate(len(dimensions), caps)
+            _, averages = required(len(dimensions), caps, PILLAR_GATE)
+            at_gate = ", ".join(f"k={k}:{avg:.2f}"
+                                for k, avg in enumerate(averages[:2], start=1))
+            # Only the default design is checked against the pipeline's
+            # floor. A band's gate comes from the FORM beside it, which is
+            # not known here — the resolver checks that pairing.
+            problem = unreachable(len(dimensions), caps) if band == "extended" \
+                else None
+            mark = "FAIL" if problem else "ok  "
+            label = f"{path.stem}/{band}"
+            print(f"{mark} {label:32} N={len(dimensions)} "
+                  f"{format_caps(caps):28} [{at_gate}]  ceiling {ceiling}")
+            if problem:
+                print(f"       {problem}")
+                failed = True
     return 1 if failed else 0
 
 

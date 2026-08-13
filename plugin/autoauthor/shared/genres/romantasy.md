@@ -9,8 +9,7 @@
   "content_register": {},
   "conflicts_with": ["fantasy", "romance"],
   "shape": {
-    "chapters": [42, 56],
-    "words": [110000, 140000],
+    "words": {"extended": [110000, 140000]},
     "chapter_words": 2600,
     "pov_default": "dual third limited past, alternating between the two leads"
   },

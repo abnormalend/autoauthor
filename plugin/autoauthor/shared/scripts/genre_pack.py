@@ -135,6 +135,29 @@ PROSE_CAP_RE = re.compile(
     r"|\bscore\s+no\s+(?:higher|more)\s+than\s+(\d+)\b", re.I)
 SECTION_RE = re.compile(r"^##\s+(.+?)\s*$", re.M)
 
+# Length bands, and the section a genre pack writes its length-scoped
+# criteria under. `extended` has no section: a pack's ordinary criteria ARE
+# its extended-length criteria, which is what let fifteen packs stay
+# untouched while the form axis was built.
+#
+# Fallback runs intermediate -> compressed -> none, because a pack that has
+# thought about five thousand words has thought about most of what forty
+# thousand needs, while the reverse is not true.
+BANDS = ("compressed", "intermediate", "extended")
+BAND_SECTIONS = {
+    "compressed": "At Compressed Length",
+    "intermediate": "At Intermediate Length",
+}
+BAND_FALLBACK = {"intermediate": ("intermediate", "compressed"),
+                 "compressed": ("compressed",),
+                 "extended": ()}
+
+# A band bullet saying the dimension does not apply at this length. The
+# dimension leaves the pillar entirely — and therefore leaves the divisor
+# `pillar_score` is a mean over, which is why the cap arithmetic has to be
+# recomputed per band rather than assumed from the default.
+NOT_SCORED_RE = re.compile(r"^\s*not scored at this band\b", re.I)
+
 
 class PackError(Exception):
     """Malformed pack. The message is user-facing."""
@@ -309,6 +332,51 @@ def _prose_caps(criteria):
             for g in match.groups() if g]
 
 
+def band_criteria(pack, band):
+    """What this pack scores at `band`, after fallback.
+
+    Returns (dimensions, caps, replaced, dropped, source_band):
+
+      dimensions  — the pillar dimensions still scored, in declaration
+                    order, with anything the band drops removed
+      caps        — {dimension: N}, the band's restated cap where it
+                    restates one and the default cap otherwise
+      replaced    — dimensions whose criteria the band section rewrites
+      dropped     — dimensions the band section says are not scored here
+      source_band — which section actually supplied it, after the
+                    intermediate -> compressed fallback, or None
+
+    A band section that names no dimension a pack declares is an authoring
+    error rather than a no-op, and validate_pack reports it — silently
+    ignoring the section would leave a pack looking length-aware while
+    scoring a short story against novel criteria.
+    """
+    for candidate in BAND_FALLBACK.get(band, ()):
+        section = section_body(pack["body"], BAND_SECTIONS[candidate])
+        if section is not None:
+            return (*_apply_band(pack, section), candidate)
+    return (list(pack["dimensions"]), dict(pack["caps"]), [], [], None)
+
+
+def _apply_band(pack, section):
+    keys, _, band_caps, _ = dimension_bullets(section)
+    masked = _mask_fences(section)
+    matches = list(DIMENSION_RE.finditer(masked))
+
+    dropped = []
+    for i, match in enumerate(matches):
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(masked)
+        if NOT_SCORED_RE.match(masked[match.end():end].lstrip("— ").lstrip()):
+            dropped.append(match.group(1))
+
+    replaced = [k for k in keys if k not in dropped]
+    dimensions = [d for d in pack["dimensions"] if d not in dropped]
+    caps = {d: band_caps.get(d, pack["caps"].get(d))
+            for d in dimensions
+            if band_caps.get(d, pack["caps"].get(d)) is not None}
+    return dimensions, caps, replaced, dropped
+
+
 def format_names(seq):
     """Render an iterable of values for an error message: 'craft, pillar'
     instead of the default repr "['craft', 'pillar']". Every element is
@@ -440,6 +508,15 @@ def validate_pack(pack, known_names=None):
                                            "Pillar Dimensions" in sections))
         errors.extend(_validate_caps(pack["dimensions"], pack["caps"],
                                      pack["prose_caps"], is_primary))
+        errors.extend(_validate_bands(pack, is_primary))
+
+    if modifier_only:
+        for band, heading in BAND_SECTIONS.items():
+            if heading in sections:
+                errors.append(
+                    f"modifier pack must not have a '## {heading}' section; "
+                    "a modifier declares no pillar dimensions, so it has "
+                    "none to rescope at a length")
 
     if modifier_only and "Pillar Dimensions" in sections:
         errors.append(
@@ -523,33 +600,7 @@ def _validate_caps(dimensions, caps, prose_caps, is_primary):
        checked for primaries: `pillar_score` averages the primary's
        dimensions alone, so a secondary's caps never form a gate.
     """
-    errors = []
-
-    for key in dimensions:
-        declared, stated = caps.get(key), prose_caps.get(key)
-        if declared is not None and not (
-                gate_solver.MIN_CAP <= declared <= gate_solver.MAX_CAP):
-            errors.append(
-                f"dimension {key!r} declares [cap {declared}]; a cap must be "
-                f"{gate_solver.MIN_CAP}-{gate_solver.MAX_CAP} "
-                "(10 caps nothing, and 0 is not a score)")
-        if declared is None and stated is not None:
-            errors.append(
-                f"dimension {key!r} states a cap of {stated} in its criteria "
-                f"but declares none; write '- {key} [cap {stated}] — ...' so "
-                "the gate arithmetic can see it")
-        elif declared is not None and stated is None:
-            errors.append(
-                f"dimension {key!r} declares [cap {declared}] but its "
-                "criteria never state it; a judge reads the criteria, so say "
-                "it there too — 'score N max', 'caps at N', or 'score no "
-                "higher than N'")
-        elif (declared is not None and stated is not None
-                and declared != stated):
-            errors.append(
-                f"dimension {key!r} declares [cap {declared}] but its "
-                f"criteria can force it to {stated}; the declared cap is the "
-                "LOWEST tier the criteria can reach")
+    errors = _cap_agreement(dimensions, caps, prose_caps)
 
     if is_primary and not errors:
         # Suppressed while the caps themselves are wrong: arithmetic over a
@@ -560,6 +611,110 @@ def _validate_caps(dimensions, caps, prose_caps, is_primary):
         if problem:
             errors.append(problem)
 
+    return errors
+
+
+def _cap_agreement(dimensions, caps, prose_caps, where=""):
+    """The declared `[cap N]` and the criteria must say the same number.
+
+    The declaration is what tooling reads and the criteria are what the
+    judge reads, so a divergence means the gate is computed against a pack
+    that no longer exists. Shared by the default criteria and by every
+    band section, which restate caps for their own reduced dimension set.
+    """
+    errors = []
+    for key in dimensions:
+        declared, stated = caps.get(key), prose_caps.get(key)
+        label = f"dimension {key!r}{where}"
+        if declared is not None and not (
+                gate_solver.MIN_CAP <= declared <= gate_solver.MAX_CAP):
+            errors.append(
+                f"{label} declares [cap {declared}]; a cap must be "
+                f"{gate_solver.MIN_CAP}-{gate_solver.MAX_CAP} "
+                "(10 caps nothing, and 0 is not a score)")
+        if declared is None and stated is not None:
+            errors.append(
+                f"{label} states a cap of {stated} in its criteria but "
+                f"declares none; write '- {key} [cap {stated}] — ...' so the "
+                "gate arithmetic can see it")
+        elif declared is not None and stated is None:
+            errors.append(
+                f"{label} declares [cap {declared}] but its criteria never "
+                "state it; a judge reads the criteria, so say it there too — "
+                "'score N max', 'caps at N', or 'score no higher than N'")
+        elif (declared is not None and stated is not None
+                and declared != stated):
+            errors.append(
+                f"{label} declares [cap {declared}] but its criteria can "
+                f"force it to {stated}; the declared cap is the LOWEST tier "
+                "the criteria can reach")
+    return errors
+
+
+def _validate_bands(pack, is_primary):
+    """Check each length-scoped section a pack declares.
+
+    Dropping a dimension at a band changes N, and every pack's cap
+    arithmetic is calibrated against its own N — so a band that removes
+    two of five dimensions is a different design with a different ceiling,
+    and has to be checked as one. This is the check the form spec calls
+    the single highest-value addition, because it is the defect class that
+    has already bitten twice.
+    """
+    errors = []
+    declared = set(pack["dimensions"])
+
+    for band, heading in BAND_SECTIONS.items():
+        section = section_body(pack["body"], heading)
+        if section is None:
+            continue
+        keys, malformed, band_caps, band_prose = dimension_bullets(section)
+        where = f" in '## {heading}'"
+
+        if malformed:
+            errors.append(
+                f"dimension(s) {format_names(sorted(malformed))}{where} use a "
+                "hyphen or en dash; an em dash (—) is required")
+        unknown = sorted(set(keys) - declared)
+        if unknown:
+            errors.append(
+                f"'## {heading}' names {format_names(unknown)}, which this "
+                "pack does not declare under '## Pillar Dimensions'; a band "
+                "section rewrites existing criteria, it cannot introduce a "
+                "dimension")
+        if not keys:
+            errors.append(
+                f"'## {heading}' names no dimension; either say what changes "
+                "at this length or delete the section, because an empty one "
+                "leaves the pack looking length-aware while scoring a short "
+                "work against criteria written for a long one")
+            continue
+
+        dimensions, caps, _, dropped, _ = band_criteria(pack, band)
+        # 'not scored at this band' bullets carry no criteria and so no cap.
+        scored_here = [k for k in keys if k not in dropped]
+        errors.extend(_cap_agreement(scored_here,
+                                     {k: band_caps.get(k) for k in scored_here
+                                      if band_caps.get(k) is not None},
+                                     band_prose, where))
+
+        if not dimensions:
+            errors.append(
+                f"'## {heading}' drops every dimension, leaving no pillar to "
+                "score and `pillar_score` a mean over nothing")
+            continue
+
+        if is_primary and not errors:
+            ceiling = gate_solver.max_gate(len(dimensions),
+                                           sorted(caps.values()))
+            if ceiling is None:
+                errors.append(
+                    f"at {band} length this pack scores {len(dimensions)} "
+                    f"dimension(s) with {gate_solver.format_caps(sorted(caps.values()))}, "
+                    "and no gate between 4.0 and 9.9 is reachable. Dropping a "
+                    "dimension shrinks the divisor the caps are calibrated "
+                    "against — restate the caps for the reduced set, or drop "
+                    "one fewer")
     return errors
 
 
@@ -594,24 +749,44 @@ def _validate_shape(shape, required=False):
     """Validate a pack's `shape`.
 
     Required on primaries: layer-guides.md tells the outliner to take its
-    chapter count and word targets from `shape`, and drafting-rules.md
-    takes its per-chapter target from `shape.chapter_words`. A primary
-    without `shape` leaves both instructions pointing at nothing, so this
-    fails at authoring time rather than mid-draft.
+    word targets from `shape`, and drafting-rules.md takes its per-chapter
+    target from `shape.chapter_words`. A primary without `shape` leaves
+    both instructions pointing at nothing, so this fails at authoring time
+    rather than mid-draft.
+
+    Two things moved here with the form axis:
+
+    `words` is keyed by BAND. Length is the form's to own, but a genre
+    still has a length within a form — a romantasy runs 110,000-140,000
+    where a cozy runs 75,000, and collapsing every pack onto one form
+    default would lose a real genre fact. A band a pack says nothing about
+    takes the form's own range.
+
+    `chapters` is DERIVED, from the effective target over `chapter_words`,
+    and declaring it is an error. Several packs' declared chapter ranges
+    only partially intersected their own word ranges — `mystery` spanned
+    70,400-83,200 against a declared 80,000-95,000, so most of its chapter
+    range could not reach its own word floor. Deriving the count makes that
+    class of inconsistency unrepresentable rather than merely fixed.
     """
     if shape is None:
         if required:
             return ["frontmatter 'shape' is required for primary packs "
-                    "(chapters, words, chapter_words, pov_default) — the "
-                    "outline and drafting steps read their targets from it"]
+                    "(words, chapter_words, pov_default) — the outline and "
+                    "drafting steps read their targets from it"]
         return []
     if not isinstance(shape, dict):
         return ["'shape' must be a JSON object"]
     errors = []
     if required:
-        for key in ("chapters", "words", "chapter_words", "pov_default"):
+        for key in ("words", "chapter_words", "pov_default"):
             if key not in shape:
                 errors.append(f"shape.{key} is required for primary packs")
+    if "chapters" in shape:
+        errors.append(
+            "shape.chapters is derived from the effective word target and "
+            "shape.chapter_words — remove it; a declared count can "
+            "contradict the word range, and several packs' did")
     if "chapter_words" in shape and not (
             isinstance(shape["chapter_words"], int)
             and not isinstance(shape["chapter_words"], bool)
@@ -621,14 +796,34 @@ def _validate_shape(shape, required=False):
             isinstance(shape.get("pov_default"), str)
             and shape["pov_default"].strip()):
         errors.append("shape.pov_default must be a non-empty string")
-    for key in ("chapters", "words"):
-        rng = shape.get(key)
-        if rng is None:
-            continue
+    errors.extend(_validate_band_words(shape.get("words")))
+    return errors
+
+
+def _validate_band_words(words):
+    if words is None:
+        return []
+    if not isinstance(words, dict):
+        return ["shape.words must be a JSON object keyed by band "
+                f"({format_names(BANDS)}), e.g. "
+                '{"extended": [80000, 95000]} — length is band-scoped now, '
+                "and a bare range cannot say which length it describes"]
+    errors = []
+    unknown = sorted(set(words) - set(BANDS))
+    if unknown:
+        errors.append(
+            f"shape.words has unknown band(s) {format_names(unknown)}; "
+            f"valid bands: {format_names(BANDS)}")
+    if not words:
+        errors.append("shape.words declares no band; give at least one")
+    for band, rng in words.items():
         if (not isinstance(rng, list) or len(rng) != 2
                 or not all(isinstance(v, int) and not isinstance(v, bool)
                            for v in rng)):
-            errors.append(f"shape.{key} must be a two-integer range")
+            errors.append(f"shape.words.{band} must be a two-integer range")
         elif rng[0] > rng[1]:
-            errors.append(f"shape.{key} range {rng} is not ordered low..high")
+            errors.append(
+                f"shape.words.{band} range {rng} is not ordered low..high")
+        elif rng[0] <= 0:
+            errors.append(f"shape.words.{band} floor must be positive")
     return errors

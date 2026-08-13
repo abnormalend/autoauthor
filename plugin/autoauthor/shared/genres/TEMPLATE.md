@@ -146,6 +146,20 @@ double-counted.
 A cap an ordinary competent book trips by accident is mis-set: raise the
 number or narrow the trigger — do not delete the cap.
 
+**A length band is a different design, with a different ceiling.** If your
+pack declares `## At Compressed Length` or `## At Intermediate Length`, the
+dimensions those sections drop leave the pillar entirely — and therefore
+leave the divisor `pillar_score` is a mean over. Five dimensions capped at
+6 support a 7.1 gate; the same caps on the two that survive a compressed
+band support 5.9, which is under the short-story form's own 6.0. So restate
+caps for the reduced set, and check the arithmetic per band rather than
+assuming the default carries over. `gate_solver.py` prints a row per band.
+
+Aim to leave THREE dimensions at a compressed band. Two is where the
+arithmetic stops working — with both capped there is nothing left to make
+up the difference — and four rarely survives contact with five thousand
+words.
+
 **Calibrate for your own N, and only your own.** A secondary pack's pillar
 dimensions are also scored, so a book can be judged on ten dimensions when
 your pack declares five. That does not change the arithmetic above:

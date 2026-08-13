@@ -9,8 +9,7 @@
   "content_register": {},
   "conflicts_with": [],
   "shape": {
-    "chapters": [40, 55],
-    "words": [85000, 100000],
+    "words": {"extended": [85000, 100000]},
     "chapter_words": 1900,
     "pov_default": "third limited past, alternating between the protagonist and the antagonist"
   },

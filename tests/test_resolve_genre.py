@@ -48,7 +48,7 @@ def primary_meta(name, **overrides):
         "pillar_label": "Test Pillar",
         "weights": {"pillar": 40, "character": 30, "structure": 20, "craft": 10},
         "beat_system": "save-the-cat",
-        "shape": {"chapters": [22, 26], "words": [80000, 95000],
+        "shape": {"words": {"extended": [80000, 95000]},
                   "chapter_words": 3200, "pov_default": "third limited past"},
         "conflicts_with": [], "artifacts": [],
     }
@@ -188,7 +188,7 @@ SECONDARY_META = {
     "weights": {"pillar": 20, "character": 40, "structure": 25, "craft": 15},
     # Declares "primary", so it must carry a usable `shape` even though these
     # tests only ever load it in the secondary slot.
-    "shape": {"chapters": [18, 24], "words": [70000, 85000],
+    "shape": {"words": {"extended": [70000, 85000]},
               "chapter_words": 3000, "pov_default": "first person present"},
     "conflicts_with": [], "artifacts": ["second_ledger.md"],
 }

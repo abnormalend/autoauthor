@@ -9,8 +9,7 @@
   "content_register": {},
   "conflicts_with": [],
   "shape": {
-    "chapters": [20, 30],
-    "words": [75000, 95000],
+    "words": {"extended": [75000, 95000]},
     "chapter_words": 3000,
     "pov_default": "third limited past"
   },
@@ -34,6 +33,18 @@
 - thematic_architecture [cap 6] — Is there a genuine question the book is asking, stated nowhere and present everywhere? A theme a character articulates aloud is a message, not a theme. Test: from the documents you were given, can you name the question in one sentence without reusing the documents' own phrasing for it? If you cannot, score 6 max. If the outline or an exemplar passage in voice.md has a character state the theme aloud, score 6 max regardless of how well the rest of the plan explores it.
 - cultural_particularity [cap 6] — Manners, taboos, and the local rules an outsider would break without knowing they existed. Test: name three unwritten rules of this world, and for each, the character who breaks one and what it costs them. If fewer than two can be answered from the documents, score 6 max. Custom that arrives only as description — the food, the dress, the festival nobody's choice runs through — is decoration and counts against, not for.
 - temporal_grounding [cap 6] — When is this, and does it matter? Period, season, elapsed duration, and the rate at which this world changes. Test: could this story happen unchanged fifty years earlier or later? If yes, and the novel is not deliberately timeless, score 6 max. Also check that elapsed time is trackable in the documents you were given — the outline should let you say, at any chapter, roughly how long it has been since chapter 1.
+
+## At Compressed Length
+
+Three dimensions, not five. The two that go are the two that need a book's
+duration to demonstrate: a story covering one afternoon cannot show a world
+changing, and custom read across a cast is a novel's instrument.
+
+- setting_specificity [cap 6] — One place, doing work. The test tightens rather than loosens: a short story has no second location to be compared against, so ask instead whether the place constrains the choice the story turns on. If the story could be relocated to a different kind of place with only proper nouns changed, score 6 max.
+- social_texture [cap 6] — Not the full material map — one material fact that binds. Name what the protagonist stands to lose in concrete terms: a job, a room, a standing, a sum. If the plan states no such fact, or states one the plot never touches, score 6 max.
+- thematic_architecture [cap 6] — The question, asked once and not answered. At this length the whole story is usually one question held up, so this is the dimension carrying the most weight, not the least. If you cannot name the question in a sentence from the plan, score 6 max. A character stating it aloud is worse here than in a novel, not better: there is nowhere for the reader to have found it themselves.
+- cultural_particularity — not scored at this band.
+- temporal_grounding — not scored at this band.
 
 ## Genre Contract
 

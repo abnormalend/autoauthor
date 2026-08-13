@@ -9,8 +9,7 @@
   "content_register": {"heat": "explicit"},
   "conflicts_with": ["ya"],
   "shape": {
-    "chapters": [18, 24],
-    "words": [65000, 85000],
+    "words": {"extended": [65000, 85000]},
     "chapter_words": 3200,
     "pov_default": "dual close third limited past, alternating between the principals"
   },

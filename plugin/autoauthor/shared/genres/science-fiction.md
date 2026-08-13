@@ -9,8 +9,7 @@
   "content_register": {},
   "conflicts_with": [],
   "shape": {
-    "chapters": [24, 30],
-    "words": [90000, 110000],
+    "words": {"extended": [90000, 110000]},
     "chapter_words": 3600,
     "pov_default": "third limited past"
   },
@@ -60,6 +59,19 @@ Three things are worth distinguishing before scoring.
 - rule_integrity [cap 6] — The world's rules must hold under the plot's own pressure, and the hardest problem in the book must be hard because of them. Excellent looks like an outline in which the novum's stated limits are what make the protagonist's situation difficult, and in which the novum visibly fails, costs, or refuses somebody at least once on the page. A gap looks like a capability that quietly expands to meet the need of whichever scene it is in. Test: list every point in the outline where the speculative element solves a problem or creates one, and check each against the limits stated in world.md. If any of them requires a capability, range, precision, or exception not established before that chapter, score 6 max. Note that the same fault at the climax is also a Genre Contract breach, which the rubric handles separately — score the graded version here and do not double-count it. Second test: if the outline contains no scene in which the novum costs someone something or cannot do what is needed, score 6 max; a system with no visible edge has not been tested.
 - premise_dependence [cap 6] — The human problem must be one the novum makes possible, not a contemporary story wearing it. Excellent looks like a central conflict that would lose its meaning if transposed to the present day, because the choice the protagonist faces is a choice only this world offers. A gap looks like a workplace drama, a custody fight, or a war story with speculative set dressing — the novum present in every scene and load-bearing in none. Test: rewrite the central conflict in one sentence with the novum deleted and its nearest present-day equivalent substituted. If that sentence still describes the same book, score 6 max. Second test: name the protagonist's decisive choice in the final act and ask whether they would face the same choice, with the same cost, in 2026. If yes, score 6 max — the book is set in the future rather than about it.
 - register_plausibility [cap 6] — Internal plausibility is judged against the book's own promise, not against a fixed hardness. Excellent looks like documents that make their register legible — near-future extrapolation, hard SF, social SF, space opera, planetary romance — and then keep it: where the book invokes real science it gets it right, and where it waves it waves once, early, cheaply, and never again to get out of trouble. A gap looks like a mixed register that trains the reader wrongly: three pages of correct delta-v beside a faculty that works because the plot needs it, or a deliberately baroque space opera that suddenly stops to justify itself. Test: name the register the documents promise, in one phrase, then take the three most demanding claims the book makes and judge each against THAT promise. If any one of them would break the book's own contract with its reader — a hard-SF frame violating conservation, a space opera inventing a rule to escape a corner — score 6 max. Second test: if you cannot name the register from the documents at all, because the level of explanation swings scene to scene, score 6 max; a reader who cannot calibrate cannot be surprised.
+
+## At Compressed Length
+
+Three dimensions, not five. The short story is science fiction's oldest
+and best-served length, and what it does there is exactly this: one
+novum, followed one step, at a register the reader can hold. Cascades and
+rule integrity across a plot are novel instruments.
+
+- novum_specificity [cap 6] — One new thing, specified. Both sets of three collapse to one each here: name what it does and name what it costs. If the plan cannot supply both, score 6 max.
+- premise_dependence [cap 6] — The test is unchanged and it bites harder. Delete the novum and restate the story in one sentence. If that sentence still describes the same story, score 6 max — at this length a story that is merely SET in the future has spent its whole budget on set dressing.
+- register_plausibility [cap 6] — One register, held for four thousand words. The swing that a novel can absorb across three hundred pages is fatal here, because the reader forms the contract in the first paragraph and has no time to revise it. If the level of explanation moves scene to scene, score 6 max.
+- consequence_cascade — not scored at this band.
+- rule_integrity — not scored at this band.
 
 ## Genre Contract
 

@@ -9,8 +9,7 @@
   "content_register": {},
   "conflicts_with": ["romance", "ya", "cozy"],
   "shape": {
-    "chapters": [34, 40],
-    "words": [75000, 88000],
+    "words": {"extended": [75000, 88000]},
     "chapter_words": 2200,
     "pov_default": "dual first person present, alternating between the two leads"
   },

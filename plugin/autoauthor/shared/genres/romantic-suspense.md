@@ -9,8 +9,7 @@
   "content_register": {},
   "conflicts_with": ["romance", "thriller"],
   "shape": {
-    "chapters": [34, 39],
-    "words": [85000, 98000],
+    "words": {"extended": [85000, 98000]},
     "chapter_words": 2500,
     "pov_default": "dual third limited past, alternating between the two leads, with optional short antagonist chapters at no more than one in six"
   },

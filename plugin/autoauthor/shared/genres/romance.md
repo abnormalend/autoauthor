@@ -9,8 +9,7 @@
   "content_register": {},
   "conflicts_with": [],
   "shape": {
-    "chapters": [26, 32],
-    "words": [80000, 95000],
+    "words": {"extended": [80000, 95000]},
     "chapter_words": 3000,
     "pov_default": "dual third limited past, alternating between the two leads"
   },

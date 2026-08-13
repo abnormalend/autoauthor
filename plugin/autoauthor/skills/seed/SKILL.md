@@ -31,6 +31,23 @@ existing project.
    project that builds an entire book in a genre nobody chose, with
    nothing ever surfacing the mistake.
 
+2b. **Choose the form.** List the forms in
+   `"${CLAUDE_PLUGIN_ROOT}/shared/forms/"` with their `label` and `words`
+   range, and ask how long the work is. If the user declines, use `novel`
+   — the same defaulting rule and the same caveat as the genre.
+
+   The form decides total length, which planning layers get built, where
+   the foundation gate sits, and how the genre's own criteria are read. It
+   is not a preference to revisit later: a short story and a novel are
+   different works, not the same work at two sizes.
+
+   Not every genre supports every length. A pack needs a length-scoped
+   section to be judged below novel length, and one without it is REFUSED
+   rather than judged on criteria written for eighty thousand words. Settle
+   the form here, alongside the genre, so the pair is checked once at init
+   rather than discovered at the first foundation run — the resolver in
+   step 3 will say plainly if they cannot go together.
+
 3. **Initialize the project:**
    - Safety checks first: if `<dir>` already exists and is non-empty, STOP
      and ask the user before touching it (a retry may have partial content
@@ -42,9 +59,9 @@ existing project.
      `cp "${CLAUDE_PLUGIN_ROOT}/shared/templates/"* <dir>/` (quoted against
      spaces in the install path) — this copies voice.md, world.md,
      characters.md, outline.md, canon.md, MYSTERY.md, state.json.
-   - **Write the genre into `state.json` immediately after the copy** —
-     set `genre`, `genre_secondary`, and `genre_modifiers` from step 2,
-     replacing the template's nulls. Then resolve the stack from the
+   - **Write the genre and form into `state.json` immediately after the
+     copy** — set `genre`, `genre_secondary`, and `genre_modifiers` from
+     step 2 and `form` from step 2b, replacing the template's nulls. Then resolve the stack from the
      project directory and KEEP the JSON it prints; the rest of this step
      and step 4 both read it:
 

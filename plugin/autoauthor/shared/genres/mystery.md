@@ -9,8 +9,7 @@
   "content_register": {},
   "conflicts_with": [],
   "shape": {
-    "chapters": [22, 26],
-    "words": [80000, 95000],
+    "words": {"extended": [80000, 95000]},
     "chapter_words": 3200,
     "pov_default": "single-POV third limited past"
   },
@@ -51,6 +50,21 @@ saw. That is cheating, and no amount of elegance redeems it.
 - misdirection_honesty [cap 6] — Red herrings must mislead by interpretation, never by omission. Excellent looks like a clue that is entirely true, shown in full, and means something other than what the detective and the reader conclude — and whose real, innocent meaning is written down in the ledger. A gap looks like a herring built from a fact the POV character knew and the narration skipped, or one whose innocent explanation the plan has not actually decided on. Test: take each row the ledger marks as a red herring and check that its "Actually means" column contains a specific true explanation rather than "nothing" or "misleading". If any herring lacks one, score 6 max. If the plan's misdirection depends anywhere on the narration declining to report what the POV character observed, score 6 max regardless of how well the rest is built.
 - detection_logic [cap 6] — The route from clues to solution must be reproducible. Excellent looks like a detective with a stated method who is shown using it, and a chain in which each inference names the clue it rests on. A gap looks like intuition doing the load-bearing work — a hunch, a feeling that something was wrong, a leap the text asserts rather than shows. Test: reconstruct the chain from the outline in numbered steps, each citing a ledger row. If you cannot get from the evidence to the culprit without a step that has no clue behind it, score 6 max. If the solution reaches the reader through a confession, an eleventh-hour witness, or the culprit explaining themselves unprompted rather than through the detective's reasoning, score 6 max.
 - solvability_curve [cap 6] — A mystery should become solvable at a specific point and then stay unsolved for a while — enough runway that the attentive reader gets to be right and the ordinary reader gets to be surprised. Excellent looks like a ledger whose "Solvable by" values converge two to four chapters before the reveal. A gap looks like the last necessary clue arriving in the reveal chapter (nobody could have solved it) or every clue being present by the third chapter with nothing to do afterwards (everyone solved it, and the middle is filler). Test: take the maximum "Solvable by" value across all rows the solution depends on and compare it to the reveal chapter. If the gap is under one chapter or over a third of the book, score 6 max. Also check the middle: if the outline's second act plants no clue the solution needs, the investigation is treading water; score 6 max.
+
+## At Compressed Length
+
+Three dimensions, not five. A short mystery cannot field a viable suspect
+pool — three suspects with means, motive and opportunity is most of a
+novel's cast — and a solvability curve measured in chapters has no
+chapters to measure. What survives is the fair-play core, which is
+exactly what does not scale down: a clue withheld is a broken promise at
+any length.
+
+- clue_completeness [cap 6] — Every fact the solution rests on is on the page before it. Unchanged, and the least negotiable thing in this pack. If any required fact has no earlier planting, score 6 max — and note that this is also a Genre Contract breach, which the rubric handles separately.
+- misdirection_honesty [cap 6] — One herring, honestly built: it must have an innocent explanation the reader can reach. At this length a single herring is the right number and two is usually one too many. If the misdirection anywhere depends on the narration declining to report what the POV character observed, score 6 max regardless of how well the rest is built.
+- detection_logic [cap 6] — The chain from evidence to culprit, with no step missing. If you cannot get there without a step that has no clue behind it, score 6 max. A confession or an unprompted explanation is worse here than in a novel: it is not a shortcut past a hundred pages, it is the story.
+- suspect_viability — not scored at this band.
+- solvability_curve — not scored at this band.
 
 ## Genre Contract
 

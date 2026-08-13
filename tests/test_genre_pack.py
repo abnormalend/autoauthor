@@ -25,7 +25,7 @@ VALID_PRIMARY_META = {
     "pillar_label": "Test Pillar",
     "weights": {"pillar": 40, "character": 30, "structure": 20, "craft": 10},
     "beat_system": "save-the-cat",
-    "shape": {"chapters": [22, 26], "words": [80000, 95000],
+    "shape": {"words": {"extended": [80000, 95000]},
               "chapter_words": 3200, "pov_default": "third limited past"},
     "conflicts_with": [],
     "artifacts": [],
@@ -619,32 +619,55 @@ def test_shape_must_be_json_object(tmp_path):
 
 def test_shape_range_must_be_two_integers(tmp_path):
     meta = {**VALID_PRIMARY_META,
-            "shape": {**VALID_PRIMARY_META["shape"], "chapters": [22]}}
+            "shape": {**VALID_PRIMARY_META["shape"],
+                      "words": {"extended": [22]}}}
     errors = validate(tmp_path, "testgenre", meta)
-    assert errors == ["shape.chapters must be a two-integer range"]
+    assert errors == ["shape.words.extended must be a two-integer range"]
 
 
 def test_shape_range_rejects_bool_as_integer(tmp_path):
     meta = {**VALID_PRIMARY_META,
-            "shape": {**VALID_PRIMARY_META["shape"], "chapters": [True, 26]}}
+            "shape": {**VALID_PRIMARY_META["shape"],
+                      "words": {"extended": [True, 26]}}}
     errors = validate(tmp_path, "testgenre", meta)
-    assert errors == ["shape.chapters must be a two-integer range"]
-
-
-def test_shape_chapters_range_must_be_ordered(tmp_path):
-    meta = {**VALID_PRIMARY_META,
-            "shape": {**VALID_PRIMARY_META["shape"], "chapters": [26, 22]}}
-    errors = validate(tmp_path, "testgenre", meta)
-    assert errors == ["shape.chapters range [26, 22] is not ordered low..high"]
+    assert errors == ["shape.words.extended must be a two-integer range"]
 
 
 def test_shape_words_range_must_be_ordered(tmp_path):
     meta = {**VALID_PRIMARY_META,
-            "shape": {**VALID_PRIMARY_META["shape"], "words": [95000, 80000]}}
+            "shape": {**VALID_PRIMARY_META["shape"],
+                      "words": {"extended": [95000, 80000]}}}
     errors = validate(tmp_path, "testgenre", meta)
     assert errors == [
-        "shape.words range [95000, 80000] is not ordered low..high"
+        "shape.words.extended range [95000, 80000] is not ordered low..high"
     ]
+
+
+# `chapters` is derived from the effective target over chapter_words. A
+# declared count could contradict the word range, and several packs' did —
+# mystery spanned 70,400-83,200 against a declared 80,000-95,000.
+
+def test_a_declared_chapter_count_is_refused(tmp_path):
+    meta = {**VALID_PRIMARY_META,
+            "shape": {**VALID_PRIMARY_META["shape"], "chapters": [22, 26]}}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("shape.chapters is derived" in e for e in errors)
+
+
+def test_shape_words_must_be_keyed_by_band(tmp_path):
+    meta = {**VALID_PRIMARY_META,
+            "shape": {**VALID_PRIMARY_META["shape"],
+                      "words": [80000, 95000]}}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("must be a JSON object keyed by band" in e for e in errors)
+
+
+def test_shape_words_rejects_an_unknown_band(tmp_path):
+    meta = {**VALID_PRIMARY_META,
+            "shape": {**VALID_PRIMARY_META["shape"],
+                      "words": {"epic": [200000, 300000]}}}
+    errors = validate(tmp_path, "testgenre", meta)
+    assert any("unknown band(s) epic" in e for e in errors)
 
 
 # --- artifacts --------------------------------------------------------------
@@ -748,7 +771,7 @@ def test_primary_requires_shape(tmp_path):
 
 
 def test_primary_requires_each_shape_key(tmp_path):
-    meta = {**VALID_PRIMARY_META, "shape": {"chapters": [22, 26]}}
+    meta = {**VALID_PRIMARY_META, "shape": {}}
     errors = validate(tmp_path, "testgenre", meta)
     for key in ("words", "chapter_words", "pov_default"):
         assert any(f"shape.{key} is required" in e for e in errors), key

@@ -286,9 +286,10 @@ def test_every_shipped_genre_overlaps_the_novel_form(tmp_path):
         if path.stem == "TEMPLATE":
             continue
         shape = genre_pack.parse_pack(path)["meta"].get("shape") or {}
-        if not shape.get("words"):
+        words = (shape.get("words") or {}).get("extended")
+        if not words:
             continue
         checked += 1
-        assert form_pack.ranges_overlap(shape["words"], novel["words"]), (
-            f"{path.stem} runs {shape['words']} and cannot be a novel")
+        assert form_pack.ranges_overlap(words, novel["words"]), (
+            f"{path.stem} runs {words} and cannot be a novel")
     assert checked >= 10

@@ -6,6 +6,68 @@ is not the same as updating the plugin — see [README](README.md#install).
 
 ---
 
+## 0.8.0 — 2026-08-13
+
+Phase 3, and the first phase that changes what the pipeline produces. It
+writes short stories and novellas now, not only novels.
+
+**Added**
+
+- **`short-story`** (1,000–7,500 words) and **`novella`** (17,500–40,000),
+  the SFWA boundaries, which is what markets and submission guidelines
+  already assume. Each drops the base dimensions its length cannot earn and
+  adds ones that bite at that length — `single_effect` and `compression`
+  for the short story, `single_line` for the novella — and each gates
+  lower, at 6.5/6.0 and 7.0/6.5. That is not a lower standard: the
+  foundation bar is the highest in the pipeline because a weak plan costs
+  the drafting loop more than it costs to plan again, and that reasoning is
+  novel economics.
+- **Length bands on genre packs.** A pack may declare `## At Compressed
+  Length` or `## At Intermediate Length`, rewriting the criteria for the
+  dimensions it names and taking others out with "not scored at this band".
+  `general`, `fantasy`, `science-fiction` and `mystery` ship with
+  compressed sections; the rest are novel-only for now and say so.
+- **Band arithmetic.** Dropping a dimension shrinks the divisor
+  `pillar_score` is a mean over, so a band is a different design with a
+  different ceiling — five dimensions capped at 6 support a 7.1 gate, and
+  the two that might survive a compressed band support 5.9, under the short
+  story's own 6.0. The validator checks each band, the resolver checks the
+  genre's band ceiling against the form's gate, and a test walks the full
+  genre × form matrix. `gate_solver.py` now prints a row per band.
+
+**Changed — this is the migration phase 1 deferred**
+
+- `shape.words` is **keyed by band**: `{"extended": [80000, 95000]}`. Length
+  is the form's to own, but a genre still has a length within a form — one
+  pack runs 110,000–140,000 where another runs 65,000 — and collapsing them
+  onto one form default would lose a real genre fact. A band a pack says
+  nothing about takes the form's range.
+- `shape.chapters` is **gone**, derived from the effective target over
+  `chapter_words`, and declaring one is now an error. Several packs' chapter
+  ranges only partially intersected their own word ranges — `mystery`
+  spanned 70,400–83,200 against a declared 80,000–95,000, so most of its
+  chapter range could not reach its own word floor. Deriving the count makes
+  that unrepresentable rather than merely fixed.
+- A form may override `chapter_words`. The genre owns chapter size at novel
+  length, but a five-thousand-word story's unit is a scene, and dividing it
+  by a 3,200-word chapter yields one chapter and a remainder.
+- `seed` asks for the form alongside the genre, and settles both before the
+  project directory exists — for the same reason the genre is settled there.
+- `foundation` builds only the layers the form names and reads the form's
+  `## Foundation Guidance` before layer-guides.md, which is written at novel
+  scale.
+
+**Refused, not degraded**
+
+A genre pack with no length-scoped section cannot be used below novel
+length. Falling back to its ordinary criteria would score a
+five-thousand-word story on whether its world has "at least 3 societal
+implications explored with specificity" — the exact defect this axis
+exists to prevent, and one that would look like a bad story rather than a
+bad pairing. The resolver names the pack, the band, and the two ways out.
+
+---
+
 ## 0.7.0 — 2026-08-13
 
 Phase 2 of the form work, and the largest of them: the base dimensions
