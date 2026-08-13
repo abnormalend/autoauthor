@@ -86,8 +86,17 @@ anything else.
    most of them exist. Name the work directory in the recommendation so
    the user knows where to `cd`.
 
-   The container itself has only two phases of its own: `collection`,
-   which runs `/autoauthor:collection`, and `export`.
+   The container itself has two phases of its own: `export`, and the
+   cross-work pass, which is `/autoauthor:collection` for a collection and
+   `/autoauthor:series` for a series. They are the same machine pointed
+   opposite ways — a collection checks that its works do NOT depend on
+   each other, a series checks that they do without contradicting.
+
+   For a SERIES, say so when recommending: the cross-work pass is worth
+   running early and often, because a continuity break found while a later
+   volume is still an outline costs an afternoon and the same break found
+   after it is drafted costs the volume. Do not wait for every volume to
+   be done the way a collection does.
 
 5. **Recommend exactly one next action** (for a standalone project, or
    for the work the step above named):

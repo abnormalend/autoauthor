@@ -9,8 +9,20 @@ expressible as criteria.
 
     standalone   one work                today's pipeline, and the default
     collection   N works + a variety pass
-    series       N works + continuity    (not yet)
+    series       N works + a continuity and arc pass
     serial       one work, released in parts (not yet)
+
+`collection` and `series` are the same machine pointed at opposite goals.
+Both are a container directory, a shared bible, N child works, and one
+cross-work phase. The cross-work check is the whole difference: a
+collection wants VARIETY and independence — no trick twice, and every work
+standing alone — while a series wants CONTINUITY and ARC, where nothing
+contradicts what came before and each volume both advances the whole and
+closes itself.
+
+That inversion reaches further than the rubric. In a collection, works
+that read alike is the defect; in a series it is the point, and what wants
+watching is the volume that reads unlike its neighbours.
 
 A container project is one directory holding a shared bible and a `works/`
 directory of children. Each child is an ordinary project — its own
@@ -32,16 +44,31 @@ import json
 from pathlib import Path
 
 # Ordered least to most machinery, which is also the order they ship in.
-STRUCTURES = ("standalone", "collection")
+STRUCTURES = ("standalone", "collection", "series")
 
 # Structures whose project is a container of child works rather than a
 # work itself.
-CONTAINER_STRUCTURES = frozenset({"collection"})
+CONTAINER_STRUCTURES = frozenset({"collection", "series"})
 
 DEFAULT_STRUCTURE = "standalone"
 
 WORKS_DIR = "works"
 BIBLE_DIR = "bible"
+
+# Bible files a structure cannot do without. A collection needs somewhere
+# to state what binds it; a series needs that plus the two documents its
+# cross-work pass reads — the facts that must stay true, and what each
+# volume owes the whole.
+REQUIRED_BIBLE = {
+    "collection": ("voice.md",),
+    "series": ("voice.md", "canon.md", "arc.md"),
+}
+
+# Whether the running order is an editorial choice or a fact about the
+# story. Reordering a collection is a legitimate fix the cross-work pass
+# can recommend; reordering a series is not a fix, it is a different
+# series.
+ORDER_IS_EDITORIAL = {"collection": True, "series": False}
 
 # How far up to look for a container before concluding there is not one.
 # A child sits exactly one level under `works/`, so two is enough and the
@@ -179,16 +206,37 @@ def inherit(container_state, child_state):
     return merged
 
 
+def _bible_reason(kind, name):
+    return {
+        "voice.md": "every work is written to it, and without one they are "
+                    "written to whatever the last one happened to sound like",
+        "canon.md": "continuity is checked against it. A volume may ADD to "
+                    "series canon and may never contradict it, and there is "
+                    "nothing to contradict if nobody wrote it down",
+        "arc.md": "it says what each volume owes the whole. Without it the "
+                  "cross-work pass can check that nothing contradicts and "
+                  "cannot check that anything progressed",
+    }.get(name, "it is required")
+
+
 def validate_container(directory, state):
     """Check a container project. Returns human-readable error strings."""
     errors = []
     directory = Path(directory)
+
+    kind = structure_of(state)
 
     if not (directory / BIBLE_DIR).is_dir():
         errors.append(
             f"no {BIBLE_DIR}/ directory; a container holds the material its "
             "works share, and without it every work rebuilds the same world "
             "slightly differently")
+    else:
+        for name in REQUIRED_BIBLE.get(kind, ()):
+            if not (directory / BIBLE_DIR / name).exists():
+                errors.append(
+                    f"no {BIBLE_DIR}/{name}; a {kind} needs it — "
+                    + _bible_reason(kind, name))
 
     if not (directory / WORKS_DIR).is_dir():
         errors.append(f"no {WORKS_DIR}/ directory")

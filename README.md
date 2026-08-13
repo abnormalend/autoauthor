@@ -145,7 +145,7 @@ than a weak chapter does.
 
 ---
 
-## The nine skills
+## The ten skills
 
 | Skill | What it does |
 |---|---|
@@ -156,7 +156,8 @@ than a weak chapter does.
 | `/autoauthor:draft` | Writes chapters sequentially, each scored against the previous chapter and the plan. |
 | `/autoauthor:revise` | Adversarial cuts, a four-persona reader panel, targeted rewrites. Repeats until scores plateau. |
 | `/autoauthor:review` | Whole-manuscript review as a literary critic and then a professor of fiction. Fixes the top items, repeats. |
-| `/autoauthor:collection` | For a collection only: the one pass that reads every work at once, hunting the convergence no single-work judge can see. Sets the running order. |
+| `/autoauthor:collection` | For a collection: the one pass that reads every work at once, hunting the convergence no single-work judge can see. Sets the running order. |
+| `/autoauthor:series` | For a series: the same pass pointed the other way — continuity against the series bible, and whether each volume both advances the whole and closes itself. |
 | `/autoauthor:export` | Typesets a print-ready LaTeX PDF and builds the ePub. |
 
 ---
@@ -278,7 +279,7 @@ left.
   seed.txt          your premise
   state.json        phase, genre, form, structure, scores — the memory
                     (form: novel, novella, or short-story; structure:
-                     standalone, or collection for a container of works)
+                     standalone, collection, or series)
   voice.md          HOW it's written: tone, rhythm, exemplar passages
   world.md          WHAT exists
   characters.md     WHO acts: wound, want, need, lie, how each one talks

@@ -21,15 +21,19 @@ RESOLVE_CLI = SCRIPTS / "resolve_genre.py"
 CONVERGENCE_CLI = SCRIPTS / "convergence.py"
 
 
-def make_container(tmp_path, works=("01-first", "02-second"), **state):
-    container = tmp_path / "collection"
+def make_container(tmp_path, works=("01-first", "02-second"), kind="collection",
+                   **state):
+    container = tmp_path / kind
     (container / "bible").mkdir(parents=True)
+    for name in structure.REQUIRED_BIBLE[kind]:
+        (container / "bible" / name).write_text("placeholder\n",
+                                                encoding="utf-8")
     for slug in works:
         work = container / structure.WORKS_DIR / slug
         (work / "chapters").mkdir(parents=True)
         (work / "state.json").write_text(json.dumps({"phase": "draft"}),
                                          encoding="utf-8")
-    payload = {"structure": "collection", "genre": "mystery",
+    payload = {"structure": kind, "genre": "mystery",
                "form": "short-story", "works": list(works)}
     payload.update(state)
     (container / "state.json").write_text(json.dumps(payload),
@@ -64,7 +68,8 @@ def test_a_standalone_project_reports_the_structure_block(tmp_path):
     assert result.returncode == 0, result.stderr
     block = json.loads(result.stdout)["structure"]
     assert block == {"name": "standalone", "is_container": False,
-                     "container": None, "inherited": []}
+                     "container": None, "inherited": [],
+                     "order_is_editorial": False}
 
 
 # --- containers and their children -----------------------------------------
@@ -170,11 +175,57 @@ def test_the_order_is_the_declared_one_not_the_filesystem_one(tmp_path):
 
 
 def test_a_container_needs_a_bible(tmp_path):
+    import shutil
+
     container = make_container(tmp_path)
-    (container / "bible").rmdir()
+    shutil.rmtree(container / "bible")
     result = resolve(container)
     assert result.returncode == 1
     assert "no bible/ directory" in result.stderr
+
+
+# --- series: the same machine, the opposite checks -------------------------
+
+def test_a_series_is_a_container_too(tmp_path):
+    container = make_container(tmp_path, kind="series")
+    result = resolve(container)
+    assert result.returncode == 0, result.stderr
+    block = json.loads(result.stdout)["structure"]
+    assert block["name"] == "series"
+    assert block["is_container"] is True
+    assert block["order_is_editorial"] is False
+
+
+def test_a_collections_order_is_editorial_and_a_series_is_not(tmp_path):
+    """Reordering a collection is a legitimate fix the cross-work pass can
+    recommend. Reordering a series is not a fix; it is a different
+    series."""
+    collection = json.loads(resolve(make_container(tmp_path)).stdout)
+    series = json.loads(
+        resolve(make_container(tmp_path, kind="series")).stdout)
+    assert collection["structure"]["order_is_editorial"] is True
+    assert series["structure"]["order_is_editorial"] is False
+
+
+@pytest.mark.parametrize("missing", ["canon.md", "arc.md"])
+def test_a_series_needs_the_documents_its_pass_reads(tmp_path, missing):
+    """canon.md is what continuity is checked against and arc.md is what
+    progress is checked against. Without them the pass can only report
+    that nothing contradicted, which a series of one book also achieves."""
+    container = make_container(tmp_path, kind="series")
+    (container / "bible" / missing).unlink()
+    result = resolve(container)
+    assert result.returncode == 1
+    assert f"no bible/{missing}" in result.stderr
+
+
+def test_a_collection_does_not_need_an_arc(tmp_path):
+    """The asymmetry is the point: a collection's works do not owe the
+    whole a progression, and requiring one would make every collection
+    declare an arc it does not have."""
+    container = make_container(tmp_path)
+    assert not (container / "bible" / "arc.md").exists()
+    assert resolve(container).returncode == 0
 
 
 # --- convergence -----------------------------------------------------------
@@ -290,3 +341,104 @@ def test_the_collection_rubric_scores_seven_dimensions():
 def test_the_collection_skill_exists_and_is_named_for_its_directory():
     skill = REPO / "plugin/autoauthor/skills/collection/SKILL.md"
     assert "name: collection" in skill.read_text(encoding="utf-8")
+
+
+# --- convergence means the opposite thing in a series ----------------------
+
+def test_the_report_says_which_reading_applies(tmp_path):
+    """Both passes read the same file and one of them has to invert it.
+    Leaving that to whoever reads the JSON is how it gets forgotten."""
+    import convergence
+
+    for kind, verdict in (("collection", "defect"), ("series", "goal")):
+        container = make_container(tmp_path / kind, kind=kind)
+        draft(container / structure.WORKS_DIR / "01-first", [PROSE_A])
+        draft(container / structure.WORKS_DIR / "02-second", [PROSE_B])
+        subprocess.run([sys.executable, str(CONVERGENCE_CLI), "--quiet"],
+                       cwd=container, capture_output=True, text=True)
+        report = json.loads(
+            (container / "edit_logs/convergence.json").read_text())
+        assert report["structure"] == kind
+        assert report["interpretation"]["converged"] == verdict
+    assert set(convergence.INTERPRETATION) == {"collection", "series"}
+
+
+def test_a_divergent_work_is_found_by_a_robust_measure():
+    """The trap this walked into first: an ordinary z-score measures the
+    outlier against a standard deviation the outlier itself inflates. At
+    four works the largest z-score arithmetically possible is 1.5, so a
+    2-sigma check could never fire at the sizes a series actually has."""
+    import convergence
+
+    per_work = {
+        "01": {"simile_density": 2.0},
+        "02": {"simile_density": 2.1},
+        "03": {"simile_density": 2.05},
+        "04": {"simile_density": 30.0},
+    }
+    assert convergence.divergent_works(per_work) == {"04": ["simile_density"]}
+
+    import statistics
+    values = [row["simile_density"] for row in per_work.values()]
+    ordinary_z = (abs(30.0 - statistics.mean(values))
+                  / statistics.stdev(values))
+    assert ordinary_z < 2.0, "the naive check would have found nothing"
+
+
+def test_ordinary_variation_is_not_divergence():
+    import convergence
+
+    assert convergence.divergent_works({
+        "01": {"simile_density": 2.0},
+        "02": {"simile_density": 2.4},
+        "03": {"simile_density": 1.8}}) == {}
+
+
+def test_two_works_cannot_diverge():
+    """With two, each is the other's outlier."""
+    import convergence
+
+    assert convergence.divergent_works({"01": {"simile_density": 1.0},
+                                        "02": {"simile_density": 90.0}}) == {}
+
+
+def test_length_is_not_divergence():
+    """A volume longer than its neighbours is longer, not differently
+    written — the same exclusion the convergence side makes."""
+    import convergence
+
+    assert convergence.divergent_works({
+        "01": {"word_count": 30000}, "02": {"word_count": 30100},
+        "03": {"word_count": 29900}, "04": {"word_count": 90000}}) == {}
+
+
+# --- the series rubric and skill -------------------------------------------
+
+def test_the_series_rubric_scores_seven_dimensions():
+    import genre_pack
+
+    rubric = (REPO / "plugin/autoauthor/shared/rubrics/series-pass.md"
+              ).read_text(encoding="utf-8")
+    dimensions, malformed, caps, prose_caps = genre_pack.dimension_bullets(
+        genre_pack.section_body(rubric, "Dimensions"))
+    assert malformed == []
+    assert dimensions == ["canon_integrity", "canon_promotion",
+                          "volume_closure", "arc_progression",
+                          "entry_and_recap", "character_continuity",
+                          "series_voice"]
+    assert caps == prose_caps, "a declared cap disagrees with its criteria"
+    # Continuity is the one thing a series cannot be sound without, so its
+    # cap is the severest in either cross-work rubric.
+    assert caps["canon_integrity"] == 4
+
+
+def test_the_two_cross_work_rubrics_check_opposite_things():
+    """The clearest statement of what separates the containers. A
+    collection requires each work to stand alone; a series requires each
+    volume to depend on what came before without contradicting it."""
+    rubrics = REPO / "plugin/autoauthor/shared/rubrics"
+    collection = (rubrics / "collection-pass.md").read_text(encoding="utf-8")
+    series = (rubrics / "series-pass.md").read_text(encoding="utf-8")
+    assert "independence" in collection and "independence" not in series
+    assert "canon_integrity" in series and "canon_integrity" not in collection
+    assert "INVERTED" in series

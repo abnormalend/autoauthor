@@ -6,6 +6,57 @@ is not the same as updating the plugin — see [README](README.md#install).
 
 ---
 
+## 0.11.0 — 2026-08-13
+
+Phase 6. `structure: series` — the same machine as a collection, pointed
+the opposite way.
+
+Both are a container, a shared bible, N child works, and one cross-work
+phase. The cross-work check is the entire difference. A collection wants
+**variety and independence**: no trick twice, every work standing alone. A
+series wants **continuity and arc**: nothing contradicting what came
+before, and each volume both advancing the whole and closing itself.
+
+**Added**
+
+- `structure: "series"`, reusing the container machinery unchanged. A
+  series additionally requires `bible/canon.md` — what continuity is
+  checked against — and `bible/arc.md` — what each volume owes the whole.
+  A collection needs neither, and requiring an arc of one would make every
+  collection declare a progression it does not have.
+- `rubrics/series-pass.md` and the `series` skill. Seven dimensions:
+  canon integrity, canon promotion, volume closure, arc progression, entry
+  and recap, character continuity, series voice. `canon_integrity` carries
+  the severest cap in either cross-work rubric — a contradicted
+  load-bearing fact caps it at 4, because that is not a blemish, it is the
+  series not being one series.
+- `structure.order_is_editorial`. A collection's running order is a
+  choice the cross-work pass may recommend changing; a series' order is a
+  fact about the story, and reordering it is not a fix but a different
+  series.
+- The one inheritance rule, now stated where it is enforced: a volume may
+  ADD to series canon and may never contradict it. Facts a later volume
+  depends on get promoted up into the bible, because the next volume's
+  author reads the bible and a fact that is not there is a fact that will
+  be contradicted.
+
+**Changed — convergence now says which way to read it**
+
+`convergence.py` reports the same numbers for both structures and states
+the interpretation, rather than leaving it to whoever opens the JSON. In a
+collection a low coefficient of variation is the defect; in a series it is
+the goal, and the signal worth acting on is the inverse — the volume that
+reads unlike its neighbours. `divergent_works` computes those.
+
+That outlier detection uses a **modified** z-score, on the median and the
+median absolute deviation. The first version used an ordinary z-score and
+could never have fired: an outlier inflates the standard deviation it is
+being measured against, so with four works the largest z-score
+arithmetically possible is 1.5, against a threshold of 2. The test that
+pins this asserts the naive check would have found nothing.
+
+---
+
 ## 0.10.0 — 2026-08-13
 
 Phase 5, and the first of the structure axis. The pipeline can hold a

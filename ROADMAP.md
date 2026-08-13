@@ -10,10 +10,22 @@ Last updated 2026-08-13. Shipped history is in [CHANGELOG.md](CHANGELOG.md).
 
 ## In flight
 
-Nothing. Phases 0 through 5 have landed. What remains of the original
-spec is `series` and `serial`.
+Nothing. Phases 0 through 6 have landed. What remains of the original spec
+is `serial`, which the spec itself said to ship last or drop — plus the
+verification debts below, which are now the larger risk: a great deal of
+machinery has shipped that no book has run through.
 
 ## Recently landed
+
+- **`structure: series`**, 0.11.0, 2026-08-13. Phase 6, and the same
+  machine as a collection pointed the opposite way — continuity and arc
+  where a collection checks variety and independence. `series-pass.md`
+  with seven dimensions, a series skill, and `bible/canon.md` plus
+  `bible/arc.md` required because they are what the pass reads.
+  `convergence.py` now states which reading applies rather than leaving a
+  reader of the JSON to invert it, and its outlier detection uses a
+  modified z-score after the ordinary one turned out to be arithmetically
+  incapable of firing at the sizes a series has.
 
 - **`structure: collection`**, 0.10.0, 2026-08-13. Phase 5, and the first
   of the structure axis. A container project with a shared bible, a
@@ -100,15 +112,15 @@ All from [the form spec](docs/superpowers/specs/2026-08-13-form-parameterization
 in its phase order. Phases 0–2 are behaviour-preserving and A/B-verifiable
 the way the fantasy port was.
 
-- **5b. Verify a collection end to end**, then retire `autoanthology`.
-  The machinery landed in 0.10.0 and nothing has run through it: no
-  collection has been seeded, drafted, or passed. `seed` does not yet
-  offer to create a container, and `export` does not yet assemble one.
-  Those are the two gaps between "a collection resolves" and "a
-  collection ships".
-- **6. `structure: series`** — series bible at the project root, `books/`
-  beneath, per-book canon that may add to series canon but never contradict
-  it.
+- **Containers are not yet reachable from `seed` or `export`.** Both
+  structures resolve, validate and can be passed, and neither can be
+  CREATED or SHIPPED: `seed` builds a standalone project only, and
+  `export` assembles one work. Those two gaps are what stand between "a
+  collection resolves" and "a collection is a book", and they are now the
+  highest-value work in the file.
+- **Verify a collection end to end**, then retire `autoanthology`.
+  Nothing has run through the container machinery — no collection or
+  series has been seeded, drafted, or passed.
 - **7. `structure: serial`** — last, or dropped. The only value that breaks
   the score-plateau model the pipeline rests on.
 

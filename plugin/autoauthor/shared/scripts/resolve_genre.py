@@ -312,6 +312,8 @@ def _structure_block(project, state, structure):
              "is_container": structure in structure_mod.CONTAINER_STRUCTURES,
              "container": state.get("_container"),
              "inherited": state.get("_inherited") or []}
+    block["order_is_editorial"] = structure_mod.ORDER_IS_EDITORIAL.get(
+        structure, False)
     if block["is_container"]:
         errors = structure_mod.validate_container(project, state)
         if errors:
