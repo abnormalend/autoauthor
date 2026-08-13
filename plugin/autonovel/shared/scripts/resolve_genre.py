@@ -31,7 +31,11 @@ skills parse this, none of which can see this module's source:
                        then secondary (if any), then modifiers in
                        state.json's genre_modifiers order.
   primary_label     — the primary pack's own 'label' field, verbatim.
-  display_label     — every loaded pack's 'label', joined with a space,
+  display_label     — the loaded packs' 'label' values, joined with a
+                       space, skipping any whose every word already
+                       appeared (so a 'paranormal-romance' primary with a
+                       'romance' secondary reads "Paranormal Romance",
+                       not "Paranormal Romance Romance"),
                        in the same order as 'packs' — this is what should
                        be shown to a reader (a title page, a status
                        line), not 'primary_label' alone.
@@ -184,6 +188,27 @@ def check_conflicts(packs):
                  f"{format_names(clashes)}")
 
 
+def _label_parts(packs):
+    """Every loaded pack's label, minus any that says nothing new.
+
+    A naive join renders 'Paranormal Romance' + 'Romance' as "Paranormal
+    Romance Romance" on the title page at export, because a hybrid pack's
+    label legitimately contains its parent's. Drop a part only when EVERY
+    word in it has already appeared — 'Romance' after 'Paranormal Romance'
+    goes, 'Historical' after 'Romance' stays. Comparison is case-folded on
+    whole words, so a label is never dropped for sharing a prefix.
+    """
+    parts, seen = [], set()
+    for pack in packs:
+        label = pack["meta"]["label"]
+        words = {w.casefold() for w in label.split()}
+        if words and words <= seen:
+            continue
+        seen |= words
+        parts.append(label)
+    return parts
+
+
 def merge(packs):
     # The primary owns every scalar structural field (pillar_label,
     # weights, beat_system, shape) — it's the pack that owns pillar
@@ -206,7 +231,7 @@ def merge(packs):
             if artifact not in artifacts and pack["used_as"] != "modifier":
                 artifacts.append(artifact)
 
-    label_parts = [p["meta"]["label"] for p in packs]
+    label_parts = _label_parts(packs)
     return {
         "packs": [{"name": p["meta"]["name"], "role": p["used_as"],
                    "path": str(p["path"])} for p in packs],

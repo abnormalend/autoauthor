@@ -29,11 +29,18 @@
 
 ## Pillar Dimensions
 
-In this genre the relationship is the plot. Not a thread running beside the
-plot — the spine of it. Everything below is scored on the assumption that
-if you removed the relationship, there would be no book left, and that the
-external plot exists to apply pressure to the relationship rather than the
-other way round.
+Where this pack is the primary, the relationship is the plot. Not a thread
+running beside the plot — the spine of it. Everything below is scored on
+the assumption that if you removed the relationship, there would be no book
+left, and that the external plot exists to apply pressure to the
+relationship rather than the other way round.
+
+Where this pack is loaded as a SECONDARY, that assumption does not hold and
+must not be applied. The book's main plot belongs to the primary pack, and
+scoring it as though it existed to serve the romance would penalise a book
+for being what it is. Read every dimension below as scoping to the book's
+romantic thread: judge that thread by these standards, at whatever scale
+the book gives it, and do not require it to be the spine.
 
 ### Romancing the Beat
 
@@ -273,8 +280,12 @@ Aim for DIVERSITY across the ten concepts:
   - Span heat registers — at least one that clearly wants to be
     closed-door and at least one that clearly wants to be explicit;
     this pack constrains neither
-  - Span the subgenres: contemporary, historical, small-town,
-    workplace, second-chance, romantic suspense
+  - Span the subgenres this pack serves: contemporary, historical,
+    small-town, workplace, second-chance, friends-to-lovers. Do not
+    propose a concept whose centre of gravity is a dedicated pack —
+    romantic suspense, dark romance, paranormal romance, and romantasy
+    each ship their own, and a premise that wants one of those wants
+    that pack rather than this one
   - At least one queer pairing and at least one where neither lead is
     white or Anglo-American
   - Span life stages — not ten couples in their late twenties; at

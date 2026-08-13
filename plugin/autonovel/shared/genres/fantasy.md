@@ -71,13 +71,18 @@ THIRD LAW: "Expand what you have before adding something new."
 - magic_system — Hard rules with COSTS and LIMITATIONS per Sanderson's Second Law. Could a writer resolve the CLIMACTIC CONFLICT using only rules already established? Are costs plot-driving, not decorative? Are there at least 3 societal implications explored with specificity? Is the system TESTABLE — could you write a courtroom scene, a contract negotiation, and a magical confrontation without inventing new rules? Also check First Law compliance (foreshadowed solutions over total magic solutions), that limitations are at least as prominent as powers, and that no new unforeshadowed powers appear in the final 25%.
 - world_history — Timeline of events creating PRESENT-DAY tensions. Each historical event should map to a current faction conflict or character motivation. Decorative history (cool but plot-irrelevant) counts against the score, not for it.
 - geography_and_culture — Locations distinct with sensory signatures. Cultures with specific customs that GENERATE CONFLICT. Economy that creates class tension. Check: could two different scenes set in two different locations feel meaningfully different based on what's here?
-- lore_interconnection — Does changing one element force changes in at least two others? Test by mentally removing the magic system — does the political structure collapse? Does the class system change? Count the elements that survive removal unchanged: if the political structure, the class system, and the economy all still stand, the lore is modular and detachable, score 4 max; if two of the three still stand, score 6 max.
-- iceberg_depth — Implied depth versus stated depth. But CHECK: does the author actually know the answers to the mysteries, or are they handwaving? If a planning doc says "the answer will be revealed" without specifying WHAT the answer is, that's a gap wearing an iceberg costume. Test: pick three mysteries the documents gesture at, and for each ask whether the actual answer is written down somewhere in them. Zero answered caps at 4; three answered while the reader is still meant to be in the dark supports 8+.
+- lore_interconnection — Does changing one element force changes in at least two others? Test by mentally removing the magic system — does the political structure collapse? Does the class system change? Count the elements that survive removal unchanged: if two or more of the political structure, the class system, and the economy still stand, the lore is modular and detachable, score 6 max. Where all three stand, that is also a Genre Contract breach; record it there and do not lower this dimension a second time for the same finding.
+- iceberg_depth — Implied depth versus stated depth. But CHECK: does the author actually know the answers to the mysteries, or are they handwaving? If a planning doc says "the answer will be revealed" without specifying WHAT the answer is, that's a gap wearing an iceberg costume. Test: pick three mysteries the documents gesture at, and for each ask whether the actual answer is written down somewhere in them. Zero answered caps at 6; three answered while the reader is still meant to be in the dark supports 8+.
 
 ## Genre Contract
 
+These bind the book's speculative material. Where this pack is loaded as a
+secondary, they bind that material and the plot it drives, not the primary
+genre's main plot.
+
 - The climax resolves using rules established before the final quarter. No new powers appear unforeshadowed.
-- Every prominently introduced speculative element serves a narrative purpose later, or is an explained red herring.
+- Every prominently introduced speculative element that the plot leans on serves a narrative purpose later, or is an explained red herring. Colour that is simply colour is not a breach; a loaded gun that never fires is.
+- The world's institutions depend on its speculative element. Remove the magic system and ask what still stands: if the political structure, the class system, and the economy would all survive unchanged, this is a setting with magic decorating it rather than a world the magic built. Graded shortfalls of the same kind belong to `lore_interconnection`; record the total case here and do not score it twice.
 
 ## World Sections
 

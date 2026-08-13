@@ -120,6 +120,25 @@ double-counted.
 A cap an ordinary competent book trips by accident is mis-set: raise the
 number or narrow the trigger — do not delete the cap.
 
+**Calibrate for your own N, and only your own.** A secondary pack's pillar
+dimensions are also scored, so a book can be judged on ten dimensions when
+your pack declares five. That does not change the arithmetic above:
+`pillar_score` — the number the 7.0 gate reads — averages the PRIMARY
+pack's dimensions alone, precisely so that a secondary cannot dilute caps
+you calibrated. Compute k = 1 and k = 2 against your own dimension count
+and ignore what might load beside you. (The secondary's dimensions still
+reach `overall_score` through the pillar category's weight, so they matter;
+they just cannot loosen your gate.)
+
+**Watch the cross-pack contract trap.** Every loaded pack's `## Genre
+Contract` is checked against the same book, and contracts are never clamped
+the way `content_register` is. So if your contract makes a declared level a
+FLOOR — a promise that the content is *delivered*, as `erotica` does with
+`heat: explicit` — then any pack that clamps that axis below you produces a
+pair of promises no manuscript can satisfy, and every book under that stack
+breaches by construction. A ceiling is safe; a floor needs a
+`conflicts_with` entry against anything that could clamp beneath it.
+
 ---
 
 ## Frontmatter

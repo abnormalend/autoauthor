@@ -240,6 +240,50 @@ def test_label_parts_lists_every_pack_in_order(tmp_path):
     assert out["label_parts"] == ["Testprimary", "Test Second", "Test Mod"]
 
 
+def test_display_label_drops_a_label_that_says_nothing_new(tmp_path):
+    """A hybrid pack's label legitimately contains its parent's.
+
+    'paranormal-romance' primary with a 'romance' secondary must not render
+    "Paranormal Romance Romance" on the export title page.
+    """
+    write_state(tmp_path, genre="testhybrid", genre_secondary="testsecond")
+    write_project_pack(tmp_path, "testhybrid",
+                       primary_meta("testhybrid", label="Test Second Hybrid"),
+                       PRIMARY_BODY)
+    write_project_pack(tmp_path, "testsecond", SECONDARY_META, PRIMARY_BODY)
+    out = json.loads(run(tmp_path).stdout)
+    assert out["label_parts"] == ["Test Second Hybrid"]
+    assert out["display_label"] == "Test Second Hybrid"
+    # primary_label is the pack's own label and is never deduped.
+    assert out["primary_label"] == "Test Second Hybrid"
+
+
+def test_display_label_keeps_a_label_that_only_shares_some_words(tmp_path):
+    """The drop is all-or-nothing: a partial overlap must survive.
+
+    Guards against a future 'simplification' to substring or any-word
+    matching, which would silently eat 'Dark Romance' after 'Romance'.
+    """
+    write_state(tmp_path, genre="testprimary", genre_secondary="testsecond")
+    write_project_pack(tmp_path, "testprimary",
+                       primary_meta("testprimary", label="Test Overlap"),
+                       PRIMARY_BODY)
+    write_project_pack(tmp_path, "testsecond", SECONDARY_META, PRIMARY_BODY)
+    out = json.loads(run(tmp_path).stdout)
+    assert out["display_label"] == "Test Overlap Test Second"
+
+
+def test_display_label_is_always_the_join_of_label_parts(tmp_path):
+    """The documented invariant between the two keys, pinned.
+
+    Six skills parse this output; if dedupe is applied to one and not the
+    other they disagree about what the book is called.
+    """
+    setup_stack(tmp_path)
+    out = json.loads(run(tmp_path).stdout)
+    assert out["display_label"] == " ".join(out["label_parts"])
+
+
 def test_modifier_contributes_content_register(tmp_path):
     setup_stack(tmp_path)
     out = json.loads(run(tmp_path).stdout)

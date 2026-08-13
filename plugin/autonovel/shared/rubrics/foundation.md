@@ -108,6 +108,16 @@ score its pillar dimensions; on a key collision the primary's definition
 wins. Ignore any modifier pack's pillar dimensions — modifiers do not
 contribute scored dimensions.
 
+Mark each scored pillar dimension with which pack declared it. The two
+sets are used differently: `pillar_score`, which the invoking skill gates
+on, averages the PRIMARY's dimensions alone, while the pillar category's
+contribution to `overall_score` averages every pillar dimension you
+scored. A pack's score caps are calibrated against its own dimension
+count, so folding a secondary's dimensions into the gate would dilute
+them — with ten dimensions instead of five, a capped score moves the mean
+half as far and the caps stop biting. A secondary still influences the
+book's overall score; it just cannot loosen the primary's gate.
+
 CHARACTER:
 - character_depth: Wound/want/need/lie chains that are CAUSALLY LINKED
   (not just thematically associated). The lie must logically follow
@@ -207,7 +217,10 @@ Respond with JSON:
   "top_3_improvements": ["ranked list of the 3 highest-leverage improvements"]
 }
 
-`pillar_score` is the mean of the pillar category's dimension scores.
+`pillar_score` is the mean of the PRIMARY pack's pillar dimension scores
+only — not of every pillar dimension you scored. Where no secondary pack
+is loaded the two are identical; where one is, see the PILLAR section
+above for why they differ.
 
 `weakest_dimension` is a bare dimension key from any category — the
 lowest-scoring one. On a tie, choose the tied dimension in the most

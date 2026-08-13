@@ -45,7 +45,7 @@ promise the primary pack makes.
 - The decisive choices belong to the teenager. An adult may help, obstruct, or arrive too late, but the protagonist's own action causes the climax and its outcome. A book in which competent adults could have solved the problem, and are merely kept off the page to prevent it, has breached this.
 - The book does not moralize. The ending may be hard, sad, hopeful, or unresolved, but it does not resolve into a stated lesson, and no character delivers the book's meaning aloud to the protagonist in the final chapter.
 - The teenage characters are treated as full people with real interior lives, not as the not-yet-finished versions of adults. Their concerns are rendered at the scale they have to the people having them.
-- The declared `heat` and `language` levels are honoured in both directions. `heat: warm` means attraction and physical intimacy are on the page and are not rendered explicitly; consummation, where it happens, is not depicted in the detail an adult register would use.
+- The declared `heat` and `language` levels are honoured in both directions. `heat: warm` means attraction and physical intimacy are on the page and are not rendered explicitly; consummation, where it happens, is not depicted in the detail an adult register would use. Where another loaded pack clamps an axis BELOW this pack's level, that clamp governs and this promise yields to it — a YA inspirational novel is bound at `closed-door`, and closing the door earlier is not a breach of this promise. What the promise forbids in the other direction is an explicit register, at any resolved level.
 
 ## Drafting Rules
 
