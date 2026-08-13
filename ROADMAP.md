@@ -79,6 +79,15 @@ the way the fantasy port was.
   figures generated to make a sentence interesting do not. Character
   dialogue is exempt: a distinctive speaker's similes characterize the
   speaker and should differ from the narration's.
+- **Caps are advisory, and whether they bind varies by judge.** Proven by
+  the shakedown's fix verification: two packs presented a judge with the
+  same structure — three dimension tests pass, one fails, criteria say
+  "score 6 max" — and one judge capped at 6 while the other scored 8 on
+  the stated grounds that "every other test passes strongly." Every cap in
+  every pack is currently a suggestion. Fixed by phase 0 of the form work
+  (machine-declared `[cap N]`) plus one sentence in `foundation.md`: a met
+  cap condition is a cap **applied**, not a factor weighed. Do not patch
+  this pack by pack.
 - **A `consent` axis in `CONTENT_AXES`.** `dark-romance` cannot express its
   defining constraint in frontmatter and had to buy the same protection with
   a blunt `conflicts_with` against `ya` and `cozy`. romance.io's taxonomy

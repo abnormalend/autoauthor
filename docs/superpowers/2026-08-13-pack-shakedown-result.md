@@ -145,6 +145,49 @@ judge derives by hand and the derivation is where the defect escapes.
   That last is the literary-device-overuse item on the roadmap, arriving
   independently in four unrelated document sets.
 
+## Verification of the two fixes (commit `7bd6525`)
+
+Both packs re-judged by fresh clean-room judges against the **unchanged**
+planting sets. Judge variance on individual dimensions is about ±1, so a
+score delta alone proves nothing; the bar was whether the judge names the
+new test as its reason.
+
+| | `redemption_cost` | `magic_barrier_dependency` |
+|---|---|---|
+| before | 7 | 8 |
+| after | **6** | **8** |
+| `weakest_dimension` | `internal_consistency` → **`redemption_cost`** | unchanged |
+| judge cites the new test | **yes, by name** | **yes, by name** |
+
+**dark-romance: fixed.** The judge wrote "The fourth test fires", then
+quoted both disguises the fix names — "precisely the surrendered role that
+is in substance a promotion" and "precisely the windfall on someone else's
+timetable" — and made it the #1 improvement. The score moved and, more
+importantly, `weakest_dimension` flipped to the planted defect, which is
+what the revision loop targets. Before the fix the pipeline would have spent
+its next cycle correcting date conflicts while the hollow redemption arc
+stood.
+
+**romantasy: detection fixed, scoring not.** The judge identified the
+author's camouflage paragraph by name and called it "the denomination
+argument the pack explicitly pre-labels as insufficient", ran the
+redenomination properly, found the barrier survives repricing in grain, and
+made it the #2 improvement. Then scored 8, on the stated grounds that
+"every other test passes strongly."
+
+**This is the finding.** Both packs presented the judge with the same
+structure — three tests pass, one fails, criteria say "score 6 max" — and
+one judge capped while the other averaged. `score 6 max` is advisory prose
+that a judge can weigh against passing tests, and whether it binds varies by
+judge.
+
+That is a rubric-layer defect affecting all fifteen packs, not a pack-layer
+one, and it must not be patched pack by pack. It is exactly what phase 0 of
+the form work addresses: machine-declared `[cap N]` per dimension, plus one
+sentence in `foundation.md` establishing that a met cap condition is a cap
+**applied**, not a factor weighed. Until then, every cap in every pack is a
+suggestion.
+
 ## What this changes
 
 Two precise pack fixes (`redemption_cost`'s fourth test,
