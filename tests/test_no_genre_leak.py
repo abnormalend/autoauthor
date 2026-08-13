@@ -181,3 +181,58 @@ def test_guard_would_catch_a_real_leak(tmp_path):
     # ...and does not fire on ordinary prose that merely sounds adjacent.
     assert not LEAK_RE.search("The institution's reach constrains her.")
     assert not COMPS_RE.search("The editor has seen 200 novels.")
+
+
+# The De-Bells rule itself, finally executable. This module's docstring has
+# called itself the rule's successor since it was written, while checking
+# only for genre furniture — the specific content it was named after was
+# never actually guarded. Upstream still carries this as issues #7 and #9
+# ("Master has a lot of the bells novel baked in", "Entire Bell story is
+# hard coded into code"), and the audit that closed them here found the
+# first book's characters, title and byline still hardcoded as DEFAULTS in
+# the root cover and audiobook tools long after the pipeline was clean.
+BELLS_RE = re.compile(
+    r"\b(bellwright|eddan|torvald|second son of the house of bells)\b", re.I)
+
+# Whole-repo, not just the plugin: the leak's last hiding place was the
+# standalone tooling, which SCANNED_DIRS does not cover.
+BELLS_ALLOWED = {
+    "tests/test_no_genre_leak.py",   # this file names them to catch them
+    "PIPELINE.md",                   # records the original program's own run
+    "README.md",                     # production history and attribution
+    "CHANGELOG.md",
+}
+
+
+def test_no_first_book_content_anywhere_in_the_repo():
+    """No book's specifics may be a default in the machinery.
+
+    'Cass' and 'Perin' are deliberately absent from the pattern: they are
+    substrings of ordinary words (superintendent), and a guard that cries
+    wolf gets deleted. These four are unambiguous.
+    """
+    repo = Path(__file__).parent.parent
+    offenders = []
+    for path in sorted(repo.rglob("*")):
+        if not path.is_file() or path.suffix not in {".md", ".py", ".json", ".html"}:
+            continue
+        rel = path.relative_to(repo).as_posix()
+        if rel.startswith((".git/", "docs/superpowers/", ".claude/")) or rel in BELLS_ALLOWED:
+            continue
+        for lineno, line in enumerate(
+                path.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
+            m = BELLS_RE.search(line)
+            if m:
+                offenders.append(f"{rel}:{lineno}: {m.group(0)!r}")
+    assert not offenders, (
+        "content from the first novel found in the machinery — no book's "
+        "specifics may be a default:\n  " + "\n  ".join(offenders))
+
+
+def test_the_bells_guard_would_catch_a_real_leak():
+    assert BELLS_RE.search('parser.add_argument("--title", '
+                           'default="The Second Son of the House of Bells")')
+    assert BELLS_RE.search('"EDDAN": "52, the father. Deep, rough, terse."')
+    # Must not fire on the ordinary words the near-misses live inside.
+    assert not BELLS_RE.search("a superintendent, an editor, a family lawyer")
+    assert not BELLS_RE.search("the bells rang out over the harbour")

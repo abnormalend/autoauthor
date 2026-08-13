@@ -326,16 +326,22 @@ fiction.
 
 ---
 
-## Art, audiobook, and landing page
+## Cover and chapter art
 
-Standalone Python tools at the repo root, outside the skills pipeline. These
-*do* need API keys — copy `.env.example` to `.env` and set `FAL_KEY` and
-`ELEVENLABS_API_KEY`.
+Standalone Python tools at the repo root, outside the skills pipeline and
+not invoked by it. These *do* need API keys — copy `.env.example` to `.env`
+and set `ANTHROPIC_API_KEY` and `FAL_KEY`.
 
-- `gen_art.py`, `gen_art_directions.py` — chapter ornaments
-- `gen_cover_composite.py`, `gen_cover_print.py` — cover art
-- `gen_audiobook_script.py`, `gen_audiobook.py` — speaker-attributed narration
-- `landing/` — a static landing-page template
+- `gen_art_directions.py` — reads the manuscript and writes art-direction
+  prompts, one per chapter
+- `gen_art.py` — renders those prompts into chapter ornaments
+- `gen_cover_composite.py` — a screen cover
+- `gen_cover_print.py` — a print-ready wrap, spine width computed from page
+  count
+
+The cover scripts require `--title` and `--author`. They previously
+defaulted to the first book produced by the upstream pipeline, which meant a
+cover generated without those flags carried someone else's book on it.
 
 ---
 
@@ -345,7 +351,8 @@ Standalone Python tools at the repo root, outside the skills pipeline. These
 pipeline, before genre packs existed. 24 chapters drafted at 75,698 words,
 6 automated revision cycles and 6 review rounds, structurally cut from 24
 chapters to 19, finishing at 79,456 words with a linocut cover and a
-4,179-segment audiobook.
+4,179-segment audiobook. It was produced under the upstream pipeline, not
+this one; the audiobook tooling that made it has since been removed.
 
 *Clean Bill* — the first novel planned under a non-fantasy genre pack.
 General fiction, 26 chapters, foundation cleared on iteration 3 of 5 with two
@@ -365,8 +372,10 @@ deal larger than the one owed to any other entry below.
 
 Everything under `plugin/` — the eight skills, the genre pack system, the
 rubrics, and the scripts — was written for this project. The standalone
-Python tools at the repo root (`gen_art.py`, `gen_audiobook*.py`,
-`gen_cover_*.py`, `landing/`) originate upstream.
+Python tools at the repo root (`gen_art*.py`, `gen_cover_*.py`) originate
+upstream. The audiobook scripts and the landing page, which were the rest of
+that surface, have been removed — they carried the first book's characters,
+title and byline hardcoded as defaults, which is upstream issues #7 and #9.
 
 **The upstream repository carries no licence**, which under default
 copyright means its author retains all rights. Nous Research licenses most

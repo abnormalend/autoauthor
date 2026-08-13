@@ -45,9 +45,9 @@ SVG_DIR = ART_DIR / "svg"
 STYLE_FILE = ART_DIR / "visual_style.json"
 PICKS_FILE = ART_DIR / "picks.json"
 
-WRITER_MODEL = os.environ.get("AUTONOVEL_WRITER_MODEL", "claude-sonnet-4-6")
+WRITER_MODEL = os.environ.get("AUTOAUTHOR_WRITER_MODEL", "claude-sonnet-4-6")
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
-ANTHROPIC_BASE = os.environ.get("AUTONOVEL_API_BASE_URL", "https://api.anthropic.com")
+ANTHROPIC_BASE = os.environ.get("AUTOAUTHOR_API_BASE_URL", "https://api.anthropic.com")
 
 
 # ============================================================
