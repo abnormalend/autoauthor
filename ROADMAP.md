@@ -106,6 +106,42 @@ the way the fantasy port was.
   than Save the Cat, so it has a genuine beat conflict — the strongest
   remaining candidate for a pack by the interaction test.
 
+## Engineering — untested surfaces and missing scaffolding
+
+- **No CI.** There is no `.github/workflows`. The 135 tests run only when
+  someone remembers, and they are the only thing standing between the pack
+  system and silent breakage. Cheapest item here by a distance.
+- **Nothing tests the rubric → JSON contract.** Every test is structural:
+  parse, validate, resolve. Rubrics are prompts, and the verdict schema six
+  skills parse is verified by nobody. This has already bitten once —
+  `gen_brief.py` read `lore_integration` and `world_consistency` through
+  `.get()` after they were renamed, silently dropping feedback from every
+  revision brief, covered by no plan task and no test. A fixture verdict per
+  rubric, asserting the keys the skills actually read, needs no live judge.
+- **`novel-import` has never been exercised.** It infers a genre from a
+  finished manuscript and writes it into `state.json` — now across fifteen
+  packs rather than nine, including distinctions that are genuinely fine
+  (paranormal romance vs romantasy). The one skill this work never touched.
+- **`novel-export` is untested and its input just changed.** It reads
+  `display_label` for `NOVEL-GENRE`; that is now a deduplicating function.
+  Export has also never run under any non-fantasy pack.
+- **Modifier stacking is only checked pairwise.** Three modifiers put four
+  contracts against one book, and `conflicts_with` compares packs two at a
+  time. Nothing catches a triple that is jointly unsatisfiable while every
+  pair is individually fine.
+- **No changelog.** The README tells users to want `0.3.0` and fifteen
+  packs; nothing tells them what updating gets them.
+
+## Open decisions
+
+Questions to answer, not work to schedule.
+
+- **Should `general` be usable as a secondary?** It is `["primary"]` alone
+  while every other genre pack is `["primary", "secondary"]`, so literary
+  fiction with a mystery thread cannot be expressed. Possibly deliberate —
+  a genre-neutral pack contributes little as an overlay — but the asymmetry
+  is currently undocumented either way.
+
 ## Known gaps
 
 - **No book has been drafted end to end under any non-fantasy pack.**
