@@ -332,6 +332,11 @@ Extends `validate_genre_pack.py` and `genre_pack.py`:
 
 ## Implementation phasing
 
+0. **Structured caps** — `[cap N]` on every dimension across the fifteen
+   packs, `DIMENSION_RE` extended, plus the gate solver and its tests. Comes
+   first because everything downstream is calibrated by it, and because it
+   retroactively proves itself: run against the pack set as first shipped,
+   it must report fantasy's max gate as 6.3.
 1. **Form pack type**, `shared/forms/`, parser, validator, resolver. No
    behavior change: ship only `novel` with today's values and prove nothing
    moves.
@@ -358,17 +363,115 @@ against the current rubric, the way the fantasy port was.
   is verified end to end.
 - Per-form typesetting; a short story and a novel can share LaTeX for now.
 
+## The gate is computed, not chosen
+
+TEMPLATE already states the policy the gate has to satisfy: one cap firing
+stays clearly reachable, two caps must need no 9, three should block. Today
+an author picks a gate and checks that policy by hand. **Invert it** — the
+author declares the caps, and a script computes the highest gate consistent
+with the policy.
+
+```python
+def required(N, caps, G):
+    """Avg the uncapped dimensions must reach, per number of caps firing."""
+    need = int(G * N) + 1                  # strict >, integer scores
+    out = []
+    for k in range(1, len(caps) + 1):
+        worst = sorted(caps)[:k]           # the k lowest caps co-fire
+        rest = N - k
+        out.append(float('inf') if rest <= 0 else (need - sum(worst)) / rest)
+    return need, out
+```
+
+Solving for the largest `G` where k=1 and k=2 both stay at or under 8.0
+(above 8.0, integer scores force a 9):
+
+| Pack × band | N | caps | required at 7.0 | max gate |
+|---|---|---|---|---|
+| fantasy, extended (current) | 5 | 6, 6 | 7.50, 8.00 | 7.1 |
+| fantasy, extended (**as first shipped**) | 5 | 4, 4, 6 | 8.00, 9.33 | **6.3** |
+| romantasy, extended | 6 | 6, 6, 6 | 7.40, 7.75 | 7.3 |
+| fantasy, compressed | 2 | 6 | 9.00 | 6.9 |
+| romance, compressed | 3 | 6, 6 | 8.00, 10.00 | 6.6 |
+
+Row two is the case for building this. That pack shipped with a maximum
+legal gate of 6.3 while the pipeline gated it at 7.0 — arithmetically
+unreachable, found by a subagent reading criteria prose, and found by this
+function in milliseconds. Rows four and five are the other half: compressed
+gates land at 6.9 and 6.6, per pack, and no author would guess either.
+
+**Computed at authoring time, frozen into the pack, re-verified on every
+run.** Lockfile discipline. A gate computed invisibly at runtime would be
+the same class of defect this repo keeps producing — a plausible number
+nobody can eyeball. Freezing gives derived correctness *and* a visible
+value, with drift caught by the validator and pinned by a test.
+
+### Prerequisite: caps become structured
+
+The solver cannot parse intent out of prose, and `fantasy.md` alone phrases
+caps three ways today (`score 4 max`, `caps at 4`, `score 6 max`).
+Dimensions gain a structured cap:
+
+```
+- lore_interconnection [cap 6] — Does changing one element force changes…
+```
+
+One value per dimension: the floor its criteria can force. Tiered caps
+collapse to their lowest tier. `DIMENSION_RE` extends to capture it; a
+dimension with no `[cap N]` contributes no cap. This is a mechanical edit
+across fifteen packs and is what converts caps from convention into
+something checkable.
+
+## Series and collection are the same machine
+
+Both are *container directory + top-level bible + N child works + a
+cross-work phase*. Only the cross-work check differs: a collection checks
+**variety** (no trick twice, no two stories the same shape), a series checks
+**continuity** (nothing contradicts) and **arc** (each volume advances the
+series and closes its own).
+
+```
+~/works/my-series/
+  series.json           structure, form, genre, the book list
+  series-bible/
+    world.md            shared across every volume
+    characters.md       the recurring cast
+    canon.md            series-level facts, one per line, sourced
+    arc.md              what each volume must advance
+  books/
+    01-<slug>/
+      state.json        this volume's phase and scores
+      outline.md        this volume's plot
+      characters.md     book-local cast additions
+      canon.md          book-local facts
+      chapters/
+```
+
+**Inheritance.** A book reads the series bible plus its own layer. A book
+may **add** to series canon and may never **contradict** it — a
+contradiction is a continuity break, which is exactly the check nothing
+performs today. A fact that becomes load-bearing for a later volume is
+promoted up into series canon rather than duplicated.
+
+This deliberately inverts the pack-override precedent. With packs the
+project copy wins, because specificity is the point. With canon the parent
+wins, because continuity is.
+
+Consequences: `canon_coverage` becomes series-aware; the continuity check is
+a rubric, not a pack; and `paranormal-romance`'s interconnected-standalone
+promise and `romantasy`'s "a volume may leave the world plot open, never the
+couple" both move from contract prose into something the structure enforces.
+
 ## Open questions
 
-1. Should `gate` be a form override, or computed from the surviving
-   dimension count? The latter is more principled and harder to reason
-   about, and it changes the shape of phases 1 and 2 — worth settling before
-   planning.
-2. Does `series` need a form-level or structure-level home for the series
-   bible? It is a planning layer above foundation, which no current phase
-   owns.
+None blocking. Settled in this draft:
 
-**Settled** (were open in the first draft):
+- *Is the gate a form override or computed?* Computed at authoring time and
+  frozen, gated on caps becoming structured data first.
+- *Where does the series bible live?* Top level of the project, with books
+  as children — and it unifies with `collection`.
+
+**Settled earlier:**
 
 - *Does `flash` earn a form?* No — below the useful floor of a five-phase
   pipeline. Deferred, with a two-phase path as the only way it comes back.
