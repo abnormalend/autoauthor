@@ -131,6 +131,36 @@ the way the fantasy port was.
   pair is individually fine.
 - **No changelog.** The README tells users to want `0.3.0` and fifteen
   packs; nothing tells them what updating gets them.
+- **Packs require a framework the judge never receives.** Eleven of twelve
+  genre packs demand "three sliders with justification" in Cast
+  Requirements. The sliders are defined only in `shared/craft/CRAFT.md`,
+  which `novel-foundation` lists as required reading for *itself* (step 3)
+  but does not include in the judge dispatch — the judge gets
+  `foundation.md`, the packs, and the project directory. So the judge is
+  asked to verify a framework it was never given, and will guess, skip, or
+  invent criteria. Fix by inlining the axes into the packs, adding CRAFT.md
+  to the dispatch, or dropping the requirement. Surfaced by a shakedown
+  author who hit it while writing against the pack.
+- **`outline_completeness` assumes act structure that five packs do not
+  use.** `rubrics/foundation.md:146` scores "5+ only if act structure
+  exists" and `templates/outline.md` scaffolds `## Act 1`. But `romance`,
+  `paranormal-romance`, `dark-romance`, `romantasy`, and
+  `romantic-suspense` run on Romancing the Beat's four Parts or a braided
+  threat/relationship ladder. A literal judge caps a correctly structured
+  romance outline at 4 on a base dimension. A third of the pack set is
+  exposed.
+- **Interaction dimensions and their Genre Contract promises are the same
+  test at two severities, with no stated boundary.** Two shakedown authors
+  reported this independently about different packs —
+  `supernatural_indispensability` against paranormal romance's
+  load-bearing promise, and `redemption_cost` against dark romance's
+  earned-ending promise. Each pack says to score on degree and not
+  double-count, but none says where graded shortfall ends and total failure
+  begins. The consequence is not cosmetic: a contract breach caps
+  `overall_score` at 6, so two judges can differ by several points on
+  identical evidence. This applies to the `fantasy` fix in `b1265d2` as
+  well, which added a no-double-count note without a boundary — so it is
+  systemic and includes the remedy TEMPLATE currently recommends.
 
 ## Open decisions
 
