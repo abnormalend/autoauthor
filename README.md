@@ -353,6 +353,30 @@ iterations discarded on regression.
 
 ---
 
+## Origin and licensing
+
+This project began from **autonovel** by
+[emozilla / Jeffrey Quesnelle](https://github.com/emozilla) at
+[Nous Research](https://nousresearch.com) — the original autonomous
+novel-writing pipeline, whose architecture is recorded in
+[PIPELINE.md](PIPELINE.md). The scoring loop, the clean-room judge pattern,
+and the phase structure all descend from that work, and the debt is a good
+deal larger than the one owed to any other entry below.
+
+Everything under `plugin/` — the eight skills, the genre pack system, the
+rubrics, and the scripts — was written for this project. The standalone
+Python tools at the repo root (`gen_art.py`, `gen_audiobook*.py`,
+`gen_cover_*.py`, `landing/`) originate upstream.
+
+**The upstream repository carries no licence**, which under default
+copyright means its author retains all rights. Nous Research licenses most
+of their work under MIT or Apache-2.0, so this is very likely an oversight
+rather than a decision — but until a licence is applied, none is granted.
+The intention here is to adopt whatever licence upstream eventually
+applies, and to keep this repository private until that is resolved or the
+upstream-derived material is removed. If you are reading this and hold
+rights to the original, an issue or an email is welcome.
+
 ## Inspiration
 
 - [karpathy/autoresearch](https://github.com/karpathy/autoresearch) — the autonomous research loop this borrows its shape from
