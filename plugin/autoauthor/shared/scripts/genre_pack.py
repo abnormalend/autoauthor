@@ -10,6 +10,8 @@ import json
 import re
 from pathlib import Path
 
+import gate_solver
+
 ROLES = {"primary", "secondary", "modifier"}
 
 # The roles that make a pack contribute to scoring (weights, pillar
@@ -92,12 +94,37 @@ NAME_RE = re.compile(r"[a-z0-9][a-z0-9-]*")
 FENCE_RE = re.compile(r"^ {0,3}(?P<f>```+|~~~+).*?^ {0,3}(?P=f)[ \t]*$",
                       re.M | re.S)
 
-# '- <key> — <criteria>'  (em dash, not hyphen)
-DIMENSION_RE = re.compile(r"^-\s+([a-z][a-z0-9_]*)\s+—", re.M)
+# '- <key> [cap N] — <criteria>'  (em dash, not hyphen; the cap optional)
+#
+# The cap is the floor the criteria can force this dimension down to, and it
+# exists as data rather than only as prose because gate_solver.py has to
+# read it. A pack's gate is arithmetic over its caps, and a cap written only
+# as "score 6 max" halfway through a paragraph is not arithmetic anyone can
+# check — which is how two packs shipped with gates their own dimensions
+# could not reach.
+DIMENSION_RE = re.compile(
+    r"^-\s+([a-z][a-z0-9_]*)(?:\s+\[cap\s+(\d+)\])?\s+—", re.M)
 # Same shape but with a hyphen or en dash where an em dash belongs — the
 # typo autocorrect produces. Never matches a line DIMENSION_RE also matches,
 # since the two require different characters in the same position.
-DIMENSION_LOOSE_RE = re.compile(r"^-\s+([a-z][a-z0-9_]*)\s+[–-]", re.M)
+DIMENSION_LOOSE_RE = re.compile(
+    r"^-\s+([a-z][a-z0-9_]*)(?:\s+\[cap\s+(\d+)\])?\s+[–-]", re.M)
+
+# The house phrasings for a cap in criteria prose. Closed on purpose: the
+# declared `[cap N]` is checked against what the prose actually says, and
+# that check is only possible if there is a fixed set of ways to say it.
+# An author who invents a phrasing gets an error naming these.
+#
+# Each alternative requires its words adjacent, which is also what keeps
+# 'a breach caps `overall_score` at 6' out — several packs say exactly that
+# inside a dimension's criteria while cross-referencing their Genre
+# Contract, and it is a statement about the weighted mean, not about the
+# dimension. Adjacency is doing that work, so there is no separate
+# exclusion list to keep in step.
+PROSE_CAP_RE = re.compile(
+    r"\bscores?\s+(\d+)\s+max\b"
+    r"|\bcaps?\s+at\s+(\d+)\b"
+    r"|\bscore\s+no\s+(?:higher|more)\s+than\s+(\d+)\b", re.I)
 SECTION_RE = re.compile(r"^##\s+(.+?)\s*$", re.M)
 
 
@@ -142,6 +169,15 @@ def parse_pack(path):
                                Task 2's validator turns these into a
                                specific error rather than silently
                                undercounting real dimensions
+      'caps'                — {dimension: N} from the '[cap N]' each bullet
+                               declares; dimensions declaring none are
+                               absent rather than present with a null
+      'prose_caps'          — {dimension: N} for the LOWEST cap the same
+                               bullet's criteria state in words. Kept
+                               separate from 'caps' so the validator can
+                               check the declaration against the prose the
+                               judge actually reads, which is the only
+                               thing stopping the two from drifting apart
       'path'                — the Path passed in
       'body'                — the file's content after the frontmatter,
                                verbatim (not masked) — later phases feed
@@ -159,12 +195,14 @@ def parse_pack(path):
     except OSError as e:
         raise PackError(f"{path}: cannot read pack file: {e}") from e
     meta, body = _split_frontmatter(text, path)
-    dimensions, malformed = _pillar_dimensions(body)
+    dimensions, malformed, caps, prose_caps = _pillar_dimensions(body)
     return {
         "meta": meta,
         "sections": SECTION_RE.findall(_mask_fences(body)),
         "dimensions": dimensions,
         "malformed_dimensions": malformed,
+        "caps": caps,
+        "prose_caps": prose_caps,
         "path": path,
         "body": body,
     }
@@ -214,15 +252,41 @@ def section_body(body, heading):
 
 
 def _pillar_dimensions(body):
-    """Return (dimensions, malformed_dimensions) for the '## Pillar
-    Dimensions' section — see parse_pack's docstring for the contract.
-    Both regexes run against a fence-masked copy of the section so example
-    bullets shown inside a fence aren't parsed as real dimensions."""
+    """Return (dimensions, malformed_dimensions, caps, prose_caps) for the
+    '## Pillar Dimensions' section — see parse_pack's docstring for the
+    contract. Every regex runs against a fence-masked copy of the section
+    so example bullets shown inside a fence aren't parsed as real
+    dimensions."""
     section = section_body(body, "Pillar Dimensions")
     if section is None:
-        return [], []
+        return [], [], {}, {}
     masked = _mask_fences(section)
-    return DIMENSION_RE.findall(masked), DIMENSION_LOOSE_RE.findall(masked)
+    dimensions, caps, prose_caps = [], {}, {}
+    matches = list(DIMENSION_RE.finditer(masked))
+    for i, match in enumerate(matches):
+        key = match.group(1)
+        dimensions.append(key)
+        if match.group(2) is not None:
+            caps[key] = int(match.group(2))
+        # A dimension's criteria run to the next dimension bullet, so
+        # indented sub-bullets and continuation lines belong to the
+        # dimension above them — which is how the packs are written.
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(masked)
+        stated = _prose_caps(masked[match.end():end])
+        if stated:
+            prose_caps[key] = min(stated)
+    return (dimensions, [m.group(1) for m in DIMENSION_LOOSE_RE.finditer(masked)],
+            caps, prose_caps)
+
+
+def _prose_caps(criteria):
+    """Every score cap the criteria text states, as integers.
+
+    Tiered criteria state more than one; the dimension's cap is the lowest,
+    because that is the floor the criteria can force.
+    """
+    return [int(g) for match in PROSE_CAP_RE.finditer(criteria)
+            for g in match.groups() if g]
 
 
 def format_names(seq):
@@ -354,6 +418,8 @@ def validate_pack(pack, known_names=None):
         errors.extend(_validate_dimensions(pack["dimensions"],
                                            pack["malformed_dimensions"],
                                            "Pillar Dimensions" in sections))
+        errors.extend(_validate_caps(pack["dimensions"], pack["caps"],
+                                     pack["prose_caps"], is_primary))
 
     if modifier_only and "Pillar Dimensions" in sections:
         errors.append(
@@ -419,6 +485,61 @@ def _validate_dimensions(dimensions, malformed_dimensions, has_section):
     dupes = sorted({d for d in dimensions if dimensions.count(d) > 1})
     if dupes:
         errors.append(f"duplicate pillar dimension key(s): {format_names(dupes)}")
+    return errors
+
+
+def _validate_caps(dimensions, caps, prose_caps, is_primary):
+    """Check the declared '[cap N]' values against the criteria and the gate.
+
+    Three failures, in the order an author fixes them:
+
+    1. A cap the criteria state but the bullet does not declare, or the
+       reverse, or the two disagreeing. The declaration is what the
+       arithmetic reads and the prose is what the judge reads, so a
+       divergence means the gate is being computed against a pack that no
+       longer exists.
+    2. A cap outside 1-9. Ten is not a cap and zero is not a score.
+    3. A design whose own caps put the pipeline's gate out of reach. Only
+       checked for primaries: `pillar_score` averages the primary's
+       dimensions alone, so a secondary's caps never form a gate.
+    """
+    errors = []
+
+    for key in dimensions:
+        declared, stated = caps.get(key), prose_caps.get(key)
+        if declared is not None and not (
+                gate_solver.MIN_CAP <= declared <= gate_solver.MAX_CAP):
+            errors.append(
+                f"dimension {key!r} declares [cap {declared}]; a cap must be "
+                f"{gate_solver.MIN_CAP}-{gate_solver.MAX_CAP} "
+                "(10 caps nothing, and 0 is not a score)")
+        if declared is None and stated is not None:
+            errors.append(
+                f"dimension {key!r} states a cap of {stated} in its criteria "
+                f"but declares none; write '- {key} [cap {stated}] — ...' so "
+                "the gate arithmetic can see it")
+        elif declared is not None and stated is None:
+            errors.append(
+                f"dimension {key!r} declares [cap {declared}] but its "
+                "criteria never state it; a judge reads the criteria, so say "
+                "it there too — 'score N max', 'caps at N', or 'score no "
+                "higher than N'")
+        elif (declared is not None and stated is not None
+                and declared != stated):
+            errors.append(
+                f"dimension {key!r} declares [cap {declared}] but its "
+                f"criteria can force it to {stated}; the declared cap is the "
+                "LOWEST tier the criteria can reach")
+
+    if is_primary and not errors:
+        # Suppressed while the caps themselves are wrong: arithmetic over a
+        # cap list that is known to be inaccurate would send the author to
+        # fix the dimension count when the real fault is a typo.
+        problem = gate_solver.unreachable(len(dimensions),
+                                          sorted(caps.values()))
+        if problem:
+            errors.append(problem)
+
     return errors
 
 

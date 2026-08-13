@@ -102,6 +102,32 @@ struggled to find flaws":
 leave the gate clearly reachable; two should be hard but possible; three
 should block, because three real defects ought to.
 
+**Declare each cap on its bullet, and let the script do the arithmetic.**
+The value is the LOWEST tier the criteria can force — tiered criteria
+collapse to their severest:
+
+```
+- lore_interconnection [cap 6] — Does changing one element force changes…
+```
+
+State it in the criteria as well, in one of three phrasings — "score N
+max", "caps at N", or "score no higher than N". The judge reads the
+criteria and the solver reads the bullet, so the validator fails the pack
+when the two disagree; that is the only thing keeping them in step as
+criteria get rewritten.
+
+Then stop checking the table above by hand:
+
+```bash
+python3 gate_solver.py shared/genres/*.md
+```
+
+It prints, per pack, what one and two caps firing demand and the highest
+gate the design can support. A pack whose ceiling falls below the 7.0 the
+pipeline enforces is **rejected**, not warned about, because no book can
+be finished under it however good it is. Two packs have shipped in that
+state, and neither was found by reading the table.
+
 **Dimension count is the lever, not cap severity.** This is the least
 obvious thing on this page. Going from four dimensions to five is what
 makes 6-caps safe — at four dimensions, two 6-caps still force `9, 8` from
@@ -287,7 +313,8 @@ magic system".
 ## Pillar Dimensions
 
 Three to six scored dimensions. Each bullet MUST read `- key — criteria`
-with an em dash; the validator extracts keys from that shape. Keys must not
+or `- key [cap N] — criteria` with an em dash; the validator extracts keys
+and caps from that shape — see Calibration. Keys must not
 collide with the base dimensions (`character_depth`,
 `character_distinctiveness`, `character_secrets`, `outline_completeness`,
 `foreshadowing_balance`, `internal_consistency`, `voice_clarity`,

@@ -44,3 +44,11 @@ jobs:
       - name: Validate every shipped genre pack via the CLI
         working-directory: plugin/autoauthor/shared/scripts
         run: python3 validate_genre_pack.py ../genres/*.md
+
+      # A report, not a check — validate_genre_pack.py already fails a pack
+      # whose gate is out of reach. This prints the headroom each pack has
+      # left, which is the number an author needs before adding a cap and
+      # which no test can usefully assert.
+      - name: Report the gate ceiling for every pack
+        working-directory: plugin/autoauthor/shared/scripts
+        run: python3 gate_solver.py ../genres/*.md

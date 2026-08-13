@@ -6,6 +6,56 @@ is not the same as updating the plugin — see [README](README.md#install).
 
 ---
 
+## 0.5.0 — 2026-08-13
+
+Phase 0 of the form work. Score caps stop being prose and become data the
+machine checks, which makes two things possible that were not: computing a
+pack's gate instead of guessing it, and telling a judge that a cap binds.
+
+Scoring behaviour changes for **general fiction** projects (a fifth pillar
+dimension, and three caps raised from 5 to 6) and, in principle, for every
+genre — a judge that previously weighed a met cap against a dimension's
+other tests must now apply it. No schema or state changes; existing
+projects need no migration.
+
+**Added**
+
+- `[cap N]` on a pillar dimension bullet: `- lore_interconnection [cap 6] —
+  ...`. The value is the lowest tier the dimension's criteria can force.
+  Fifty-five dimensions across eleven packs now declare one.
+- `shared/scripts/gate_solver.py`. Given a dimension count and its caps it
+  computes what the uncapped dimensions must average when the *k* lowest
+  caps co-fire, and the highest gate the design can support. TEMPLATE has
+  stated that policy in prose since the genre work and asked authors to
+  check it by hand; this inverts it.
+- The validator now rejects a primary pack whose own caps put the
+  pipeline's 7.0 pillar gate out of reach — no book can be finished under
+  such a pack however good it is. It also fails a `[cap N]` that disagrees
+  with what the criteria say in words, since the judge reads one and the
+  arithmetic reads the other.
+- CI prints the gate ceiling for every shipped pack.
+
+**Fixed**
+
+- **`general` shipped unreachable.** Four dimensions with three caps at 5:
+  two caps firing demanded 9.50 from the remaining two, and its highest
+  legal gate was 6.4 against a pipeline gating at 7.0. Found by the solver
+  on its first run, which is the argument for having built it. Fixed by
+  TEMPLATE's own remedy — dimension count is the lever — with a fifth
+  dimension, `cultural_particularity`, scoring the one World Section the
+  pack demanded and never graded. The three 5-caps become 6s, which the
+  arithmetic then forces and which also brings the pack in line with every
+  other one in the set, where 6 is the severest ordinary cap.
+- **Caps were advisory.** The 0.3.1 shakedown proved two judges meeting
+  the same structure — three tests pass, one fails, criteria say "score 6
+  max" — where one capped and one scored 8 because "every other test
+  passes strongly". `rubrics/foundation.md` now states that a met cap is
+  applied and not weighed, and says why: the criteria already decided what
+  the other tests are worth by capping in spite of them. Fixed once at the
+  rubric layer rather than pack by pack.
+
+---
+
 ## 0.4.1 — 2026-08-13
 
 No change to the plugin. This removes the last upstream-derived code from

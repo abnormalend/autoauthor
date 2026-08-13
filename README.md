@@ -257,6 +257,16 @@ python3 ~/.claude/plugins/cache/autoauthor-dev/autoauthor/*/shared/scripts/valid
 
 Ask Claude Code to validate it for you and it will find the path itself.
 
+It also checks something you would not think to: that your pack's gate is
+**arithmetically reachable**. Each dimension declares the lowest score its
+criteria can force — `- my_dimension [cap 6] — ...` — and because scores are
+integers and the gate is strict, a few low caps on few dimensions can put the
+bar out of reach of a book that is genuinely fine. Four dimensions with caps
+at 5 need a 10 and a 9 from the other two the moment any two caps fire. Two
+shipped packs were in that state and neither was caught by reading. Run
+`gate_solver.py` over a genres/ directory to see the headroom each pack has
+left.
+
 ---
 
 ## What a project looks like

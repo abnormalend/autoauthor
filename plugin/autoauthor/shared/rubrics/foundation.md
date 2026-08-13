@@ -101,12 +101,24 @@ PILLAR (the genre's own category — the primary pack names it in
 
 Score every dimension the primary pack declares, using that pack's stated
 criteria. A declared dimension is an unindented bullet in that section of
-the form `- key — criteria`; any prose, `###` subsection, or indented
-bullet above the list is supporting material the criteria are judged
-against, not a dimension to score. If a secondary pack is loaded, also
+the form `- key — criteria` or `- key [cap N] — criteria`; any prose,
+`###` subsection, or indented bullet above the list is supporting material
+the criteria are judged against, not a dimension to score. If a secondary
+pack is loaded, also
 score its pillar dimensions; on a key collision the primary's definition
 wins. Ignore any modifier pack's pillar dimensions — modifiers do not
 contribute scored dimensions.
+
+A CAP IS APPLIED, NOT WEIGHED. Where criteria say "score 6 max" — and the
+bullet says `[cap 6]` — that is a ceiling, not one consideration among
+several. Score the dimension on its merits, then apply every cap whose
+condition is met and report the lowest result. "Every other test passes
+strongly" is not a reason to score above a cap that fired; the criteria
+already decided how much the other tests are worth by capping in spite of
+them. A cap that binds is the pack refusing the book something, and it is
+the only mechanism that can. The pack's pillar gate is arithmetic over
+these caps, so treating one as a suggestion admits exactly the book it was
+written to stop.
 
 Mark each scored pillar dimension with which pack declared it. The two
 sets are used differently: `pillar_score`, which the invoking skill gates

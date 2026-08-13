@@ -823,3 +823,167 @@ def test_every_axis_scale_is_ordered_least_to_most_intense(tmp_path):
     for axis, scale in genre_pack.CONTENT_AXES.items():
         assert scale[0] == "none", f"{axis} must start at 'none'"
         assert len(set(scale)) == len(scale), f"{axis} has a duplicate level"
+
+
+# --- structured caps -------------------------------------------------------
+# `[cap N]` on a dimension bullet is the floor its criteria can force. It
+# exists as data because gate_solver.py computes the pack's gate from it,
+# and a cap written only as prose is not arithmetic anyone can check.
+
+CAPPED_BODY = """
+## Framing
+
+- genre_noun — "test novel"
+
+## Pillar Dimensions
+
+- alpha_dim [cap 6] — First criteria. If the thing is absent, score 6 max.
+- beta_dim — Second criteria, uncapped.
+- gamma_dim — Third criteria, uncapped.
+"""
+
+
+def test_parse_captures_the_declared_cap_and_the_stated_one(tmp_path):
+    path = write_pack(tmp_path, "testgenre", VALID_PRIMARY_META, CAPPED_BODY)
+    pack = genre_pack.parse_pack(path)
+    assert pack["dimensions"] == ["alpha_dim", "beta_dim", "gamma_dim"]
+    assert pack["caps"] == {"alpha_dim": 6}
+    assert pack["prose_caps"] == {"alpha_dim": 6}
+
+
+def test_a_dimension_without_a_cap_is_absent_not_null(tmp_path):
+    """gate_solver sums caps.values(); a None in there would be a TypeError
+    at validation time instead of an uncapped dimension."""
+    path = write_pack(tmp_path, "testgenre", VALID_PRIMARY_META, CAPPED_BODY)
+    pack = genre_pack.parse_pack(path)
+    assert "beta_dim" not in pack["caps"]
+
+
+def test_tiered_criteria_take_the_lowest_tier(tmp_path):
+    body = CAPPED_BODY.replace(
+        "- alpha_dim [cap 6] — First criteria. If the thing is absent, score 6 max.",
+        "- alpha_dim [cap 6] — If absent, score 7 max. If also faked, score 6 max.")
+    path = write_pack(tmp_path, "testgenre", VALID_PRIMARY_META, body)
+    pack = genre_pack.parse_pack(path)
+    assert pack["prose_caps"]["alpha_dim"] == 6
+    assert validate(tmp_path, "testgenre", VALID_PRIMARY_META, body) == []
+
+
+def test_a_cap_in_the_criteria_must_be_declared(tmp_path):
+    body = CAPPED_BODY.replace("- alpha_dim [cap 6] —", "- alpha_dim —")
+    errors = validate(tmp_path, "testgenre", VALID_PRIMARY_META, body)
+    assert any("states a cap of 6 in its criteria but declares none" in e
+               for e in errors)
+
+
+def test_a_declared_cap_must_appear_in_the_criteria(tmp_path):
+    """The judge reads the criteria, not the frontmatter-ish annotation.
+    A cap only the arithmetic can see never actually fires."""
+    body = CAPPED_BODY.replace(
+        "First criteria. If the thing is absent, score 6 max.",
+        "First criteria, with no cap stated anywhere.")
+    errors = validate(tmp_path, "testgenre", VALID_PRIMARY_META, body)
+    assert any("criteria never state it" in e for e in errors)
+
+
+def test_a_declared_cap_that_disagrees_with_the_criteria_is_an_error(tmp_path):
+    body = CAPPED_BODY.replace("[cap 6]", "[cap 6]").replace(
+        "score 6 max.", "score 4 max.")
+    errors = validate(tmp_path, "testgenre", VALID_PRIMARY_META, body)
+    assert any("can force it to 4" in e for e in errors)
+
+
+@pytest.mark.parametrize("cap", [0, 10, 11])
+def test_a_cap_outside_one_to_nine_is_an_error(tmp_path, cap):
+    body = CAPPED_BODY.replace("[cap 6]", f"[cap {cap}]").replace(
+        "score 6 max", f"score {cap} max")
+    errors = validate(tmp_path, "testgenre", VALID_PRIMARY_META, body)
+    assert any("a cap must be 1-9" in e for e in errors)
+
+
+def test_a_contract_breach_capping_overall_score_is_not_a_dimension_cap(tmp_path):
+    """Several packs cross-reference their Genre Contract inside a
+    dimension's criteria. 'a breach caps `overall_score` at 6' is a
+    statement about the weighted mean, not about this dimension — and it
+    stays out because each phrasing requires its words adjacent, which is
+    the property this pins."""
+    body = CAPPED_BODY.replace(
+        "- alpha_dim [cap 6] — First criteria. If the thing is absent, score 6 max.",
+        "- alpha_dim — First criteria. Where that holds it is also a Genre "
+        "Contract breach, and a breach caps `overall_score` at 6; record it "
+        "there.")
+    path = write_pack(tmp_path, "testgenre", VALID_PRIMARY_META, body)
+    assert genre_pack.parse_pack(path)["prose_caps"] == {}
+    assert validate(tmp_path, "testgenre", VALID_PRIMARY_META, body) == []
+
+
+def test_a_malformed_dash_is_still_caught_when_the_bullet_has_a_cap(tmp_path):
+    """The loose-dash regex had to learn about caps too, or a typo'd bullet
+    carrying one would stop being reported as malformed."""
+    body = CAPPED_BODY.replace("- beta_dim — Second", "- beta_dim [cap 6] - Second")
+    path = write_pack(tmp_path, "testgenre", VALID_PRIMARY_META, body)
+    assert genre_pack.parse_pack(path)["malformed_dimensions"] == ["beta_dim"]
+
+
+# --- the gate has to be reachable -----------------------------------------
+
+UNREACHABLE_BODY = """
+## Framing
+
+- genre_noun — "test novel"
+
+## Pillar Dimensions
+
+- alpha_dim [cap 5] — If absent, score 5 max.
+- beta_dim [cap 5] — If absent, score 5 max.
+- gamma_dim [cap 5] — If absent, score 5 max.
+"""
+
+
+def test_a_primary_whose_own_caps_put_the_gate_out_of_reach_fails(tmp_path):
+    errors = validate(tmp_path, "testgenre", VALID_PRIMARY_META,
+                      UNREACHABLE_BODY)
+    assert any("is unreachable" in e for e in errors)
+    assert any("Dimension count is the lever" in e for e in errors)
+
+
+def test_reachability_is_not_checked_for_a_secondary(tmp_path):
+    """`pillar_score` averages the PRIMARY's dimensions alone, so a
+    secondary's caps never form a gate of their own."""
+    meta = {k: v for k, v in VALID_PRIMARY_META.items()
+            if k not in ("shape", "pillar_label")}
+    meta["role"] = ["secondary"]
+    errors = validate(tmp_path, "testgenre", meta, UNREACHABLE_BODY)
+    assert not any("unreachable" in e for e in errors), errors
+
+
+def test_a_cap_typo_suppresses_the_arithmetic_complaint(tmp_path):
+    """Arithmetic over a cap list known to be wrong would send the author
+    to change the dimension count when the real fault is one number."""
+    body = UNREACHABLE_BODY.replace("- alpha_dim [cap 5] —", "- alpha_dim —")
+    errors = validate(tmp_path, "testgenre", VALID_PRIMARY_META, body)
+    assert any("declares none" in e for e in errors)
+    assert not any("unreachable" in e for e in errors)
+
+
+def test_every_shipped_primary_can_reach_the_gate_it_is_judged_against():
+    """The invariant, not a table of values: a pack whose ceiling drops
+    below the pipeline's gate cannot be finished no matter how good the
+    book is. Two packs have shipped in that state."""
+    import gate_solver
+
+    genres = Path(__file__).parent.parent / "plugin/autoauthor/shared/genres"
+    packs = [genre_pack.parse_pack(p) for p in sorted(genres.glob("*.md"))
+             if p.stem != "TEMPLATE"]
+    assert packs, "no genre packs found"
+    checked = 0
+    for pack in packs:
+        if "primary" not in pack["meta"].get("role", []):
+            continue
+        checked += 1
+        ceiling = gate_solver.max_gate(len(pack["dimensions"]),
+                                       sorted(pack["caps"].values()))
+        assert ceiling is not None and ceiling >= gate_solver.PILLAR_GATE, (
+            f"{pack['meta']['name']}: ceiling {ceiling} is below the "
+            f"{gate_solver.PILLAR_GATE} gate")
+    assert checked >= 10, f"only {checked} primaries checked"

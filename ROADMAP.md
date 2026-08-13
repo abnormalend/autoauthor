@@ -10,10 +10,18 @@ Last updated 2026-08-13. Shipped history is in [CHANGELOG.md](CHANGELOG.md).
 
 ## In flight
 
-Nothing. Next up is phase 0 below — independently useful, and it is now also
-the fix for the advisory-caps defect.
+Nothing. Phase 0 landed; next is phase 1, the form pack type.
 
 ## Recently landed
+
+- **Structured caps and the gate solver**, 0.5.0, 2026-08-13. Phase 0 of
+  the form work. `[cap N]` on fifty-five dimensions across eleven packs,
+  `gate_solver.py` computing the highest gate a design supports, and a
+  validator that rejects a pack whose gate its own caps put out of reach.
+  It earned itself on the first run: `general` — the pack every project
+  without a genre falls back to — shipped with a ceiling of 6.4 against a
+  7.0 gate. Caps also stopped being advisory, fixed in one sentence at the
+  rubric layer as planned rather than pack by pack.
 
 - **Pruned the last upstream code**, 0.4.1, 2026-08-13. The standalone art,
   cover, audiobook and landing-page tools are gone — never called, never
@@ -49,13 +57,6 @@ All from [the form spec](docs/superpowers/specs/2026-08-13-form-parameterization
 in its phase order. Phases 0–2 are behaviour-preserving and A/B-verifiable
 the way the fantasy port was.
 
-- **0. Structured caps + gate solver.** `[cap N]` on every dimension across
-  the fifteen packs, `DIMENSION_RE` extended, and a script that computes the
-  highest gate consistent with TEMPLATE's policy instead of an author
-  guessing one. Independently useful: run against the pack set as first
-  shipped, it reports fantasy's max legal gate as 6.3 against a pipeline
-  gating it at 7.0 — a bug that took a subagent reading prose to find.
-  Prototype at `docs/superpowers/specs/2026-08-13-gate-solver-prototype.py`.
 - **1. Form pack type.** `shared/forms/`, parser, validator, resolver. Ships
   `novel` only, with today's values, proving nothing moves.
 - **2. Base dimension parameterization.** Lift `character_depth`,
@@ -104,15 +105,22 @@ the way the fantasy port was.
   figures generated to make a sentence interesting do not. Character
   dialogue is exempt: a distinctive speaker's similes characterize the
   speaker and should differ from the narration's.
-- **Caps are advisory, and whether they bind varies by judge.** Proven by
-  the shakedown's fix verification: two packs presented a judge with the
-  same structure — three dimension tests pass, one fails, criteria say
-  "score 6 max" — and one judge capped at 6 while the other scored 8 on
-  the stated grounds that "every other test passes strongly." Every cap in
-  every pack is currently a suggestion. Fixed by phase 0 of the form work
-  (machine-declared `[cap N]`) plus one sentence in `foundation.md`: a met
-  cap condition is a cap **applied**, not a factor weighed. Do not patch
-  this pack by pack.
+- **Verify that caps now bind.** 0.5.0 declared them as data and told the
+  rubric a met cap is applied rather than weighed, but the defect was
+  found by observing two judges, and only a judge can show it is gone.
+  Re-run the two shakedown sets whose structure produced the split —
+  three dimension tests pass, one fails, criteria say "score 6 max" — and
+  check that both now cap. Cheap, and it closes the loop on the deepest
+  finding the shakedown produced.
+- **`fantasy` caps only two of its five dimensions.** Visible for the first
+  time now that the solver prints the cap list per pack: every other
+  primary caps all or nearly all of its dimensions, while `magic_system`,
+  `world_history` and `geography_and_culture` state failure modes and
+  attach no ceiling to any of them ("decorative history counts against the
+  score, not for it" is a deduction of unstated size). Not a calibration
+  bug — the arithmetic is fine and the headroom is real — but it means
+  three of the oldest pack's five dimensions rest entirely on judge
+  discretion, which is the variance the shakedown measured at ±1.
 - **A `consent` axis in `CONTENT_AXES`.** `dark-romance` cannot express its
   defining constraint in frontmatter and had to buy the same protection with
   a blunt `conflicts_with` against `ya` and `cozy`. romance.io's taxonomy
