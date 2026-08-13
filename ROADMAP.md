@@ -15,6 +15,13 @@ the fix for the advisory-caps defect.
 
 ## Recently landed
 
+- **CI**, 2026-08-13. `.github/workflows/ci.yml` runs the suite and the pack
+  validator CLI on every push and PR. The consistency checks live in
+  `tests/test_plugin_manifest.py` rather than in YAML, so they run locally
+  too — version agreement across the three plugin strings, and skill
+  frontmatter matching its directory, which is the defect 0.4.0 shipped and
+  a human caught. Both mutation-tested.
+
 - **Rename to `autoauthor`**, 0.4.0, 2026-08-13. Was phase 4 of the form
   work; shipped ahead of phases 0–3 so that everything they create is born
   correctly named. Breaking — requires reinstall, not update. The dated
@@ -128,9 +135,6 @@ the way the fantasy port was.
 
 ## Engineering — untested surfaces and missing scaffolding
 
-- **No CI.** There is no `.github/workflows`. The 135 tests run only when
-  someone remembers, and they are the only thing standing between the pack
-  system and silent breakage. Cheapest item here by a distance.
 - **Nothing tests the rubric → JSON contract.** Every test is structural:
   parse, validate, resolve. Rubrics are prompts, and the verdict schema six
   skills parse is verified by nobody. This has already bitten once —

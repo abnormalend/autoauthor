@@ -1,0 +1,46 @@
+name: CI
+
+# The test suite is the only thing standing between the genre pack system
+# and silent breakage. Every defect this project has produced has been
+# silent-wrong rather than loud-broken, so "the tests run when someone
+# remembers" was the gap worth closing first.
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  # A new push supersedes an in-flight run on the same ref.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install dependencies
+        run: uv sync --all-groups
+
+      - name: Run tests
+        run: uv run pytest tests/ -q
+
+      # Redundant with the suite's own pack sweep, but it exercises the CLI
+      # entry point that pack authors actually invoke, which the library
+      # tests never touch.
+      - name: Validate every shipped genre pack via the CLI
+        working-directory: plugin/autoauthor/shared/scripts
+        run: python3 validate_genre_pack.py ../genres/*.md

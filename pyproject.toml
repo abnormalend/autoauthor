@@ -1,7 +1,10 @@
 [project]
-name = "autonovel"
+# Dev tooling only — this is not the shipped artifact. The plugin and its
+# version live in plugin/autoauthor/.claude-plugin/plugin.json, and this
+# version is deliberately not kept in step with it.
+name = "autoauthor"
 version = "0.1.0"
-description = "Add your description here"
+description = "Dev environment for the autoauthor Claude Code plugin: tests and the standalone art/audiobook tools"
 requires-python = ">=3.12"
 dependencies = [
     "httpx>=0.28.1",
