@@ -53,7 +53,7 @@ print('packs  :', len([f for f in os.listdir(g) if f.endswith('.md')])-1 if os.p
 "
 ```
 
-You want `0.4.1` and `15`. [CHANGELOG.md](CHANGELOG.md) says what each
+You want `0.10.0` and `15`. [CHANGELOG.md](CHANGELOG.md) says what each
 version changed.
 
 ---
@@ -64,9 +64,10 @@ version changed.
 /autoauthor:seed
 ```
 
-It asks three things — where the project should live, what genre, and your
-premise — then scaffolds a project with its own private git repo. Your novel
-never lives inside this repo.
+It asks four things — where the project should live, what genre, how long
+(a novel, a novella, or a short story), and your premise — then scaffolds a
+project with its own private git repo. Your book never lives inside this
+repo.
 
 ```bash
 cd ~/novels/your-book
@@ -132,7 +133,7 @@ The bars:
 
 | Phase | Exits when |
 |---|---|
-| Foundation | overall > 7.5 **and** the genre pillar > 7.0 |
+| Foundation | overall > 7.5 **and** the genre pillar > 7.0 — for a novel; the form sets these, and shorter forms gate lower |
 | Drafting | every chapter > 6.0 |
 | Revision | scores plateau — change < 0.5 across two cycles |
 | Review | the reviewer's remaining criticisms are hedged rather than real |
@@ -144,7 +145,7 @@ than a weak chapter does.
 
 ---
 
-## The eight skills
+## The nine skills
 
 | Skill | What it does |
 |---|---|
@@ -155,6 +156,7 @@ than a weak chapter does.
 | `/autoauthor:draft` | Writes chapters sequentially, each scored against the previous chapter and the plan. |
 | `/autoauthor:revise` | Adversarial cuts, a four-persona reader panel, targeted rewrites. Repeats until scores plateau. |
 | `/autoauthor:review` | Whole-manuscript review as a literary critic and then a professor of fiction. Fixes the top items, repeats. |
+| `/autoauthor:collection` | For a collection only: the one pass that reads every work at once, hunting the convergence no single-work judge can see. Sets the running order. |
 | `/autoauthor:export` | Typesets a print-ready LaTeX PDF and builds the ePub. |
 
 ---
