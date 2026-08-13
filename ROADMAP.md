@@ -50,6 +50,35 @@ the way the fantasy port was.
 
 ## Later — identified, not specced
 
+- **Literary device overuse.** Identified from a 0.2.0 draft
+  (`time-squatting/ch_01.md`): 31 figurative constructions in 2,577 words,
+  one every 83. Three distinct faults, needing two layers to catch:
+  - *Monoculture.* ~25 of the 31 are one construction — `like` / `the way`
+    + a specific human scenario. Individually most are good; collectively
+    they become the narrator's tic, and nothing stands out because
+    everything is reaching.
+  - *Redundancy.* One character's single trait drew five separate figures
+    inside ten lines. The reader had it at the first.
+  - *Detachability.* "flat, like a total she was reading off a register" —
+    `flat` already did the work. This is the operative test: **delete the
+    figure; if the sentence loses nothing, it was ornament.**
+
+  Mechanical half: a `figurative_density` metric in `slop_score.py`, built
+  exactly like the existing `em_dash_density` (per 1000 words, threshold,
+  graduated penalty), plus a repeated-construction check so monoculture
+  scores worse than the same count spread across varied figures. Judged
+  half: the detachability test cannot be regexed and belongs in
+  `ANTI-SLOP.md` and `voice_clarity`. Thresholds should vary by form and
+  genre — a compressed form cannot afford this at all, and literary fiction
+  tolerates more than a thriller.
+
+  Must not become "fewer similes". The same chapter earns figures where
+  they carry the book's argument — a credit card "load-bearing since her
+  sophomore year", a debt that "worked weekends", a metaphor in dialogue
+  that a later line pays off. Figures tied to the subject earn their place;
+  figures generated to make a sentence interesting do not. Character
+  dialogue is exempt: a distinctive speaker's similes characterize the
+  speaker and should differ from the narration's.
 - **A `consent` axis in `CONTENT_AXES`.** `dark-romance` cannot express its
   defining constraint in frontmatter and had to buy the same protection with
   a blunt `conflicts_with` against `ya` and `cozy`. romance.io's taxonomy
