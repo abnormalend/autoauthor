@@ -4,17 +4,25 @@ Direction and open work. Detail lives in `docs/superpowers/specs/` (design)
 and `docs/superpowers/plans/` (execution); this file is the index above them
 and the home for work not yet worth a spec.
 
-Last updated 2026-08-13.
+Last updated 2026-08-13. Shipped history is in [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
 ## In flight
 
-- **Pack shakedown.** Planted-defect run against the four new primary packs,
-  testing whether their criteria actually bite a judge or merely read well.
-  Foundation phase only. Blocks phase 2 below, which lifts the base
-  dimensions out of `rubrics/foundation.md` and should not be built on packs
-  that have never judged anything.
+Nothing. Next up is phase 0 below — independently useful, and it is now also
+the fix for the advisory-caps defect.
+
+## Recently landed
+
+- **Pack shakedown**, 2026-08-13 —
+  [result](docs/superpowers/2026-08-13-pack-shakedown-result.md). Four
+  planted-defect planning sets, four clean-room judges. One pack caught its
+  plant cleanly and blocked the book; two had gaps, since fixed and verified
+  in 0.3.1; one was inconclusive because its author out-wrote their own
+  plant. It also produced the artifact design rule now used for new packs —
+  *an artifact bites when it directly encodes the dimension's test* — and
+  surfaced most of the Engineering section below.
 
 ## Next — specced, ready to plan
 
@@ -138,8 +146,16 @@ the way the fantasy port was.
   contracts against one book, and `conflicts_with` compares packs two at a
   time. Nothing catches a triple that is jointly unsatisfiable while every
   pair is individually fine.
-- **No changelog.** The README tells users to want `0.3.0` and fifteen
-  packs; nothing tells them what updating gets them.
+- **Shakedown slice 2 — chapter, drafting, reader panel.** The 2026-08-13
+  run covered foundation only. `drafting-rules.md`, `chapter.md` and
+  `reader-panel.md` all read genre packs and none has been exercised. Use
+  the same planted-defect method; it worked.
+- **Judge variance is unmeasured and it constrains everything above.**
+  Re-judging an unchanged planting set moved four dimensions and lifted
+  `overall_score` by 0.36. Single-dimension deltas are noise, which is why
+  both 0.3.1 fixes were accepted on the judge *naming the new test* rather
+  than on a score moving. Any rubric-fixture test must pin keys and schema,
+  never values, or it encodes the noise.
 - **Packs require a framework the judge never receives.** Eleven of twelve
   genre packs demand "three sliders with justification" in Cast
   Requirements. The sliders are defined only in `shared/craft/CRAFT.md`,

@@ -53,7 +53,8 @@ print('packs  :', len([f for f in os.listdir(g) if f.endswith('.md')])-1 if os.p
 "
 ```
 
-You want `0.3.0` and `15`.
+You want `0.3.1` and `15`. [CHANGELOG.md](CHANGELOG.md) says what each
+version changed.
 
 ---
 
