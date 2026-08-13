@@ -6,6 +6,54 @@ is not the same as updating the plugin — see [README](README.md#install).
 
 ---
 
+## 0.4.1 — 2026-08-13
+
+No change to the plugin. This removes the last upstream-derived code from
+the repository around it.
+
+**Removed**
+
+- `gen_art.py`, `gen_art_directions.py`, `gen_cover_composite.py`,
+  `gen_cover_print.py` — the standalone image tools.
+- `gen_audiobook.py`, `gen_audiobook_script.py`, `audiobook_voices.json`,
+  `landing/` — removed just before this, for the same reason.
+- `.env.example`, and both runtime dependencies (`httpx`, `python-dotenv`),
+  which existed only for those tools.
+
+None of them was ever called by the pipeline, covered by a test, or shipped
+in the plugin. Each hardcoded the first book's title, byline or cast as a
+**default** rather than as an example — an upstream defect
+([#7](https://github.com/NousResearch/autonovel/issues/7),
+[#9](https://github.com/NousResearch/autonovel/issues/9)) that had survived
+into this tree because the genre-leak scrub was scoped to the plugin and
+these sat outside it. They also carried upstream
+[#5](https://github.com/NousResearch/autonovel/issues/5), fixed `max_tokens`
+that breaks against a thinking model.
+
+**Consequences**
+
+- Everything that ships is now original to this project, which is the
+  cleanest position for eventually going public while upstream's licensing
+  is unresolved. The remaining debt is architectural — `PIPELINE.md` is
+  upstream's own document, kept deliberately as the record of what this
+  descends from.
+- The repo has **no runtime dependencies**. The plugin's scripts were
+  already stdlib-only by design, since they run inside Claude Code on
+  whatever Python is present and a third-party import would fail silently
+  on someone else's machine. `pyproject.toml` now says so.
+- No API keys are needed for anything in this repository.
+
+**Added**
+
+- The De-Bells rule is finally executable. `tests/test_no_genre_leak.py` has
+  described itself as that rule's successor since it was written while
+  checking only for genre furniture — the content it was named after was
+  never guarded. It now scans the whole repo rather than the plugin-scoped
+  directories, because the leak's last hiding place was exactly the tooling
+  those directories do not cover.
+
+---
+
 ## 0.4.0 — 2026-08-13
 
 **Renamed from autonovel to autoauthor.** Breaking: you must **reinstall**,

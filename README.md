@@ -53,7 +53,7 @@ print('packs  :', len([f for f in os.listdir(g) if f.endswith('.md')])-1 if os.p
 "
 ```
 
-You want `0.4.0` and `15`. [CHANGELOG.md](CHANGELOG.md) says what each
+You want `0.4.1` and `15`. [CHANGELOG.md](CHANGELOG.md) says what each
 version changed.
 
 ---
@@ -326,24 +326,6 @@ fiction.
 
 ---
 
-## Cover and chapter art
-
-Standalone Python tools at the repo root, outside the skills pipeline and
-not invoked by it. These *do* need API keys — copy `.env.example` to `.env`
-and set `ANTHROPIC_API_KEY` and `FAL_KEY`.
-
-- `gen_art_directions.py` — reads the manuscript and writes art-direction
-  prompts, one per chapter
-- `gen_art.py` — renders those prompts into chapter ornaments
-- `gen_cover_composite.py` — a screen cover
-- `gen_cover_print.py` — a print-ready wrap, spine width computed from page
-  count
-
-The cover scripts require `--title` and `--author`. They previously
-defaulted to the first book produced by the upstream pipeline, which meant a
-cover generated without those flags carried someone else's book on it.
-
----
 
 ## Production history
 
@@ -370,21 +352,27 @@ novel-writing pipeline, whose architecture is recorded in
 and the phase structure all descend from that work, and the debt is a good
 deal larger than the one owed to any other entry below.
 
-Everything under `plugin/` — the eight skills, the genre pack system, the
-rubrics, and the scripts — was written for this project. The standalone
-Python tools at the repo root (`gen_art*.py`, `gen_cover_*.py`) originate
-upstream. The audiobook scripts and the landing page, which were the rest of
-that surface, have been removed — they carried the first book's characters,
-title and byline hardcoded as defaults, which is upstream issues #7 and #9.
+**As of 0.4.1 no upstream code remains here.** The standalone Python tools
+that carried it — art, covers, audiobook, landing page — have all been
+removed. They were never called by the pipeline, never tested, and each
+hardcoded the first book's title, byline or cast as *defaults*, which is
+upstream issues #7 and #9. Everything that ships is original: the eight
+skills, the genre pack system, the rubrics, and the scripts, all under
+`plugin/`.
+
+What remains of the debt is architectural rather than literal.
+[PIPELINE.md](PIPELINE.md) is upstream's own document, kept deliberately as
+the record of the program this descends from, and the pipeline still
+implements the shape it describes.
 
 **The upstream repository carries no licence**, which under default
-copyright means its author retains all rights. Nous Research licenses most
-of their work under MIT or Apache-2.0, so this is very likely an oversight
-rather than a decision — but until a licence is applied, none is granted.
-The intention here is to adopt whatever licence upstream eventually
-applies, and to keep this repository private until that is resolved or the
-upstream-derived material is removed. If you are reading this and hold
-rights to the original, an issue or an email is welcome.
+copyright means its author retains all rights — see
+[NousResearch/autonovel#26](https://github.com/NousResearch/autonovel/issues/26).
+Nous Research licenses most of their work under MIT or Apache-2.0, so this
+reads as an oversight rather than a decision, but until a licence is applied
+none is granted. The intention here is to adopt whatever licence upstream
+eventually applies. If you are reading this and hold rights to the original,
+an issue or an email is welcome.
 
 ## Inspiration
 

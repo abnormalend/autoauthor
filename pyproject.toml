@@ -6,10 +6,11 @@ name = "autoauthor"
 version = "0.1.0"
 description = "Dev environment for the autoauthor Claude Code plugin: tests and the standalone art/audiobook tools"
 requires-python = ">=3.12"
-dependencies = [
-    "httpx>=0.28.1",
-    "python-dotenv>=1.2.2",
-]
+# No runtime dependencies. The plugin's scripts are stdlib-only by design —
+# they run inside Claude Code on whatever Python is present, so a third-party
+# import would be a silent failure on someone else's machine. httpx and
+# python-dotenv were here for the standalone API tools, removed in 0.4.1.
+dependencies = []
 
 [dependency-groups]
 dev = [

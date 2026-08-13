@@ -15,6 +15,13 @@ the fix for the advisory-caps defect.
 
 ## Recently landed
 
+- **Pruned the last upstream code**, 0.4.1, 2026-08-13. The standalone art,
+  cover, audiobook and landing-page tools are gone — never called, never
+  tested, each hardcoding the first book's title, byline or cast as a
+  default (upstream #7 and #9). Everything shipping is now original, the
+  repo has no runtime dependencies, and the De-Bells rule is an executable
+  test rather than a docstring.
+
 - **CI**, 2026-08-13. `.github/workflows/ci.yml` runs the suite and the pack
   validator CLI on every push and PR. The consistency checks live in
   `tests/test_plugin_manifest.py` rather than in YAML, so they run locally
@@ -236,3 +243,7 @@ Recorded so they are not re-litigated.
   romance are all correctly composed today.
 - **Retiring the `autoanthology` repo** before `collection` ships and is
   verified end to end.
+- **Restoring the standalone art/cover tools.** Removed in 0.4.1. If cover
+  art is wanted later, write it fresh against the current project layout
+  rather than recovering code that was written for one specific book and
+  never tested.
