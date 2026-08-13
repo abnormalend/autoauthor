@@ -10,11 +10,12 @@ keep-or-discard** loop against a rubric, the way
 research — so the book gets measurably better between iterations instead of
 just getting longer.
 
-Nine **genre packs** ship. Fantasy, science fiction, romance, mystery,
-thriller, erotica, and general fiction, plus YA and cozy as modifiers you
-layer on top. The genre decides what the judges score, how the book is
-weighted, and how long a chapter should be — a thriller drafts in 1,900-word
-chapters, a fantasy in 3,200.
+Fifteen **genre packs** ship — general fiction, fantasy, science fiction,
+romance, mystery, thriller, erotica, romantasy, paranormal romance, romantic
+suspense and dark romance, plus YA, cozy, historical and inspirational as
+modifiers you layer on top. The genre decides what the judges score, how the
+book is weighted, and how long a chapter should be — a thriller drafts in
+1,900-word chapters, a romantasy in 2,600, a fantasy in 3,200.
 
 ---
 
@@ -52,7 +53,7 @@ print('packs  :', len([f for f in os.listdir(g) if f.endswith('.md')])-1 if os.p
 "
 ```
 
-You want `0.2.0` and `9`.
+You want `0.3.0` and `15`.
 
 ---
 
@@ -172,14 +173,40 @@ and what the drafter is forbidden to do.
 | **Thriller** | primary · secondary | antagonist capability, clock pressure, escalation, personal stakes |
 | **Romance** | primary · secondary | attraction specificity, barrier integrity, black-moment cost |
 | **Erotica** | primary · modifier | desire architecture, escalation and variation, consent and power, embodiment |
+| **Romantasy** | primary | whether the magic *creates* the barrier, the HEA's price in the system's own currency, whether both plots converge on one action |
+| **Paranormal Romance** | primary | whether the supernatural is load-bearing, bond versus choice, power asymmetry, the revelation, the transformation's price |
+| **Romantic Suspense** | primary | whether the threat forces the intimacy, whether the romance raises the stakes, a barrier that survives the arrest |
+| **Dark Romance** | primary | whether the darkness is load-bearing, the power balance in motion, agency inside constraint, redemption's cost, narrative stance |
 | **Young Adult** | modifier | — |
 | **Cozy** | modifier | — |
+| **Historical** | modifier | — |
+| **Inspirational** | modifier | — |
 
 **Primary** sets the book's genre. **Secondary** layers a second genre's
-concerns on top without taking over — fantasy primary plus romance secondary
-is a romantasy, judged on lore *and* on whether the relationship works.
-**Modifiers** are orthogonal: YA is an age category, cozy is a tone, and both
-apply to any genre.
+concerns on top without taking over — a fantasy with a mystery secondary is
+judged on lore *and* on whether the puzzle is fair. **Modifiers** are
+orthogonal: YA is an age category, cozy is a tone, historical is a period,
+and each applies to any genre.
+
+### Composed, or a pack of its own
+
+Most hybrids should be composed. A cozy mystery is `mystery` plus the `cozy`
+modifier; erotic paranormal romance is `paranormal-romance` plus the
+`erotica` modifier. Nothing needs writing.
+
+The four hybrid packs above exist because composing them is not merely
+thinner but *wrong*. A secondary contributes its scored dimensions and its
+contract — but never its beat structure, its book shape, or its weights.
+So `fantasy` + `romance` outlines on Save the Cat and never places a single
+romance beat, then scores the relationship against an outline with nowhere
+to put it. And unioning two packs' dimensions dilutes the gate: at ten
+dimensions a capped score barely moves the mean, so the caps stop biting.
+
+The test for whether a hybrid earns its own file: **can you name a dimension
+that scores the interaction?** Romantasy can — does the magic system create
+the romantic barrier, does the ending pay for the HEA in the magic's own
+currency. A sci-fi thriller cannot; it is science fiction with a clock, and
+the two sets of concerns are genuinely independent. Compose that one.
 
 Packs also declare content boundaries. A YA modifier caps heat at `warm`; a
 cozy modifier keeps violence off-page. When two packs disagree, **the more
@@ -196,10 +223,23 @@ again against the finished manuscript:
   before the reveal.
 - **Fantasy** — the climax uses rules established before the final quarter.
   No new powers appear unforeshadowed.
+- **Paranormal Romance** — the bond may create the pull; it must not make
+  the choice. An objection that stops mattering because a mate bond
+  overrode it is a breach.
+- **Romantic Suspense** — fear is not consent and rank is not consent. A
+  lead's protective authority is never used to overrule the other's refusal.
 
 A breach caps the score. In practice this means a fantasy plan whose ending
 runs on a capability nothing established **cannot leave the foundation phase**,
 however good the rest of it is.
+
+Contracts are checked for *every* loaded pack, which is why a few packs
+refuse to load together. `dark-romance` declares a conflict with `romance`
+because the two make contradictory promises — romance forbids consent as an
+obstacle, and dark romance's whole subject is coercion depicted honestly.
+Its contract is a replacement set, not an addition, and it is stricter than
+romance's in the places that matter: the ending is earned by the darker
+lead's demonstrated cost, never by the other lead's adaptation.
 
 ### Writing your own
 
