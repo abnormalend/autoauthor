@@ -4130,7 +4130,35 @@ these by hand and record the results in the commit message:
    open question is whether 15 iterations is enough. `fantasy` carries no
    comparable caps, so the two packs are not calibrated to the same bar.
 
-   Judge the result on iterations used:
+   **RESULT (2026-08-13, `~/novels/clean-bill`, `genre: general`): PASSED
+   on iteration 3 of 5. No action needed — the caps are working.**
+
+   The worry was wrong, and instructively so. The pillar was never the
+   blocker: it scored 7.75 on iteration 1 and cleared its gate
+   immediately, then ran 8.00 / 9.00 / 8.75 / 8.50. **No pillar cap ever
+   fired** — the lowest pillar dimension across all five evals was a 7,
+   against caps set at 5 and 6. What actually gated the loop was
+   `internal_consistency` (craft) and `outline_completeness` (structure),
+   both base dimensions this plan never touched.
+
+   So the cap arithmetic is a real hazard in principle and did not bite
+   in practice, because the caps fire on genuine defects and a competent
+   plan does not trip two at once. Leave `general` at four dimensions.
+
+   One fix proved load-bearing and is worth remembering. Iteration 1
+   scored **7.48 against a 7.5 gate** — a 0.02 miss. Before Task 9 Step
+   7b defined `overall_score` as a two-place decimal, nothing stopped a
+   judge from reporting an integer, and that iteration would have come
+   back as `7` with no way to tell 0.02-away from 0.5-away. The gate sits
+   exactly where rounding does the most damage.
+
+   Verified independently: all five evals' weighted means recompute
+   exactly against the pack's `weights`, the judge scored the general
+   pack's four pillar dimensions and no others, `genre_contract` was
+   checked and empty, and the keep/discard rule correctly discarded two
+   regressions (7.23 and 7.92).
+
+   Judge a future result on iterations used:
    - Clears in under 8 — the caps are working as intended, no action.
    - Clears in 8-15 — tight but functional; note it and move on.
    - Hits the 15-iteration cap — the caps are a cliff rather than a
