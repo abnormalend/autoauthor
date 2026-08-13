@@ -45,6 +45,10 @@ jobs:
         working-directory: plugin/autoauthor/shared/scripts
         run: python3 validate_genre_pack.py ../genres/*.md
 
+      - name: Validate every shipped form pack via the CLI
+        working-directory: plugin/autoauthor/shared/scripts
+        run: python3 validate_form_pack.py ../forms/*.md
+
       # A report, not a check — validate_genre_pack.py already fails a pack
       # whose gate is out of reach. This prints the headroom each pack has
       # left, which is the number an author needs before adding a cap and

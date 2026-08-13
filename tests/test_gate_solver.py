@@ -4,6 +4,7 @@ The values pinned here come from TEMPLATE.md's own calibration table and
 from the form spec's worked examples. They are arithmetic, not judgement,
 so pinning them is safe in a way that pinning a judge's score never is.
 """
+import json
 import sys
 from pathlib import Path
 
@@ -138,9 +139,20 @@ def test_max_gate_returns_none_when_no_gate_in_range_works():
     assert "no dimension able to make up the difference" in problem
 
 
-def test_the_pipeline_gate_is_the_one_the_foundation_skill_enforces():
-    """PILLAR_GATE is mirrored, not owned. If the skill moves, this fails."""
-    skill = (Path(__file__).parent.parent
-             / "plugin/autoauthor/skills/foundation/SKILL.md")
-    text = skill.read_text(encoding="utf-8")
-    assert f"pillar_score > {gate_solver.PILLAR_GATE}" in text
+def test_the_pipeline_gate_is_the_one_that_is_actually_enforced():
+    """PILLAR_GATE is mirrored, not owned — by two files, and this is the
+    only thing keeping the three in step.
+
+    It is the floor every pack must be able to reach at authoring time,
+    when no form is in play. The `novel` form declares the same number as
+    the gate the loop exits on, and the foundation skill states it. A form
+    that gates HIGHER than a genre can reach is caught separately, at
+    resolve time, where both packs are known.
+    """
+    plugin = Path(__file__).parent.parent / "plugin/autoauthor"
+    skill = (plugin / "skills/foundation/SKILL.md").read_text(encoding="utf-8")
+    assert f"pillar_score > {gate_solver.PILLAR_GATE}" in skill
+
+    novel = json.loads((plugin / "shared/forms/novel.md")
+                       .read_text(encoding="utf-8").split("---")[1])
+    assert novel["gate"]["pillar"] == gate_solver.PILLAR_GATE

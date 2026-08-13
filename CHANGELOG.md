@@ -6,6 +6,58 @@ is not the same as updating the plugin — see [README](README.md#install).
 
 ---
 
+## 0.6.0 — 2026-08-13
+
+Phase 1 of the form work: the form pack type exists. Only `novel` ships,
+carrying the values the pipeline already used, so **nothing moves** — that
+is the phase's whole acceptance criterion and there is a test asserting
+each of those values individually.
+
+**Added**
+
+- `shared/forms/`, a fourth pack type resolved alongside
+  genre/secondary/modifiers. Same file format, parsed by the same code. A
+  form declares the scale of one complete work: its `band`, its `words`
+  range and `target_words`, the `gate` the foundation loop exits on, which
+  `layers` get built, and which base dimensions the length drops or adds.
+- `form_pack.py` and `validate_form_pack.py`, siblings of the genre pair
+  and deliberately not folded into them — the two schemas share almost
+  nothing, and a command that guessed which kind of pack it was reading
+  would report a genre pack's missing `band` as an error.
+- `state.json` gains `form`. Absent or null resolves to `novel`, under the
+  same defaulting rule as `genre`, so no existing project needs migration.
+- The resolver returns a `form` block, and `foundation` now reads its gate
+  from there rather than from two numbers written into its own prose.
+
+**Two checks that only exist once both packs are loaded**
+
+Neither pack can catch either of these alone, which is why they live in
+the resolver:
+
+- A genre whose word range cannot fit inside the form's. The relation is
+  **overlap, not containment** — a genre that runs past the form's ceiling
+  is straddling a boundary rather than contradicting it, and containment
+  would have rejected `romantasy`, which legitimately runs 110,000–140,000
+  against a novel band topping out at 120,000. Overlap still catches the
+  real error: a novel-scale genre under a short-story form.
+- A form that gates the pillar above what the genre's caps can reach. The
+  ceiling is the genre's and the gate is the form's, so this is invisible
+  until they meet. It is the 0.5.0 solver doing work at resolve time.
+
+**Deliberately deferred**
+
+- The spec's migration of `shape.words` off the genre packs. Each pack's
+  range is genuinely different — a cozy is not a romantasy — and
+  collapsing fifteen of them into one form default would move behaviour in
+  a phase whose contract is that nothing does. It lands with the
+  compressed forms, where band-scoped overrides make it expressible.
+- Deriving `chapters` from `target_words / chapter_words`, for the same
+  reason.
+- Renaming `resolve_genre.py` to `resolve_packs.py`. Cosmetic, touches
+  nine skill files, and buys nothing this phase needs.
+
+---
+
 ## 0.5.0 — 2026-08-13
 
 Phase 0 of the form work. Score caps stop being prose and become data the

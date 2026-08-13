@@ -274,7 +274,7 @@ left.
 ```
 ~/novels/your-book/
   seed.txt          your premise
-  state.json        phase, genre, scores — the pipeline's memory
+  state.json        phase, genre, form, scores — the pipeline's memory
   voice.md          HOW it's written: tone, rhythm, exemplar passages
   world.md          WHAT exists
   characters.md     WHO acts: wound, want, need, lie, how each one talks

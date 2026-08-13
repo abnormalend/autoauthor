@@ -5,9 +5,10 @@ description: Use when a novel project is in the foundation phase, or the user as
 
 # Novel Foundation — Phase 1
 
-Builds the five planning layers and iterates until
-`foundation_score > 7.5 AND pillar_score > 7.0`. No prose chapters are
-written in this phase. Typical runs take 5–15 iterations.
+Builds the planning layers the work's form calls for and iterates until
+both scores clear that form's gate — `foundation_score > 7.5 AND
+pillar_score > 7.0` for a novel. No prose chapters are written in this
+phase. Typical runs take 5–15 iterations.
 
 ## Setup
 
@@ -16,7 +17,7 @@ written in this phase. Typical runs take 5–15 iterations.
    (if dirty, STOP and ask the user before touching anything). Confirm
    `state.json` phase is `foundation` — if it's later, ask before
    re-running foundation. Use absolute paths everywhere.
-2. **Resolve the genre.** Run from the project directory:
+2. **Resolve the genre and form.** Run from the project directory:
 
    ```bash
    python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py"
@@ -24,7 +25,10 @@ written in this phase. Typical runs take 5–15 iterations.
 
    If it exits non-zero, STOP and report — an unresolvable or conflicting
    genre stack must be fixed before any layer work. Keep the reported pack
-   paths; every judge dispatch below needs them. If `state.json` has no
+   paths; every judge dispatch below needs them. Keep the `form` block
+   too: `form.layers` is which layers to build, `form.gate` is what the
+   loop exits on, and `form.band` is which length-scoped section of a
+   genre pack applies. If `state.json` has no
    `genre` field at all, or its `genre` is null, STOP and run the migration
    in `novel/SKILL.md` first — a null genre resolves silently to `general`,
    so the resolver exiting 0 is NOT evidence that anyone chose a genre.
@@ -83,8 +87,13 @@ chapters untouched).
    The results.tsv score column takes `overall_score`; put
    `pillar_score` in the description (e.g. `iter N: <dimension> (pillar
    <pillar_score>)`).
-2. **Gate check.** `overall_score > 7.5` AND `pillar_score > 7.0` → exit
-   the loop.
+2. **Gate check.** `overall_score > form.gate.overall` AND `pillar_score >
+   form.gate.pillar` → exit the loop. Both numbers come from the resolver's
+   `form` block, never from memory; for the `novel` form they are 7.5 and
+   7.0. They are the form's because they are length economics — the bar is
+   this high on the reasoning that a weak plan costs the drafting loop far
+   more than it costs to plan again, and that reasoning does not survive a
+   translation to five thousand words.
 3. **Target the weakest dimension.** The eval names `weakest_dimension`
    and `top_3_improvements`. Revise THAT layer's document. While
    revising, run the cross-layer consistency checks: the outline

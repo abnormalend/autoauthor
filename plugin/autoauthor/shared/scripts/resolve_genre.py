@@ -63,6 +63,15 @@ skills parse this, none of which can see this module's source:
                        list, in first-seen order; a modifier's own
                        'artifacts' entries are deliberately excluded —
                        see merge().
+  form              — {"name", "label", "band", "words", "target_words",
+                       "gate", "layers", "path"} from the resolved form
+                       pack. 'band' is what a genre pack's length-scoped
+                       sections key off; 'gate' is the pair the foundation
+                       loop exits on; 'layers' is which planning documents
+                       get built at this length. A state.json with no
+                       'form' resolves to 'novel', under the same
+                       defaulting rule as 'genre' above and with the same
+                       caveat — a clean exit never proves anyone chose it.
 """
 import argparse
 import json
@@ -77,12 +86,16 @@ from pathlib import Path
 # in, and turns a state.json typo into a clear message instead of a
 # baffling "unknown genre pack" for a name that was never a real attempt at
 # one.
+import form_pack
+import gate_solver
 from genre_pack import (CONTENT_AXES, NAME_RE, PackError, format_names,
                         pack_names_in,
                         parse_pack, validate_pack)
 
 DEFAULT_GENRE = "general"
+DEFAULT_FORM = "novel"
 PLUGIN_GENRES = Path(__file__).resolve().parent.parent / "genres"
+PLUGIN_FORMS = Path(__file__).resolve().parent.parent / "forms"
 
 
 def fail(message):
@@ -139,6 +152,62 @@ def load_pack(project, name, role, names):
     return pack
 
 
+def load_form(project, name):
+    """Resolve the form pack, project copy winning, same as a genre pack."""
+    if not NAME_RE.fullmatch(name or ""):
+        fail(f"invalid form name {name!r}; use lowercase letters, digits, "
+             "and hyphens only")
+    for candidate in (project / "forms" / f"{name}.md",
+                      PLUGIN_FORMS / f"{name}.md"):
+        if candidate.exists():
+            break
+    else:
+        known = ({p.stem for p in PLUGIN_FORMS.glob("*.md")}
+                 | {p.stem for p in (project / "forms").glob("*.md")}
+                 ) - {form_pack.TEMPLATE_STEM}
+        fail(f"unknown form {name!r}; looked in {project / 'forms'} and "
+             f"{PLUGIN_FORMS}; known forms: {format_names(sorted(known))}")
+    try:
+        form = form_pack.parse_form(candidate)
+    except PackError as e:
+        fail(str(e))
+    errors = form_pack.validate_form(form)
+    if errors:
+        fail(f"{candidate} is invalid:\n  " + "\n  ".join(errors))
+    return form
+
+
+def check_form_against_primary(form, primary):
+    """The two places a form and a genre have to agree.
+
+    Both are cross-pack facts, so neither can be checked when either pack
+    is validated on its own — which is why they live here and not in
+    validate_form or validate_pack.
+    """
+    meta, name = form["meta"], primary["meta"]["name"]
+
+    words = (primary["meta"].get("shape") or {}).get("words")
+    if words and not form_pack.ranges_overlap(words, meta["words"]):
+        fail(f"genre {name!r} runs {words[0]:,}-{words[1]:,} words and the "
+             f"{meta['name']!r} form is {meta['words'][0]:,}-"
+             f"{meta['words'][1]:,}; there is no length that satisfies "
+             "both. Choose a form that fits the genre, or a genre pack "
+             "written for this length.")
+
+    # The gate the loop actually enforces has to be one the pack's own
+    # caps can reach. gate_solver rejects a pack below the 7.0 floor at
+    # authoring time; this catches a FORM that raises the bar above what
+    # the genre beside it can support, which no single-pack check can see.
+    ceiling = gate_solver.max_gate(len(primary["dimensions"]),
+                                   sorted(primary["caps"].values()))
+    gate = meta["gate"]["pillar"]
+    if ceiling is not None and gate > ceiling:
+        fail(f"form {meta['name']!r} gates the pillar at {gate}, but genre "
+             f"{name!r} tops out at {ceiling} — with its caps, no book can "
+             "clear that bar. Lower the form's gate or give the genre pack "
+             "more dimensions (see TEMPLATE.md, Calibration).")
+
+
 def resolve(project):
     state = load_state(project)
     names = known_names(project)
@@ -162,7 +231,10 @@ def resolve(project):
         packs.append(load_pack(project, modifier, "modifier", names))
 
     check_conflicts(packs)
-    return packs
+
+    form = load_form(project, state.get("form") or DEFAULT_FORM)
+    check_form_against_primary(form, packs[0])
+    return packs, form
 
 
 def check_conflicts(packs):
@@ -209,7 +281,7 @@ def _label_parts(packs):
     return parts
 
 
-def merge(packs):
+def merge(packs, form):
     # The primary owns every scalar structural field (pillar_label,
     # weights, beat_system, shape) — it's the pack that owns pillar
     # dimensions and book shape by definition (see genre_pack.py's
@@ -252,6 +324,21 @@ def merge(packs):
         "content_register": content_register,
         "content_register_sources": register_sources,
         "artifacts": artifacts,
+        # The form's own frontmatter, passed through rather than folded
+        # into the keys above. `shape` stays the genre's: a form owns how
+        # long the whole work is, a genre owns chapter granularity, and
+        # collapsing them here would make it impossible for a caller to
+        # tell which pack asked for what.
+        "form": {
+            "name": form["meta"]["name"],
+            "label": form["meta"]["label"],
+            "band": form["meta"]["band"],
+            "words": form["meta"]["words"],
+            "target_words": form["meta"]["target_words"],
+            "gate": form["meta"]["gate"],
+            "layers": form["meta"]["layers"],
+            "path": str(form["path"]),
+        },
     }
 
 
@@ -290,10 +377,10 @@ def main(argv):
                         help="validate only; print nothing on success")
     args = parser.parse_args(argv)
 
-    packs = resolve(Path.cwd())
+    packs, form = resolve(Path.cwd())
     if args.check:
         return 0
-    print(json.dumps(merge(packs), indent=2))
+    print(json.dumps(merge(packs, form), indent=2))
     return 0
 
 

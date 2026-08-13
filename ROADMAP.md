@@ -10,9 +10,19 @@ Last updated 2026-08-13. Shipped history is in [CHANGELOG.md](CHANGELOG.md).
 
 ## In flight
 
-Nothing. Phase 0 landed; next is phase 1, the form pack type.
+Nothing. Phases 0 and 1 landed; next is phase 2, base dimension
+parameterization — the largest single piece and the most
+silent-wrong-prone.
 
 ## Recently landed
+
+- **Form pack type**, 0.6.0, 2026-08-13. Phase 1. `shared/forms/`, the
+  form schema and its validator, and a resolver that returns a `form`
+  block the foundation skill now reads its gate from. Only `novel` ships,
+  with today's values, and the acceptance test asserts each of them —
+  nothing moved. Two cross-pack checks landed with it, both invisible to
+  either pack alone: a genre whose length cannot fit the form, and a form
+  that gates above what the genre's caps can reach.
 
 - **Structured caps and the gate solver**, 0.5.0, 2026-08-13. Phase 0 of
   the form work. `[cap N]` on fifty-five dimensions across eleven packs,
@@ -57,14 +67,17 @@ All from [the form spec](docs/superpowers/specs/2026-08-13-form-parameterization
 in its phase order. Phases 0–2 are behaviour-preserving and A/B-verifiable
 the way the fantasy port was.
 
-- **1. Form pack type.** `shared/forms/`, parser, validator, resolver. Ships
-  `novel` only, with today's values, proving nothing moves.
 - **2. Base dimension parameterization.** Lift `character_depth`,
   `outline_completeness`, `foreshadowing_balance`, `canon_coverage` and the
   rest out of `foundation.md`, the way the pillar dimensions were lifted.
   Largest single piece and the most silent-wrong-prone.
 - **3. `short-story` and `novella` forms**, plus compressed-band sections on
-  the genre packs.
+  the genre packs. Also lands what phase 1 deferred: migrating
+  `shape.words` off the genre packs into band-scoped overrides, and
+  deriving `chapters` from `target_words / chapter_words`. Both were held
+  back because collapsing fifteen genuinely different word ranges into one
+  form default would have moved behaviour in a phase whose contract was
+  that nothing did.
 - **5. `structure: collection`** — absorbs `autoanthology`, which is a
   pre-0.2.0 fork carrying four genre packs in the old prose format and none
   of the genre or form work.
@@ -121,6 +134,15 @@ the way the fantasy port was.
   bug — the arithmetic is fine and the headroom is real — but it means
   three of the oldest pack's five dimensions rest entirely on judge
   discretion, which is the variance the shakedown measured at ±1.
+- **Rename `resolve_genre.py` to `resolve_packs.py`.** It resolves a form
+  now as well as a genre stack, so the name is wrong on the tin. Cosmetic,
+  touches nine skill files, and deliberately not bundled into a phase that
+  had to prove it changed nothing.
+- **`romantasy` straddles the novel/epic boundary.** It declares
+  110,000–140,000 against a novel band that stops at 120,000. Not an error
+  — the form check is overlap rather than containment precisely so a genre
+  may sit at the top of its form — but it is the strongest argument yet
+  for `epic` being a real form rather than a wider `novel`.
 - **A `consent` axis in `CONTENT_AXES`.** `dark-romance` cannot express its
   defining constraint in frontmatter and had to buy the same protection with
   a blunt `conflicts_with` against `ya` and `cozy`. romance.io's taxonomy
