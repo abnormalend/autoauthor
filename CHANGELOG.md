@@ -6,6 +6,27 @@ is not the same as updating the plugin — see [README](README.md#install).
 
 ---
 
+## 0.12.2 — 2026-08-14
+
+Found by the first real container run, which is what a first real run is
+for.
+
+- **`seed` scaffolds only the layer files the form calls for.** A short
+  story was given an empty `world.md`, an empty `canon.md` and an empty
+  `MYSTERY.md` — three documents its form deliberately does not build, in
+  a project whose `canon_coverage` dimension had been dropped for exactly
+  that reason. `form_pack.LAYER_FILES` maps each layer to the file it
+  produces, and `seed` copies that list and nothing else. `outline` and
+  `foreshadowing` map to the same file, because the ledger is part two of
+  the outline rather than a document of its own.
+
+  Harmless in the sense that nothing reads those files, and not harmless
+  in the sense that the foundation rubric now tells its judge not to go
+  looking for a document it was not named — an empty five-line template
+  sitting in the project is a thing to be marked down.
+
+---
+
 ## 0.12.1 — 2026-08-14
 
 Pre-flight fixes found by walking the container path before running it,

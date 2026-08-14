@@ -102,8 +102,9 @@ existing project.
    - Create `results.tsv` with the same tab-separated header a standalone
      project gets — the cross-work pass appends to it.
    - Install the ignore file the same way a standalone project does.
-   - Create the first work: `mkdir -p works/01-<slug>/chapters`, copy the
-     per-work templates from `shared/templates/` into it, and add
+   - Create the first work: `mkdir -p works/01-<slug>/chapters`, copy
+     `state.json` and the form's layer files (as above — only those) from
+     `shared/templates/` into it, and add
      `"01-<slug>"` to the container's `works`. Set the work's
      `state.json` phase to `foundation` and leave its genre, form and
      modifiers NULL — it inherits them, and setting them is an error the
@@ -113,10 +114,20 @@ existing project.
 
    **For a standalone project**, continue:
 
-   - Copy every file from `${CLAUDE_PLUGIN_ROOT}/shared/templates/` into it:
-     `cp "${CLAUDE_PLUGIN_ROOT}/shared/templates/"* <dir>/` (quoted against
-     spaces in the install path) — this copies voice.md, world.md,
-     characters.md, outline.md, canon.md, MYSTERY.md, state.json.
+   - Copy `state.json` and `gitignore` from
+     `"${CLAUDE_PLUGIN_ROOT}/shared/templates/"`, plus **only the layer
+     files the form calls for**. The form's `layers` list names them and
+     `LAYER_FILES` in `form_pack.py` maps each to its file: `voice` →
+     voice.md, `world` → world.md, `characters` → characters.md,
+     `mystery` → MYSTERY.md, `outline` and `foreshadowing` → outline.md,
+     `canon` → canon.md.
+
+     Do NOT copy the rest. A short story's form builds three layers, and
+     handing it an empty `world.md` and an empty `canon.md` gives it two
+     documents its form deliberately does not build — the foundation
+     rubric tells its judge not to go looking for a file it was not
+     named, so the extras are clutter at best and a judge marking down a
+     five-line template at worst.
    - **Write the genre and form into `state.json` immediately after the
      copy** — set `genre`, `genre_secondary`, and `genre_modifiers` from
      step 2 and `form` from step 2b, replacing the template's nulls. Then resolve the stack from the

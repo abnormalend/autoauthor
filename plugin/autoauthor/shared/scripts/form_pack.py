@@ -44,6 +44,36 @@ KNOWN_LAYERS = {
     "canon": "canon.md",
 }
 
+# The project file each layer produces, for `seed` to scaffold only what
+# the form actually calls for. A short story that is handed an empty
+# `world.md` and an empty `canon.md` has been handed two documents its
+# form deliberately does not build — and the foundation rubric now tells
+# its judge not to go looking for a file it was not named, so leaving
+# them there is at best clutter and at worst a judge marking down a
+# five-line template.
+#
+# `foreshadowing` maps to the same file as `outline`: it is part two of
+# that document, not a document of its own.
+LAYER_FILES = {
+    "voice": ("voice.md",),
+    "world": ("world.md",),
+    "characters": ("characters.md",),
+    "mystery": ("MYSTERY.md",),
+    "outline": ("outline.md",),
+    "foreshadowing": ("outline.md",),
+    "canon": ("canon.md",),
+}
+
+
+def layer_files(layers):
+    """The project files a form's layers call for, deduplicated."""
+    out = []
+    for layer in layers:
+        for name in LAYER_FILES.get(layer, ()):
+            if name not in out:
+                out.append(name)
+    return out
+
 GATE_KEYS = ("overall", "pillar")
 
 # The template's filename stem, matching genre_pack's convention so a

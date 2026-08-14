@@ -293,3 +293,36 @@ def test_every_shipped_genre_overlaps_the_novel_form(tmp_path):
         assert form_pack.ranges_overlap(words, novel["words"]), (
             f"{path.stem} runs {words} and cannot be a novel")
     assert checked >= 10
+
+
+# --- what a form's layers actually scaffold --------------------------------
+
+def test_every_known_layer_maps_to_a_template_that_exists():
+    """`seed` copies only the files a form's layers call for. A layer with
+    no mapping would silently scaffold nothing; a mapping to a file that
+    is not in templates/ would fail at project creation."""
+    templates = REPO / "plugin/autoauthor/shared/templates"
+    assert set(form_pack.LAYER_FILES) == set(form_pack.KNOWN_LAYERS)
+    for layer, files in form_pack.LAYER_FILES.items():
+        for name in files:
+            assert (templates / name).exists(), f"{layer} -> missing {name}"
+
+
+def test_a_compressed_form_scaffolds_fewer_files_than_a_novel():
+    """The defect this fixes, seen in the first real container run: a
+    short story was given an empty world.md and an empty canon.md, two
+    documents its form deliberately does not build."""
+    short = form_pack.parse_form(FORMS / "short-story.md")["meta"]
+    novel = form_pack.parse_form(FORMS / "novel.md")["meta"]
+    short_files = form_pack.layer_files(short["layers"])
+    novel_files = form_pack.layer_files(novel["layers"])
+    assert short_files == ["voice.md", "characters.md", "outline.md"]
+    assert set(short_files) < set(novel_files)
+    for dropped in ("world.md", "canon.md", "MYSTERY.md"):
+        assert dropped not in short_files
+
+
+def test_outline_and_foreshadowing_are_one_file():
+    """The ledger is part two of the outline, not a document of its own —
+    so a form declaring both must not scaffold it twice."""
+    assert form_pack.layer_files(["outline", "foreshadowing"]) == ["outline.md"]
