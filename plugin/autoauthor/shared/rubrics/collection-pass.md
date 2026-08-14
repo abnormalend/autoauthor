@@ -81,7 +81,8 @@ the ones that do not in `note`, and treat the result as provisional —
 `repetition` and `range` in particular are not trustworthy until most of
 the collection exists, because two works cannot converge.
 
-Respond with JSON:
+Respond with JSON (`N` is an integer 0-10. `N.NN` is a computed mean, written with two
+decimal places — never rounded to an integer.)
 {
   "repetition": {"score": N, "gap": "...", "fix": "...", "note": "..."},
   "facet_coverage": {"score": N, "gap": "...", "fix": "...", "note": "..."},
@@ -95,7 +96,7 @@ Respond with JSON:
   "convergence_used": true/false,
   "works_judged": ["..."],
   "works_missing": ["..."],
-  "collection_score": N,
+  "collection_score": N.NN,
   "weakest_dimension": "...",
   "top_3_improvements": ["ranked, and each must name the works involved"]
 }

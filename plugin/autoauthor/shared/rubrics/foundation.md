@@ -177,7 +177,8 @@ mean, after it is computed — it does not change any dimension score, and
 cap actually bound (the mean was above 6 and was pulled down to it) or was
 inert (the mean was already at or below 6).
 
-Respond with JSON:
+Respond with JSON (`N` is an integer 0-10. `N.NN` is a computed mean, written with two
+decimal places — never rounded to an integer.)
 {
   "pillar": {
     (one entry per dimension key the primary pack declares — copy each key
@@ -201,8 +202,8 @@ Respond with JSON:
   "genre_contract": {"violations": ["list any promises the plan would breach"], "note": "..."},
   "slop_in_planning_docs": {"found": ["list any AI slop patterns found in exemplar dialogue, voice examples, or character descriptions"], "note": "..."},
   "contradictions_found": ["list any factual contradictions between documents"],
-  "overall_score": N,
-  "pillar_score": N,
+  "overall_score": N.NN,
+  "pillar_score": N.NN,
   "weakest_dimension": "...",
   "top_3_improvements": ["ranked list of the 3 highest-leverage improvements"]
 }

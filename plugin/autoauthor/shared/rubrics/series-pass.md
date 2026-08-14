@@ -84,7 +84,8 @@ exist, name the ones that do not, and treat `arc_progression` and
 series for an unwritten volume; do penalize it for a written volume that
 depends on one.
 
-Respond with JSON:
+Respond with JSON (`N` is an integer 0-10. `N.NN` is a computed mean, written with two
+decimal places — never rounded to an integer.)
 {
   "canon_integrity": {"score": N, "gap": "...", "fix": "...", "note": "..."},
   "canon_promotion": {"score": N, "gap": "...", "fix": "...", "note": "..."},
@@ -100,7 +101,7 @@ Respond with JSON:
   "convergence_used": true/false,
   "volumes_judged": ["..."],
   "volumes_missing": ["..."],
-  "series_score": N,
+  "series_score": N.NN,
   "weakest_dimension": "...",
   "top_3_improvements": ["ranked, each naming the volume involved"]
 }

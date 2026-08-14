@@ -6,6 +6,34 @@ is not the same as updating the plugin — see [README](README.md#install).
 
 ---
 
+## 0.13.2 — 2026-08-14
+
+0.13.1 fixed the wrong half of the problem, and the next run proved it.
+
+The full-novel judge ran AFTER that release, read a `full-novel.md` that
+closed with a paragraph demanding a two-decimal `work_score`, and returned
+`"work_score": 7` for dimensions averaging 7.43. The instruction was
+present, in the file, and ignored.
+
+`foundation.md` had been getting decimals all along, and the difference is
+placement: its rule sits mid-file among other instructions rather than as
+the last thing after the JSON schema. But the reliable fix is not better
+placement — it is putting the type where the value is written. Every
+schema now reads `"work_score": N.NN` rather than `"work_score": N`, with
+a legend saying `N` is an integer and `N.NN` is a computed mean. A judge
+filling a template copies the template's token; a paragraph after the
+template is read and then not applied.
+
+The test now requires the schema token, not just the paragraph.
+
+**Why 0.43 matters.** Revision stops on a change of less than 0.5 across
+two cycles. The gap between the reported 7 and the actual 7.43 is
+comparable to the threshold itself — so the stop condition was being
+evaluated against a number that had already discarded most of the signal
+it needed.
+
+---
+
 ## 0.13.1 — 2026-08-14
 
 The first story drafted: four scenes, 4,769 words against a 5,000 target,

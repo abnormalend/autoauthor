@@ -169,7 +169,8 @@ Score these dimensions:
   Predictable excellence is still predictable. Score 8+ only if the
   chapter does something unexpected.
 
-Respond with JSON:
+Respond with JSON (`N` is an integer 0-10. `N.NN` is a computed mean, written with two
+decimal places — never rounded to an integer.)
 {
   "voice_adherence": {"score": N, "weakest_moment": "quote the specific weak passage", "fix": "how to improve it", "note": "..."},
   "beat_coverage": {"score": N, "weakest_moment": "...", "fix": "...", "note": "..."},
@@ -183,7 +184,7 @@ Respond with JSON:
   "three_weakest_sentences": ["quote 1", "quote 2", "quote 3"],
   "three_strongest_sentences": ["quote 1", "quote 2", "quote 3"],
   "ai_patterns_detected": ["list any AI writing patterns found"],
-  "overall_score": N,
+  "overall_score": N.NN,
   "weakest_dimension": "...",
   "top_3_revisions": ["specific, actionable revision 1", "revision 2", "revision 3"],
   "new_canon_entries": ["any new facts established in this chapter"]

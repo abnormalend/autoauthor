@@ -72,7 +72,8 @@ Then check, without scoring it:
   binary promises checked against the finished manuscript, not scored
   dimensions. A breach caps work_score at 6.
 
-Respond with JSON:
+Respond with JSON (`N` is an integer 0-10. `N.NN` is a computed mean, written with two
+decimal places — never rounded to an integer.)
 {
   "arc_completion": {"score": N, "note": "..."},
   "pacing_curve": {"score": N, "note": "..."},
@@ -82,7 +83,7 @@ Respond with JSON:
   "voice_consistency": {"score": N, "note": "..."},
   "overall_engagement": {"score": N, "note": "..."},
   "genre_contract": {"violations": ["..."], "note": "..."},
-  "work_score": N,
+  "work_score": N.NN,
   "weakest_dimension": "...",
   "weakest_chapter": N (the chapter number as used in the chapter filenames),
   "top_suggestion": "..."
