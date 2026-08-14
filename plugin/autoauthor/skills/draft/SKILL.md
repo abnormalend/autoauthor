@@ -70,6 +70,21 @@ a 6.0 ships; revision is Phase 3's job.
    other input files are voice.md, world.md, characters.md, canon.md,
    outline.md in the project directory. Return ONLY the JSON object the
    rubric specifies."
+   **Compute the score; do not take the judge's word for it.**
+
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/score_verdict.py" \
+       eval_logs/<the file you just saved>
+   ```
+
+   It averages the dimension scores and compares that to the
+   `overall_score` the judge reported. **Record the computed number.** A
+   judge is qualified to score a dimension and has no particular claim to
+   averaging nine of them — a live drafting run returned four chapters
+   whose dimensions averaged 7.22, 7.33, 7.22 and 7.00, every one of them
+   reported as 7.0. Exit 1 means they disagreed; the message names the
+   value to use.
+
    Save the JSON to `eval_logs/<UTC yyyymmdd_hhmmss>_chNN.json` (NN
    zero-padded — gen_brief.py globs this pattern). Fence-wrapped but
    otherwise valid JSON is VALID — strip the fences. Malformed JSON →

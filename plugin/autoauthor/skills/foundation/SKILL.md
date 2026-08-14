@@ -139,6 +139,23 @@ chapters untouched).
    STOP. Report the best score, the stubborn dimension, and options
    (accept and move on / keep iterating / revise the seed).
 
+   **Compute the score; do not take the judge's word for it.**
+
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/score_verdict.py" \
+       eval_logs/<the file you just saved> \
+       --weights '<the primary pack's weights object>'
+   ```
+
+   It averages the dimension scores and compares that to the aggregate
+   the judge reported. **Record the computed number.** A judge is
+   qualified to score a dimension and has no particular claim to
+   averaging seven of them: a live cycle returned dimensions averaging
+   7.43 alongside `work_score: 7`, against a phase that stops when that
+   number moves by less than 0.5. Exit 1 means they disagreed; the
+   message names the value to use.
+
+
 ## Fight the Stability Trap (hard rules, from the original program)
 
 Characters must end truly different from how they began. Let bad things

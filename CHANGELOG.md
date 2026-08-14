@@ -6,6 +6,46 @@ is not the same as updating the plugin — see [README](README.md#install).
 
 ---
 
+## 0.14.0 — 2026-08-14
+
+Stop asking the judge to do arithmetic.
+
+Two releases went into getting a judge to report a mean correctly — first
+by adding the instruction, then by moving it into the JSON schema where a
+judge copies tokens rather than reads paragraphs. The second worked. But
+the aggregate every rubric asks for **is the mean of the dimensions**,
+which is arithmetic, and a judge is qualified to score a dimension without
+having any particular claim to averaging seven of them.
+
+**Added: `score_verdict.py`**
+
+Takes an eval JSON, averages the dimension scores, and compares that to
+the aggregate the judge reported. Handles both verdict shapes — flat, and
+foundation's categories, where it takes the weighted mean of the category
+means and renormalizes if a form has emptied one. Exit 1 on a
+disagreement, naming the value to record.
+
+`foundation`, `draft` and `revise` now run it after saving a verdict and
+record the computed number.
+
+Run against the live project's history it reproduces the whole story: all
+five foundation verdicts agree exactly, and the one full-novel cycle that
+predates the schema fix disagrees by 0.43 — dimensions averaging 7.43
+against a reported 7, in a phase that stops when that number moves less
+than 0.5.
+
+**Confirmed from the run**
+
+The schema fix works: revision cycle 2 reported `work_score: 7.43`,
+matching its dimensions exactly. And the two cycles are the clearest
+plateau this project has produced — identical means, with
+`arc_completion` and `pillar_consistency` up a point each while
+`foreshadowing_resolution` and `voice_consistency` went down a point each.
+Real work, no movement. Which is what `revise` already tells its operator
+to look for: *read the dimension scores, not just the total.*
+
+---
+
 ## 0.13.2 — 2026-08-14
 
 0.13.1 fixed the wrong half of the problem, and the next run proved it.

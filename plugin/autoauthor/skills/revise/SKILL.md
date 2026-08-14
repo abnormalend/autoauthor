@@ -302,6 +302,22 @@ missing scene → thin character → weak scene → consistency):
    input files are voice.md, world.md, characters.md, outline.md,
    arc_summary.md. Return ONLY the JSON the rubric specifies." Save to
    `eval_logs/<UTC yyyymmdd_hhmmss>_full.json`. Log to results.tsv:
+
+   **Compute the score; do not take the judge's word for it.**
+
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/score_verdict.py" \
+       eval_logs/<the file you just saved>
+   ```
+
+   It averages the dimension scores and compares that to the aggregate
+   the judge reported. **Record the computed number.** A judge is
+   qualified to score a dimension and has no particular claim to
+   averaging seven of them: a live cycle returned dimensions averaging
+   7.43 alongside `work_score: 7`, against a phase that stops when that
+   number moves by less than 0.5. Exit 1 means they disagreed; the
+   message names the value to use.
+
    `<ISO timestamp>\trevision\t<work_score>\t<total words>\tkeep\tfull-eval cycle N`
    (the `full-eval` description prefix is a contract — the router's
    plateau check greps for it).
