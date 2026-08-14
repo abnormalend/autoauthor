@@ -6,6 +6,31 @@ is not the same as updating the plugin — see [README](README.md#install).
 
 ---
 
+## 0.14.1 — 2026-08-14
+
+The first story reached `export`. Foundation, drafting, two revision
+cycles and three review rounds, end to end, in a work inside a container.
+One defect, found by reading `results.tsv` rather than by anything
+failing.
+
+**`results.tsv` had two scales in one column.** Every phase writes a 0-10
+score there. The review phase wrote the critic's star rating, out of five.
+The run reads:
+
+    foundation 8.25 → drafting 7.0 → revision 7.43 → review 4.0 → 4.5
+
+which looks like a book falling apart in review. It is the opposite: 4.5
+stars is 9.0, the best number in the sequence. Review now doubles the
+rating for the column and keeps the raw figure in the description, where
+it carries its own units. `tests/test_results_tsv.py` parses the row
+format every skill documents and fails any phase writing a rating on a
+different scale.
+
+The reader this was hurting is `status`, which reports "scores against
+their gates" straight out of that file.
+
+---
+
 ## 0.14.0 — 2026-08-14
 
 Stop asking the judge to do arithmetic.

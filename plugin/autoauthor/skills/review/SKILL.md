@@ -66,7 +66,14 @@ professor of fiction. Fix the top items; repeat. Maximum 4 rounds.
    from the Critic section's final "Rating:" line. Items missing tag
    lines count as unqualified moderate revision items (and note the
    contract violation). Record a summary row in results.tsv:
-   `<ISO timestamp>\treview\t<stars>\t<total manuscript words>\tkeep\treview round R: <total> items, <major-unqualified> major-unqualified, <qualified> qualified`
+   `<ISO timestamp>\treview\t<stars x 2>\t<total manuscript words>\tkeep\treview round R: <stars>/5 stars, <total> items, <major-unqualified> major-unqualified, <qualified> qualified`
+
+   **Double the star rating for the score column.** Every other phase
+   writes a 0-10 score there, and the critic rates out of 5. Writing the
+   raw stars puts two scales in one column: a run that went 8.25 →
+   7.43 → 4.5 reads as a collapse when the last number is the best of
+   the three. The raw rating goes in the description, where it carries
+   its own units and cannot be misread.
 4. **STOPPING CONDITIONS — stop revising when ANY holds:**
    - zero major unqualified items
    - qualified items > 50% of total items
