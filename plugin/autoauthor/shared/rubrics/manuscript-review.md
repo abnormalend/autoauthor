@@ -23,7 +23,7 @@ different levels, the MORE RESTRICTIVE one governs — you read the
 packs directly, so apply that clamp yourself before judging.
 
 Read the novel in manuscript.md (the input file above). Review it first as a literary critic (like a
-newspaper book review, including a star rating out of five) and then as
+newspaper book review, including a star rating out of five — see the note on the scale below) and then as
 a professor of fiction. In the later review, give specific, actionable
 suggestions for any defects you find, as a NUMBERED list. Be fair but
 honest. You don't *have* to find defects.
@@ -58,3 +58,22 @@ exception among its siblings). Structure:
 
 ## Professor
 <the professor review as a numbered list; every item ends with its tag line>
+
+---
+
+ON THE FIVE-POINT SCALE — deliberate, and not to be tidied.
+
+Every other rubric here scores 0-10. This one asks for stars out of five
+because that is what a newspaper book review uses, and the persona is the
+instrument: the critic catches what the dimension rubrics do not precisely
+because it is writing a review rather than filling in a form. Rating out
+of ten would make it a rubric wearing a critic's hat.
+
+Nothing is lost. Half-star increments give eleven values — 0, 0.5 … 5.0 —
+which is the granularity of 0-10 integers exactly, and the invoking skill
+records the rating doubled so that `results.tsv` carries one scale in one
+column. The raw figure survives in the row's description.
+
+The stars are also not the gate. This phase stops on item counts — zero
+major unqualified items, or qualified above half — so the rating reports
+rather than decides.

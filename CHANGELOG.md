@@ -6,6 +6,27 @@ is not the same as updating the plugin — see [README](README.md#install).
 
 ---
 
+## 0.14.2 — 2026-08-14
+
+Records why the critic rates out of five, so nobody standardizes it away.
+
+Six rubrics score 0-10 and `manuscript-review.md` rates out of five, which
+makes the odd one out look like an oversight. It is not. The critic writes
+a newspaper book review, and stars are what those use — the persona is the
+instrument, and it catches what the dimension rubrics do not precisely
+because it is writing a review rather than filling in a form. Rating out
+of ten would make it a rubric wearing a critic's hat.
+
+Nothing is lost by keeping it: half-star increments give eleven values,
+which is the granularity of 0-10 integers exactly, so the doubling at the
+recording boundary is lossless in both directions. And the stars are not
+the gate — the phase stops on item counts.
+
+The rubric now says all of that where a tidying edit would happen, and a
+test pins it as the only non-10 scale.
+
+---
+
 ## 0.14.1 — 2026-08-14
 
 The first story reached `export`. Foundation, drafting, two revision

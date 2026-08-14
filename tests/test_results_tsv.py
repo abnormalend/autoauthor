@@ -47,3 +47,25 @@ def test_the_guard_reads_the_rows_it_thinks_it_does():
     rows = list(documented_rows())
     assert len(rows) >= 3, f"only found {rows}"
     assert {p for _, p, _ in rows} >= {"foundation", "review"}
+
+
+# --- the one rubric that is deliberately not on the 0-10 scale -------------
+
+RUBRICS = Path(__file__).parent.parent / "plugin/autoauthor/shared/rubrics"
+
+
+def test_only_the_critic_rates_out_of_five_and_says_why():
+    """Six rubrics score 0-10 and one rates out of five, which makes the
+    odd one out look like an oversight and invites tidying. It is the
+    persona: a newspaper review uses stars, and the persona is the
+    instrument. The rubric has to say so where the tidying would happen.
+    """
+    five = [p.name for p in sorted(RUBRICS.glob("*.md"))
+            if "out of five" in p.read_text(encoding="utf-8")]
+    assert five == ["manuscript-review.md"], five
+
+    text = (RUBRICS / "manuscript-review.md").read_text(encoding="utf-8")
+    assert "deliberate, and not to be tidied" in text
+    assert "doubled" in text, (
+        "the note must say the skill records it doubled, or the next reader "
+        "fixes results.tsv instead of reading the row")
