@@ -87,3 +87,7 @@ Respond with JSON:
   "weakest_chapter": N (the chapter number as used in the chapter filenames),
   "top_suggestion": "..."
 }
+
+NUMERIC FORMAT: individual dimension scores are integers 0-10.
+`work_score` is the computed mean — report it as a DECIMAL to two places
+(e.g. 7.22, 6.75). Do not round it to an integer. The revision phase stops on a CHANGE of less than 0.5 across two cycles. An integer score cannot express a change smaller than 1, so a rounded number turns that test into 'stop when two cycles round the same way' — which is arbitrary, and which ends revision early on a book that was still improving.

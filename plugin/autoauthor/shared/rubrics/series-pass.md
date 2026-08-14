@@ -105,8 +105,9 @@ Respond with JSON:
   "top_3_improvements": ["ranked, each naming the volume involved"]
 }
 
-`series_score` is the unweighted mean of the seven dimensions, to two
-decimal places.
+`series_score` is the unweighted mean of the seven dimensions.
+NUMERIC FORMAT: report it as a DECIMAL to two places (e.g.
+7.22); do not round it to an integer.
 
 `contradictions` must be exhaustive for the volumes you read, and is the
 most valuable thing you produce — a score is a summary, and a named

@@ -86,6 +86,11 @@ and no others.
 - `outline` — scene by scene rather than chapter by chapter, in the
   genre pack's beat vocabulary, compressed to the beats that fit.
 
+`layers` is what foundation builds. Drafting may still write a `canon.md`
+— facts established on the page need recording, and in a collection the
+shared bible is fed from below — and that is not the same as planning one
+in advance, which at this length is waste.
+
 Dropped, and why: `foreshadowing_balance` scores a tracked ledger, and a
 story that plants and pays within four pages does not keep one — the plants
 are visible in the outline itself. `canon_coverage` guards against a

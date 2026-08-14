@@ -189,6 +189,10 @@ Respond with JSON:
   "new_canon_entries": ["any new facts established in this chapter"]
 }
 
+NUMERIC FORMAT: individual dimension scores are integers 0-10.
+`overall_score` is the computed mean — report it as a DECIMAL to two places
+(e.g. 7.22, 6.75). Do not round it to an integer. The invoking skill compares it against a fractional bar and carries it forward, and an integer cannot express any value between 7 and 8 — which is most of the band real chapters land in.
+
 FINAL CHECK: If your overall_score is above 7, re-read your weakest_moment
 quotes. If any of them describe a problem that an editor would flag, your
 score is too high. The median AI chapter is a 6. An 8 is exceptional. A 9

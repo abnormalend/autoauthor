@@ -44,6 +44,14 @@ KNOWN_LAYERS = {
     "canon": "canon.md",
 }
 
+# `layers` is what FOUNDATION builds, and only that. Drafting may create
+# a document the form never listed, and the first real short-story run did
+# exactly that: it wrote a `canon.md` for a form whose layers are voice,
+# characters and outline, because facts established on the page have to be
+# recorded somewhere and the collection's shared bible has to be fed from
+# below. That is correct behaviour, not drift — planning a canon for five
+# thousand words is waste, and keeping one while writing them is not.
+#
 # The project file each layer produces, for `seed` to scaffold only what
 # the form actually calls for. A short story that is handed an empty
 # `world.md` and an empty `canon.md` has been handed two documents its

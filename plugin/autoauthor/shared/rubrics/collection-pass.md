@@ -100,8 +100,9 @@ Respond with JSON:
   "top_3_improvements": ["ranked, and each must name the works involved"]
 }
 
-`collection_score` is the unweighted mean of the seven dimensions, to two
-decimal places. There are no category weights here: a collection has one
+`collection_score` is the unweighted mean of the seven dimensions.
+NUMERIC FORMAT: report it as a DECIMAL to two places (e.g.
+7.22); do not round it to an integer. There are no category weights here: a collection has one
 category.
 
 `proposed_order` must name every work you judged, exactly once, using the

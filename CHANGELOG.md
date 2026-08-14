@@ -6,6 +6,46 @@ is not the same as updating the plugin — see [README](README.md#install).
 
 ---
 
+## 0.13.1 — 2026-08-14
+
+The first story drafted: four scenes, 4,769 words against a 5,000 target,
+every scene clearing the 6.0 bar on its first attempt. One defect found by
+reading the eval logs, and it is the more serious kind — silent, and it
+degrades a gate.
+
+**Fixed: a computed score reported as an integer**
+
+Four chapters whose dimension scores genuinely differed — 7.22, 7.33, 7.22
+and 7.00 by their own arithmetic — all reported `overall_score: 7.0`. Only
+`foundation.md` carried the two-decimal instruction; 0.2.0 added it there
+and nowhere else, and it reads in that changelog as a formatting nicety.
+It is not.
+
+`chapter.md` and `full-novel.md` now carry it, and the second is where
+this actually bites. **Revision stops when the full-novel score changes by
+less than 0.5 across two cycles** — a test that cannot function on
+integers, because an integer cannot express a change smaller than 1. On
+rounded scores that rule degenerates into "stop when two cycles round the
+same way", which ends revision early on a book that was still improving
+and late on one that was not. The same rubric already notes that
+same-judge variance runs about ±0.5, so the noise and the rounding
+quantum were the same size.
+
+`tests/test_rubric_contract.py` now fails any rubric that emits an
+aggregate `*_score` without saying how to format it. Per-dimension scores
+stay integers; only the means are decimals.
+
+**Documented rather than fixed**
+
+The drafter wrote a `canon.md` for a form whose layers are voice,
+characters and outline. That is correct behaviour and the form now says
+so: `layers` is what FOUNDATION builds. Facts established on the page have
+to be recorded somewhere, and in a collection the shared bible is fed from
+below — which is not the same as planning a canon in advance, and at five
+thousand words the second is waste while the first is not.
+
+---
+
 ## 0.13.0 — 2026-08-14
 
 The first work in the first collection cleared foundation — 8.25 overall
