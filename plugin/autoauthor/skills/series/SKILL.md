@@ -98,7 +98,8 @@ Never the running order. Reordering a series is not a fix; it is a
 different series.
 
 Commit each kept iteration: `series: <dimension> <old> -> <new>`. Append
-to `results.tsv` with `series_score` in the score column.
+to the CONTAINER's `results.tsv`, which carries cross-work rows only —
+each volume keeps its own history in its own directory.
 
 ## Step 4 — Record
 

@@ -6,6 +6,48 @@ is not the same as updating the plugin — see [README](README.md#install).
 
 ---
 
+## 0.13.0 — 2026-08-14
+
+The first work in the first collection cleared foundation — 8.25 overall
+against a 6.5 gate, 8.00 pillar against 6.0, in five iterations with two
+discarded for regression. Everything below was learned from watching it.
+
+**Verified in the wild, by five independent clean-room judges**
+
+- **Judges score the dimensions they are handed, and only those.** All
+  five scored exactly the eight the resolver reported — three pillar
+  dimensions from `mystery`'s compressed band, two character, two
+  structure, three craft — and not one reached for `canon_coverage`,
+  `character_secrets`, `foreshadowing_balance`, `suspect_viability` or
+  `solvability_curve`. That instruction landed in 0.7.0 and had never met
+  a judge.
+- **A form's ADDED base dimensions are real.** `single_effect` and
+  `compression` were scored alongside the inherited ones. Nothing had ever
+  produced one before.
+- **The cap binds.** One iteration hit five contradictions and
+  `internal_consistency` came back at 4 — its declared cap — with the
+  judge writing: *"Cap applied, not weighed. On merits this would score
+  around 6-7 ... but the criterion caps at 4 for three or more
+  contradictions and the count is five."* That is the 0.5.0 sentence,
+  quoted back by a judge that never saw the shakedown which found the
+  defect. The loop then correctly discarded the iteration.
+- **`clue_ledger.md` was produced and used.** The first genre artifact any
+  run has ever created, and its criteria bit: two of the recorded debts
+  are ledger-versus-prose disagreements the ledger won.
+
+**Fixed**
+
+- **A work owns its own `results.tsv` and `eval_logs/`.** The run put both
+  at the container and tagged rows `[01-porter]`, which is coherent and is
+  not what the rest of the architecture does — a work is an ordinary
+  project, and a user who `cd`s into one and runs `/autoauthor:status`
+  should find its history where every project keeps it. `seed` now
+  scaffolds a work the same as a standalone project, and the container's
+  `results.tsv` carries cross-work rows only, so the collection record is
+  not fifteen foundation iterations deep in rows it did not write.
+
+---
+
 ## 0.12.2 — 2026-08-14
 
 Found by the first real container run, which is what a first real run is

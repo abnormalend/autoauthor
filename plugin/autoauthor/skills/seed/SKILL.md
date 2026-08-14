@@ -100,11 +100,19 @@ existing project.
      `"structure"`, the genre and form from steps 2 and 2b, and
      `"works": []`. That array is the running order, and export reads it.
    - Create `results.tsv` with the same tab-separated header a standalone
-     project gets — the cross-work pass appends to it.
+     project gets. **The container's is for CROSS-WORK rows only** — the
+     collection or series pass, and export. Per-work iterations belong to
+     the work, so that a user who `cd`s into one and runs `/autoauthor:status`
+     finds its history where every other project keeps it, and so that the
+     cross-work record is not fifteen foundation iterations deep in rows
+     it did not write.
    - Install the ignore file the same way a standalone project does.
-   - Create the first work: `mkdir -p works/01-<slug>/chapters`, copy
-     `state.json` and the form's layer files (as above — only those) from
-     `shared/templates/` into it, and add
+   - Create the first work. A work is an ordinary project and gets the
+     same scaffolding as a standalone one, minus the things the container
+     owns: `mkdir -p works/01-<slug>/{chapters,eval_logs,edit_logs,briefs}`,
+     its own `results.tsv` with the same header, `state.json` and the
+     form's layer files (as above — only those) from `shared/templates/`.
+     Add
      `"01-<slug>"` to the container's `works`. Set the work's
      `state.json` phase to `foundation` and leave its genre, form and
      modifiers NULL — it inherits them, and setting them is an error the

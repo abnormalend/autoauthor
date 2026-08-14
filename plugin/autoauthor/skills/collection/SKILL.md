@@ -99,8 +99,9 @@ iteration unscored and stop rather than inventing a score.
    - `running_order` — this directory: reorder `works` in `state.json`.
      Nothing else changes.
 3. Commit each kept iteration: `collection: <dimension> <old> -> <new>`.
-4. Append to `results.tsv` exactly as the other phases do, with
-   `collection_score` in the score column.
+4. Append to the CONTAINER's `results.tsv` — not a work's. That file
+   carries cross-work rows only; each work keeps its own history in its
+   own directory, the same as any project.
 
 A pass that only ever reorders is a pass that is not working. Reordering
 is the cheapest fix available and the least likely to be the right one:
