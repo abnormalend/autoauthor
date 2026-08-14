@@ -6,6 +6,23 @@ is not the same as updating the plugin — see [README](README.md#install).
 
 ---
 
+## 0.12.1 — 2026-08-14
+
+Pre-flight fixes found by walking the container path before running it,
+rather than by running it.
+
+- **`bible/binding.md` is now required for a collection, and `seed`
+  writes it.** The collection pass reads it — `binding_delivery` asks
+  whether what unifies the works is delivered or merely declared — and
+  nothing created it. A first real run would have reached the cross-work
+  pass and found the file missing.
+- The container gets `results.tsv`, `eval_logs/`, `edit_logs/` and a
+  `.gitignore` at scaffold time. The cross-work pass writes to all four.
+- Each container now requires exactly the document its own pass reads and
+  nothing else: a collection has no arc to declare, a series has no slate.
+
+---
+
 ## 0.12.0 — 2026-08-13
 
 Containers become reachable. 0.10.0 and 0.11.0 built machinery that could

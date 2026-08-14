@@ -73,7 +73,7 @@ with exactly this prompt shape:
   its role>`, and follow the rubric exactly. The form is `<form.name>` at
   `<form.path>`. The container project is `<absolute path>`. The works, in
   the declared running order, are `<structure.works>`; each work's prose is
-  in `works/<name>/chapters/`. Read `binding.md`, everything in `bible/`,
+  in `works/<name>/chapters/`. Read everything in `bible/` — `binding.md` first,
   and `edit_logs/convergence.json` if it exists. Return ONLY the JSON
   object the rubric specifies."
 
@@ -92,9 +92,9 @@ iteration unscored and stop rather than inventing a score.
 2. Fix it in the RIGHT PLACE, which is rarely this directory:
    - `repetition`, `range` — the fix belongs in a work. Revise the work
      the finding names, then re-run this pass. Do not paper over it in
-     `binding.md`.
-   - `facet_coverage`, `binding_delivery` — usually `binding.md` and the
-     slate, sometimes a work that needs re-briefing.
+     `bible/binding.md`.
+   - `facet_coverage`, `binding_delivery` — usually `bible/binding.md`
+     and the slate, sometimes a work that needs re-briefing.
    - `independence` — the work that borrows. Make it stand alone.
    - `running_order` — this directory: reorder `works` in `state.json`.
      Nothing else changes.

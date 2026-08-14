@@ -220,6 +220,24 @@ def test_a_series_needs_the_documents_its_pass_reads(tmp_path, missing):
     assert f"no bible/{missing}" in result.stderr
 
 
+def test_a_collection_needs_the_file_that_says_what_binds_it(tmp_path):
+    """The cross-work pass asks whether the binding is DELIVERED or merely
+    declared, and it can ask neither of a file that does not exist."""
+    container = make_container(tmp_path)
+    (container / "bible" / "binding.md").unlink()
+    result = resolve(container)
+    assert result.returncode == 1
+    assert "no bible/binding.md" in result.stderr
+    assert "merely declared" in result.stderr
+
+
+def test_the_two_containers_require_different_documents():
+    """Each requires exactly what its own pass reads, and nothing else.
+    A collection has no arc to declare and a series has no slate."""
+    assert "arc.md" not in structure.REQUIRED_BIBLE["collection"]
+    assert "binding.md" not in structure.REQUIRED_BIBLE["series"]
+
+
 def test_a_collection_does_not_need_an_arc(tmp_path):
     """The asymmetry is the point: a collection's works do not owe the
     whole a progression, and requiring one would make every collection

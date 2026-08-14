@@ -78,18 +78,30 @@ existing project.
    **For a container** (`collection` or `series`), the layout differs and
    the rest of this step is replaced by:
 
-   - `mkdir -p bible works`
+   - `mkdir -p bible works eval_logs edit_logs`
    - Copy the shared layers into `bible/`: `voice.md`, `world.md`,
      `characters.md`, `canon.md` from
-     `${CLAUDE_PLUGIN_ROOT}/shared/templates/`. A SERIES additionally
-     needs `bible/arc.md` — write it now, one line per planned volume
-     saying what that volume owes the whole, even if it is a guess. The
-     resolver refuses a series without it, and for a good reason: without
-     an arc the cross-work pass can check that nothing contradicts and
-     cannot check that anything progressed.
+     `${CLAUDE_PLUGIN_ROOT}/shared/templates/`.
+   - Write the file that says what this container IS, which the
+     cross-work pass reads and which nothing else can supply:
+     - a COLLECTION needs `bible/binding.md` — what makes these works one
+       book rather than a folder, and the slate: one line per planned
+       work naming the facet of the binding it takes. "A shared setting"
+       is the commonest thin answer; push for the question or the premise
+       the works are all circling.
+     - a SERIES needs `bible/arc.md` — one line per planned volume saying
+       what that volume owes the whole — and `bible/canon.md` as the
+       continuity spine.
+     Write it now even if it is a guess. The resolver refuses a container
+     without its file, and for a good reason: the pass can ask whether
+     the binding is delivered or whether anything progressed, and it can
+     ask neither of a file that does not exist.
    - Write `state.json` at the container: the template's keys plus
      `"structure"`, the genre and form from steps 2 and 2b, and
      `"works": []`. That array is the running order, and export reads it.
+   - Create `results.tsv` with the same tab-separated header a standalone
+     project gets — the cross-work pass appends to it.
+   - Install the ignore file the same way a standalone project does.
    - Create the first work: `mkdir -p works/01-<slug>/chapters`, copy the
      per-work templates from `shared/templates/` into it, and add
      `"01-<slug>"` to the container's `works`. Set the work's

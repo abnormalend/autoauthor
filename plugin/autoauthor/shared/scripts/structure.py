@@ -60,7 +60,7 @@ BIBLE_DIR = "bible"
 # cross-work pass reads — the facts that must stay true, and what each
 # volume owes the whole.
 REQUIRED_BIBLE = {
-    "collection": ("voice.md",),
+    "collection": ("voice.md", "binding.md"),
     "series": ("voice.md", "canon.md", "arc.md"),
 }
 
@@ -223,6 +223,10 @@ def _bible_reason(kind, name):
         "arc.md": "it says what each volume owes the whole. Without it the "
                   "cross-work pass can check that nothing contradicts and "
                   "cannot check that anything progressed",
+        "binding.md": "it states what makes these works one book rather "
+                      "than a folder. The cross-work pass reads it and asks "
+                      "whether the binding is DELIVERED or merely declared, "
+                      "and it can ask neither of a file that does not exist",
     }.get(name, "it is required")
 
 
