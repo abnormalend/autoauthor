@@ -587,3 +587,57 @@ def test_a_stale_assembly_does_not_survive_a_rebuild(tmp_path):
     subprocess.run([sys.executable, str(ASSEMBLE_CLI)], cwd=container,
                    capture_output=True, text=True)
     assert len(list((container / "assembled").glob("ch_*.md"))) == 1
+
+
+# --- a title has a home ----------------------------------------------------
+#
+# The first export asked for one, which is when it emerged that the title
+# had nowhere to live: the story named itself during foundation, wrote the
+# name into two markdown headings as decoration, and nothing downstream
+# could read it.
+
+def test_the_state_template_has_a_title_field():
+    import json as _json
+    template = _json.loads(
+        (REPO / "plugin/autoauthor/shared/templates/state.json")
+        .read_text(encoding="utf-8"))
+    assert "title" in template
+    assert template["title"] is None, "unset, like genre and form"
+
+
+def test_export_reads_the_title_and_writes_back_what_it_asks_for():
+    """A title asked for and not recorded is a title asked for again, and
+    answered differently the second time."""
+    export = (REPO / "plugin/autoauthor/skills/export/SKILL.md"
+              ).read_text(encoding="utf-8")
+    assert "read `state.json`'s `title`" in export
+    assert "WRITE THE ANSWER BACK" in export
+
+
+def test_the_phases_that_can_learn_a_title_record_it():
+    skills = REPO / "plugin/autoauthor/skills"
+    for name in ("seed", "foundation"):
+        text = (skills / name / "SKILL.md").read_text(encoding="utf-8")
+        assert "`title`" in text, f"{name} never records the title"
+
+
+def test_a_work_with_a_title_uses_it_as_its_half_title(tmp_path):
+    import assemble
+
+    container = make_container(tmp_path, works=("01-porter",))
+    work = container / structure.WORKS_DIR / "01-porter"
+    state = json.loads((work / "state.json").read_text())
+    state["title"] = "The Warm Key"
+    (work / "state.json").write_text(json.dumps(state), encoding="utf-8")
+    assert assemble.work_title(work) == "The Warm Key"
+
+
+def test_a_work_without_one_falls_back_to_its_directory_name(tmp_path):
+    """The fallback builds a book with a half-title of "Porter" over a
+    story called "The Warm Key", and nothing complains. It exists so the
+    bind never fails, not because it is right."""
+    import assemble
+
+    container = make_container(tmp_path, works=("01-porter",))
+    assert assemble.work_title(
+        container / structure.WORKS_DIR / "01-porter") == "Porter"

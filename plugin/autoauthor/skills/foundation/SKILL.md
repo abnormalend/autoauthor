@@ -115,6 +115,14 @@ chapters untouched).
    artifact the pack declares is filled and current; the foreshadowing
    ledger balances (every plant has a payoff); canon.md captures all new
    facts.
+3b. **Record the title if the work has acquired one.** A story usually
+   names itself while its outline is being built, and that name tends to
+   end up only in a document heading. Write it to `state.json`'s `title`
+   the moment it exists. Export reads it from there; a title living in a
+   markdown heading is lost the first time the document is regenerated,
+   and a title nobody recorded gets asked for at export and answered
+   differently than the one the plan used.
+
 4. **Keep/discard.** Score improved over the best previous score (or
    first scored iteration) → `git add -A && git commit -m "foundation
    iter <N>: <weakest_dimension> (<score>)"`. After every KEPT

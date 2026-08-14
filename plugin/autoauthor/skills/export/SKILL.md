@@ -59,8 +59,21 @@ Produces `typeset/novel.pdf` (LaTeX via tectonic) and `<title-slug>.epub`
    - `typeset/epub_metadata.yaml` is the ONLY file using bare `TITLE`
      and `AUTHOR` tokens (`epub_back_cover.md` has no placeholders —
      nothing to fill there).
-   Fill ALL of them. Sources: title from outline.md's first heading
-   (confirm with the user); author — ask the user once (suggest
+   Fill ALL of them. Sources:
+
+   **Title — read `state.json`'s `title`.** For a container, read the
+   CONTAINER's; that is the book's title, and each work's own title is
+   its half-title inside it. Only ask the user if the field is null or
+   missing, and when you do ask, WRITE THE ANSWER BACK to `state.json`
+   before continuing — a title asked for and not recorded is a title
+   that gets asked for again, and answered differently.
+
+   If the field is null, offer the first heading of `outline.md` as the
+   default; a story that named itself during foundation usually put it
+   there. Confirm rather than assume: this is the one piece of a book's
+   identity that is not in the prose.
+
+   Then: author — ask the user once (suggest
    `git config user.name` as the default);
    genre — run `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py"`
    and offer `display_label` as the default `NOVEL-GENRE` (e.g. "Mystery

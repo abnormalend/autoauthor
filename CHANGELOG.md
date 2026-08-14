@@ -6,6 +6,37 @@ is not the same as updating the plugin — see [README](README.md#install).
 
 ---
 
+## 0.15.0 — 2026-08-14
+
+A title has somewhere to live.
+
+Export asked for one, which is the last thing anybody expected it to be
+confused about — and the reason turned out to be that it had nothing to
+read. The story named itself during foundation, wrote that name into the
+headers of `outline.md` and `canon.md` as decoration, and `state.json` had
+no field for it. Export was documented to source the title from "outline.md's
+first heading (confirm with the user)": prose, parsed, every time.
+
+**Added: `title` in `state.json`**, beside `genre`, `form` and `structure`
+— the facts about the work that are not the work.
+
+- `seed` records the title it already names in its own commit message.
+- `foundation` records it the moment the work acquires one, which is
+  usually while the outline is being built.
+- `export` reads it and asks only when it is null — and **writes back what
+  it is told**, because a title asked for and not recorded is a title
+  asked for again and answered differently.
+
+**The failure this was heading for** is quieter than a prompt.
+`assemble.py` reads a work's title for its half-title in a bound
+collection, falling back to the directory name. A collection whose works
+never recorded their titles would have bound "The Warm Key" under a
+half-title reading **Porter** — silently, in a PDF that builds without
+complaint. The fallback stays, because the bind should never fail; it is
+now documented as a fallback rather than the path.
+
+---
+
 ## 0.14.2 — 2026-08-14
 
 Records why the critic rates out of five, so nobody standardizes it away.

@@ -191,7 +191,12 @@ existing project.
    `## Seed Prompt` marks required — and strengthen any that are missing
    before saving.
 
-7. **Commit:** `git add -A && git commit -m "seed: <title>"`
+7. **Record the title.** Write the chosen concept's title into
+   `state.json`'s `title` field — the container's for a container, the
+   work's for a work. It is the one piece of the book's identity that
+   never appears in the prose, and export reads it from here rather
+   than parsing a markdown heading.
+8. **Commit:** `git add -A && git commit -m "seed: <title>"`
 
 8. **Report:** project path, chosen title/hook, and next step:
    `cd <dir>` then `/autoauthor:foundation`.

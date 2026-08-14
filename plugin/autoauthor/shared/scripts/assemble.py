@@ -44,6 +44,12 @@ def work_title(work_dir):
     any ordering prefix stripped and the hyphens turned back into spaces.
     A collection's directories are conventionally `01-slug`, and the `01`
     is a filing convention rather than part of the title.
+
+    The fallback is a fallback. A work whose title lives only in its
+    directory name gets a half-title of "Porter" above a story called
+    "The Warm Key", silently, in a bound book that builds without
+    complaint — which is why `foundation` records the title as soon as
+    the work has one.
     """
     state_path = work_dir / "state.json"
     if state_path.exists():
