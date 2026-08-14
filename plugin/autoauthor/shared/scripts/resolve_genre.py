@@ -63,7 +63,8 @@ skills parse this, none of which can see this module's source:
                        supplied them after the intermediate -> compressed
                        fallback, or null when the pack's default criteria
                        apply.
-  structure         — {"name", "is_container", "container", "inherited"},
+  structure         — {"name", "is_container", "container", "inherited",
+                       "order_is_editorial", "assembles_as_one_book"},
                        plus "works" (the running order) on a container.
                        'name' is standalone unless state.json says
                        otherwise; 'container' is the absolute path of the
@@ -314,6 +315,8 @@ def _structure_block(project, state, structure):
              "inherited": state.get("_inherited") or []}
     block["order_is_editorial"] = structure_mod.ORDER_IS_EDITORIAL.get(
         structure, False)
+    block["assembles_as_one_book"] = structure_mod.ASSEMBLES_AS_ONE_BOOK.get(
+        structure, True)
     if block["is_container"]:
         errors = structure_mod.validate_container(project, state)
         if errors:

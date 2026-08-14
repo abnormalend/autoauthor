@@ -70,6 +70,13 @@ REQUIRED_BIBLE = {
 # series.
 ORDER_IS_EDITORIAL = {"collection": True, "series": False}
 
+# Whether the container exports as ONE book or as a shelf of them. A
+# collection is a book made of works and is bound as one. A series is
+# books, plural, and binding them into a single volume is an omnibus — a
+# legitimate thing to want and never the default, because each volume was
+# written to be a book.
+ASSEMBLES_AS_ONE_BOOK = {"collection": True, "series": False}
+
 # How far up to look for a container before concluding there is not one.
 # A child sits exactly one level under `works/`, so two is enough and the
 # bound keeps a stray state.json elsewhere in a home directory from being

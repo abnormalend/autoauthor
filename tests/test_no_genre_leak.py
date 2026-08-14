@@ -54,9 +54,8 @@ ALLOWED = {
 # fact about projects created before genre packs existed: their results.tsv
 # scores were produced under the fantasy rubric, and telling a user to pick
 # anything else without saying so would hide that their old and new scores
-# are incomparable. Same category as PIPELINE.md recording the original
-# program's `lore_score` — a record of what was, not an assumption about
-# what should be. Scoped to the migration and pinned by
+# are incomparable. A record of what was, not an assumption about what
+# should be. Scoped to the migration and pinned by
 # test_router_names_fantasy_only_in_the_migration.
 LEAK_EXEMPT_FILES = {"skills/status/SKILL.md"}
 
@@ -198,7 +197,6 @@ BELLS_RE = re.compile(
 # standalone tooling, which SCANNED_DIRS does not cover.
 BELLS_ALLOWED = {
     "tests/test_no_genre_leak.py",   # this file names them to catch them
-    "PIPELINE.md",                   # records the original program's own run
     "README.md",                     # production history and attribution
     "CHANGELOG.md",
 }

@@ -6,6 +6,53 @@ is not the same as updating the plugin — see [README](README.md#install).
 
 ---
 
+## 0.12.0 — 2026-08-13
+
+Containers become reachable. 0.10.0 and 0.11.0 built machinery that could
+resolve, validate and judge a collection or a series, and neither could be
+CREATED or SHIPPED — `seed` built a standalone project only and `export`
+assembled one work. That gap is closed.
+
+**Added**
+
+- `assemble.py`. A container has no `chapters/` of its own, only
+  `works/<name>/chapters/`, and export builds a book out of `chapters/`.
+  This writes the one export expects: every work's chapters in the
+  container's declared running order, renumbered gaplessly, each work
+  opening with its own half-title. It exits **non-zero if any work
+  contributed nothing**, because a bound book silently missing a story is
+  the failure this path risks and it is invisible in the output — the PDF
+  just builds.
+- `seed` asks for the structure alongside genre and form, and scaffolds a
+  container when one is chosen: `bible/`, `works/01-<slug>/`, and a
+  container `state.json` whose `works` array is the running order. It
+  settles the question before the directory exists for the same reason as
+  the other two — the layout cannot be changed later without moving every
+  file. It also asks rather than assuming when the user says "trilogy" or
+  "collection", because those words are used loosely and the two
+  containers check opposite things.
+- `export` branches on `structure.assembles_as_one_book`. **A collection
+  binds as one book; a series does not.** Each volume of a series is a
+  book and exports on its own — binding them into one is an omnibus, which
+  is a legitimate thing to want, is not this, and would need its own front
+  matter and its own decisions.
+
+**Removed**
+
+- `PIPELINE.md`, upstream's own technical specification. It was the last
+  file in this repository that someone else wrote, and it had stopped
+  describing this program several releases earlier — it documents a Python
+  script pipeline with a `lore_score`, against a plugin that now has genre
+  packs, form packs, a structure axis and a computed gate.
+
+  With it gone, **no upstream content remains here at all**, which is the
+  cleanest possible position while upstream's repository still carries no
+  licence. The attribution stays in the README, where it belongs: the
+  scoring loop, the clean-room judge pattern and the phase structure all
+  descend from that work, and the debt is architectural and real.
+
+---
+
 ## 0.11.0 — 2026-08-13
 
 Phase 6. `structure: series` — the same machine as a collection, pointed

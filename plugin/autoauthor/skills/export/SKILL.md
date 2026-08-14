@@ -15,6 +15,32 @@ Produces `typeset/novel.pdf` (LaTeX via tectonic) and `<title-slug>.epub`
    proceeding). Tool check: `which tectonic` and `which pandoc`; if
    either is missing tell the user (`brew install tectonic pandoc`)
    and stop for whichever is needed.
+
+1b. **If this is a container**, resolve first
+   (`resolve_genre.py`) and branch on `structure.assembles_as_one_book`:
+
+   - **A collection binds as one book.** It has no `chapters/` of its
+     own, so build one:
+
+     ```bash
+     python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/assemble.py"
+     ```
+
+     That writes `assembled/ch_NN.md` — every work's chapters in the
+     container's declared running order, renumbered gaplessly, each work
+     opening with its own half-title. It exits non-zero if any work
+     contributed nothing, because a bound book silently missing a story
+     is the failure this path risks. Read its report before continuing;
+     the chapter spans it prints are the table of contents.
+
+     Then run steps 2-7 against `assembled/` wherever they say
+     `chapters/`. The title is the collection's, from the container's
+     state.json, and `voice.md` is `bible/voice.md`.
+
+   - **A series does not.** Each volume is a book and exports on its own:
+     stop, and tell the user to `cd works/<volume>` and run export there.
+     An omnibus is a real thing to want, and it is not this — it needs
+     its own front matter and its own decisions.
 2. **Normalize chapter titles.** Every `chapters/ch_NN.md` must start
    `# Chapter N: <Title>` — single `#`, N matching the filename
    without zero-padding. Fix drift by direct edit. If chapters were

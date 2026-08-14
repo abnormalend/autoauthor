@@ -9,7 +9,8 @@ before 2026-08-13 use the project's former name, **autonovel**, its former
 plugin path `plugin/autonovel/`, and its former skill names (`novel-seed`,
 `novel-draft`, and so on, invoked as `/autonovel:novel-*`). They were
 deliberately left alone during the rename to `autoauthor` in 0.4.0, for the
-same reason `PIPELINE.md` still records `lore_score`: a design document that
+same reason a shipped design document is not edited to match later
+decisions: a document that
 is edited to match later decisions stops being evidence of what was actually
 decided, and this project's whole failure mode is confident text nobody can
 check.

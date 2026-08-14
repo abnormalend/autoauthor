@@ -48,6 +48,25 @@ existing project.
    rather than discovered at the first foundation run — the resolver in
    step 3 will say plainly if they cannot go together.
 
+2c. **Choose the structure.** Ask whether this is one work or several:
+
+   - **standalone** — one work. The default, and what to use if the user
+     has not said otherwise.
+   - **collection** — several complete works bound as one book, checked
+     for variety and independence before export.
+   - **series** — several books sharing continuity, each advancing a whole
+     and closing itself.
+
+   Settle it here for the same reason as genre and form: it decides the
+   directory layout, and it cannot be changed later without moving every
+   file. If the user describes "a trilogy", "a series of stories", or "a
+   collection", ask rather than assuming — those words are used loosely
+   and the two containers check opposite things.
+
+   For a CONTAINER, the genre and form chosen above belong to the
+   container and are inherited by every work; a work may not override
+   them, because they are what make N works one book.
+
 3. **Initialize the project:**
    - Safety checks first: if `<dir>` already exists and is non-empty, STOP
      and ask the user before touching it (a retry may have partial content
@@ -55,6 +74,33 @@ existing project.
      not inside a git repo: `git -C <parent> rev-parse --is-inside-work-tree`
      must FAIL; if it succeeds, pick a different location.
    - `mkdir -p <dir> && cd <dir> && git init`
+
+   **For a container** (`collection` or `series`), the layout differs and
+   the rest of this step is replaced by:
+
+   - `mkdir -p bible works`
+   - Copy the shared layers into `bible/`: `voice.md`, `world.md`,
+     `characters.md`, `canon.md` from
+     `${CLAUDE_PLUGIN_ROOT}/shared/templates/`. A SERIES additionally
+     needs `bible/arc.md` — write it now, one line per planned volume
+     saying what that volume owes the whole, even if it is a guess. The
+     resolver refuses a series without it, and for a good reason: without
+     an arc the cross-work pass can check that nothing contradicts and
+     cannot check that anything progressed.
+   - Write `state.json` at the container: the template's keys plus
+     `"structure"`, the genre and form from steps 2 and 2b, and
+     `"works": []`. That array is the running order, and export reads it.
+   - Create the first work: `mkdir -p works/01-<slug>/chapters`, copy the
+     per-work templates from `shared/templates/` into it, and add
+     `"01-<slug>"` to the container's `works`. Set the work's
+     `state.json` phase to `foundation` and leave its genre, form and
+     modifiers NULL — it inherits them, and setting them is an error the
+     resolver reports.
+   - Then run the resolver from the container to confirm it validates,
+     and stop. The user runs foundation from inside a work, not here.
+
+   **For a standalone project**, continue:
+
    - Copy every file from `${CLAUDE_PLUGIN_ROOT}/shared/templates/` into it:
      `cp "${CLAUDE_PLUGIN_ROOT}/shared/templates/"* <dir>/` (quoted against
      spaces in the install path) — this copies voice.md, world.md,

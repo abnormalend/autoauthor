@@ -53,7 +53,7 @@ print('packs  :', len([f for f in os.listdir(g) if f.endswith('.md')])-1 if os.p
 "
 ```
 
-You want `0.10.0` and `15`. [CHANGELOG.md](CHANGELOG.md) says what each
+You want `0.12.0` and `15`. [CHANGELOG.md](CHANGELOG.md) says what each
 version changed.
 
 ---
@@ -150,7 +150,7 @@ than a weak chapter does.
 | Skill | What it does |
 |---|---|
 | `/autoauthor:status` | Status and routing. Reads your project, reports scores against their gates, tells you the one thing to run next. Read-only. |
-| `/autoauthor:seed` | Creates the project, picks the genre, writes the premise. The only skill you run outside a project directory. |
+| `/autoauthor:seed` | Creates the project — genre, length, and whether it is one work or a collection or a series — and writes the premise. The only skill you run outside a project directory. |
 | `/autoauthor:import` | Brings an existing manuscript in — to revise it, continue it, or salvage its ideas for a fresh draft. |
 | `/autoauthor:foundation` | Builds the five planning layers and iterates until they clear the gate. No prose yet. |
 | `/autoauthor:draft` | Writes chapters sequentially, each scored against the previous chapter and the plan. |
@@ -158,7 +158,7 @@ than a weak chapter does.
 | `/autoauthor:review` | Whole-manuscript review as a literary critic and then a professor of fiction. Fixes the top items, repeats. |
 | `/autoauthor:collection` | For a collection: the one pass that reads every work at once, hunting the convergence no single-work judge can see. Sets the running order. |
 | `/autoauthor:series` | For a series: the same pass pointed the other way — continuity against the series bible, and whether each volume both advances the whole and closes itself. |
-| `/autoauthor:export` | Typesets a print-ready LaTeX PDF and builds the ePub. |
+| `/autoauthor:export` | Typesets a print-ready LaTeX PDF and builds the ePub. For a collection, binds every work in the running order first. |
 
 ---
 
@@ -362,23 +362,23 @@ iterations discarded on regression.
 This project began from **autonovel** by
 [emozilla / Jeffrey Quesnelle](https://github.com/emozilla) at
 [Nous Research](https://nousresearch.com) — the original autonomous
-novel-writing pipeline, whose architecture is recorded in
-[PIPELINE.md](PIPELINE.md). The scoring loop, the clean-room judge pattern,
+novel-writing pipeline. The scoring loop, the clean-room judge pattern,
 and the phase structure all descend from that work, and the debt is a good
 deal larger than the one owed to any other entry below.
 
-**As of 0.4.1 no upstream code remains here.** The standalone Python tools
-that carried it — art, covers, audiobook, landing page — have all been
-removed. They were never called by the pipeline, never tested, and each
-hardcoded the first book's title, byline or cast as *defaults*, which is
-upstream issues #7 and #9. Everything that ships is original: the eight
-skills, the genre pack system, the rubrics, and the scripts, all under
-`plugin/`.
+**No upstream content remains here.** The standalone Python tools that
+carried it — art, covers, audiobook, landing page — went in 0.4.1; they
+were never called by the pipeline, never tested, and each hardcoded the
+first book's title, byline or cast as *defaults*, which is upstream issues
+#7 and #9. `PIPELINE.md`, upstream's own technical specification, went in
+0.12.0; it was the last file here that someone else wrote, and it had
+stopped describing this program some releases earlier. Everything that
+ships is original — the skills, the genre and form packs, the rubrics and
+the scripts, all under `plugin/`.
 
-What remains of the debt is architectural rather than literal.
-[PIPELINE.md](PIPELINE.md) is upstream's own document, kept deliberately as
-the record of the program this descends from, and the pipeline still
-implements the shape it describes.
+What remains of the debt is architectural rather than literal, and it is
+real: the pipeline still implements the shape that specification
+described.
 
 **The upstream repository carries no licence**, which under default
 copyright means its author retains all rights — see
@@ -404,7 +404,6 @@ an issue or an email is welcome.
 
 [ROADMAP.md](ROADMAP.md) tracks direction and open work, including what is
 deliberately *not* being built and why.
-[PIPELINE.md](PIPELINE.md) is the original technical specification.
 `docs/superpowers/specs/` and `docs/superpowers/plans/` carry the design
 documents, including the genre-parameterization work. The plugin's own tests
 run with `uv run pytest tests/`.

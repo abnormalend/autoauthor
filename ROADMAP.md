@@ -10,12 +10,24 @@ Last updated 2026-08-13. Shipped history is in [CHANGELOG.md](CHANGELOG.md).
 
 ## In flight
 
-Nothing. Phases 0 through 6 have landed. What remains of the original spec
-is `serial`, which the spec itself said to ship last or drop — plus the
-verification debts below, which are now the larger risk: a great deal of
-machinery has shipped that no book has run through.
+Nothing. The form and structure axes are both complete and both reachable
+end to end in code. What remains of the original spec is `serial`, which
+the spec itself said to ship last or drop.
+
+**The largest risk in this project is no longer missing features.** It is
+that a great deal of machinery has shipped that no book has run through —
+see Known gaps. Every release from 0.5.0 to 0.12.0 was verified by tests
+and by reading, and not one of them by a finished work.
 
 ## Recently landed
+
+- **Containers become reachable**, 0.12.0, 2026-08-13. `seed` scaffolds a
+  collection or a series; `assemble.py` binds a collection's works into
+  one manuscript in the declared order, loudly, so a bound book cannot
+  silently lose a story; `export` branches on whether the structure binds
+  as one book, because a series' volumes each are one. `PIPELINE.md` was
+  retired in the same release — the last file here that someone else
+  wrote, and one that had stopped describing this program.
 
 - **`structure: series`**, 0.11.0, 2026-08-13. Phase 6, and the same
   machine as a collection pointed the opposite way — continuity and arc
@@ -112,15 +124,11 @@ All from [the form spec](docs/superpowers/specs/2026-08-13-form-parameterization
 in its phase order. Phases 0–2 are behaviour-preserving and A/B-verifiable
 the way the fantasy port was.
 
-- **Containers are not yet reachable from `seed` or `export`.** Both
-  structures resolve, validate and can be passed, and neither can be
-  CREATED or SHIPPED: `seed` builds a standalone project only, and
-  `export` assembles one work. Those two gaps are what stand between "a
-  collection resolves" and "a collection is a book", and they are now the
-  highest-value work in the file.
-- **Verify a collection end to end**, then retire `autoanthology`.
-  Nothing has run through the container machinery — no collection or
-  series has been seeded, drafted, or passed.
+- **Run something through it.** The highest-value work in this file, and
+  the only item that cannot be done by reading. Seed a small collection —
+  three short stories, one genre — and take it to export. Every part of
+  that path now exists and none of it has been exercised together. Then
+  retire `autoanthology`.
 - **7. `structure: serial`** — last, or dropped. The only value that breaks
   the score-plateau model the pipeline rests on.
 

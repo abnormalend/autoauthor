@@ -69,7 +69,8 @@ def test_a_standalone_project_reports_the_structure_block(tmp_path):
     block = json.loads(result.stdout)["structure"]
     assert block == {"name": "standalone", "is_container": False,
                      "container": None, "inherited": [],
-                     "order_is_editorial": False}
+                     "order_is_editorial": False,
+                     "assembles_as_one_book": True}
 
 
 # --- containers and their children -----------------------------------------
@@ -442,3 +443,129 @@ def test_the_two_cross_work_rubrics_check_opposite_things():
     assert "independence" in collection and "independence" not in series
     assert "canon_integrity" in series and "canon_integrity" not in collection
     assert "INVERTED" in series
+
+
+# --- assembling a container into a book ------------------------------------
+
+ASSEMBLE_CLI = SCRIPTS / "assemble.py"
+
+
+def chapter(n, title, text="Prose.\n"):
+    return f"# Chapter {n}: {title}\n\n{text}"
+
+
+def test_a_collection_assembles_in_the_declared_order(tmp_path):
+    container = make_container(tmp_path, works=("02-second", "01-first"))
+    for slug, titles in (("01-first", ["Alpha", "Beta"]),
+                         ("02-second", ["Gamma"])):
+        work = container / structure.WORKS_DIR / slug
+        for i, title in enumerate(titles, start=1):
+            (work / "chapters" / f"ch_{i:02d}.md").write_text(
+                chapter(i, title), encoding="utf-8")
+
+    result = subprocess.run([sys.executable, str(ASSEMBLE_CLI)],
+                            cwd=container, capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr + result.stdout
+
+    built = sorted((container / "assembled").glob("ch_*.md"))
+    assert [p.name for p in built] == ["ch_01.md", "ch_02.md", "ch_03.md"]
+    # 02-second is declared first, so its chapter leads the bound book...
+    assert "Gamma" in built[0].read_text()
+    # ...and the numbering is gapless across works rather than restarting.
+    assert built[1].read_text().startswith("## First\n\n# Chapter 2: Alpha")
+    assert "# Chapter 3: Beta" in built[2].read_text()
+
+
+def test_each_work_opens_with_its_own_title(tmp_path):
+    """A reader has to know a new story has started."""
+    container = make_container(tmp_path)
+    for slug in ("01-first", "02-second"):
+        work = container / structure.WORKS_DIR / slug
+        (work / "chapters" / "ch_01.md").write_text(chapter(1, "One"),
+                                                    encoding="utf-8")
+        state = json.loads((work / "state.json").read_text())
+        state["title"] = f"The {slug[3:].title()} Story"
+        (work / "state.json").write_text(json.dumps(state), encoding="utf-8")
+
+    subprocess.run([sys.executable, str(ASSEMBLE_CLI)], cwd=container,
+                   capture_output=True, text=True)
+    assembled = (container / "assembled" / "ch_02.md").read_text()
+    assert assembled.startswith("## The Second Story\n")
+
+
+def test_a_work_that_contributed_nothing_is_loud(tmp_path):
+    """A bound book silently missing a story is the failure this path
+    risks, and it is invisible in the output — the PDF just builds."""
+    container = make_container(tmp_path)
+    (container / structure.WORKS_DIR / "01-first" / "chapters"
+     / "ch_01.md").write_text(chapter(1, "One"), encoding="utf-8")
+    result = subprocess.run([sys.executable, str(ASSEMBLE_CLI)],
+                            cwd=container, capture_output=True, text=True)
+    assert result.returncode == 1
+    assert "02-second contributed no chapters" in result.stderr
+
+
+def test_a_series_refuses_to_assemble(tmp_path):
+    """Each volume is a book. Binding them into one is an omnibus, which
+    needs its own front matter and its own decisions."""
+    container = make_container(tmp_path, kind="series")
+    (container / structure.WORKS_DIR / "01-first" / "chapters"
+     / "ch_01.md").write_text(chapter(1, "One"), encoding="utf-8")
+    result = subprocess.run([sys.executable, str(ASSEMBLE_CLI)],
+                            cwd=container, capture_output=True, text=True)
+    assert result.returncode == 1
+    assert "does not assemble into one book" in result.stderr
+    assert not (container / "assembled").exists()
+
+
+def test_assemble_needs_a_container(tmp_path):
+    (tmp_path / "state.json").write_text(json.dumps({"genre": "mystery"}),
+                                         encoding="utf-8")
+    result = subprocess.run([sys.executable, str(ASSEMBLE_CLI)], cwd=tmp_path,
+                            capture_output=True, text=True)
+    assert result.returncode == 2
+    assert "nothing to assemble" in result.stderr
+
+
+def test_check_writes_nothing(tmp_path):
+    container = make_container(tmp_path)
+    for slug in ("01-first", "02-second"):
+        (container / structure.WORKS_DIR / slug / "chapters"
+         / "ch_01.md").write_text(chapter(1, "One"), encoding="utf-8")
+    result = subprocess.run([sys.executable, str(ASSEMBLE_CLI), "--check"],
+                            cwd=container, capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    assert not (container / "assembled").exists()
+    assert "2 chapters from 2 works" in result.stdout
+
+
+def test_a_chapter_with_an_unexpected_heading_is_copied_not_guessed_at(tmp_path):
+    """Prose is never rewritten to fit the typesetter."""
+    container = make_container(tmp_path, works=("01-first",))
+    odd = "Just prose, no heading at all.\n"
+    (container / structure.WORKS_DIR / "01-first" / "chapters"
+     / "ch_01.md").write_text(odd, encoding="utf-8")
+    subprocess.run([sys.executable, str(ASSEMBLE_CLI)], cwd=container,
+                   capture_output=True, text=True)
+    assert odd in (container / "assembled" / "ch_01.md").read_text()
+
+
+def test_a_stale_assembly_does_not_survive_a_rebuild(tmp_path):
+    """A story removed from the running order must not linger in the
+    bound book from the last run."""
+    container = make_container(tmp_path)
+    for slug in ("01-first", "02-second"):
+        (container / structure.WORKS_DIR / slug / "chapters"
+         / "ch_01.md").write_text(chapter(1, "One"), encoding="utf-8")
+    subprocess.run([sys.executable, str(ASSEMBLE_CLI)], cwd=container,
+                   capture_output=True, text=True)
+    assert len(list((container / "assembled").glob("ch_*.md"))) == 2
+
+    import shutil
+    shutil.rmtree(container / structure.WORKS_DIR / "02-second")
+    state = json.loads((container / "state.json").read_text())
+    state["works"] = ["01-first"]
+    (container / "state.json").write_text(json.dumps(state), encoding="utf-8")
+    subprocess.run([sys.executable, str(ASSEMBLE_CLI)], cwd=container,
+                   capture_output=True, text=True)
+    assert len(list((container / "assembled").glob("ch_*.md"))) == 1
