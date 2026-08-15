@@ -119,6 +119,12 @@ strict.
   structural formulas: an audit of the full tier lists returned 34 hits of
   which 33 were false positives (`leverage` as a noun, `Catalyst` as a beat
   name), and a guard that cries wolf gets muted.
+- **`test_fixture_ledgers.py`** — a shakedown fixture's foreshadowing ledger
+  may not cite a chapter that does not carry the plant. Judges found two such
+  rows only after nine clean-room runs, and fixing the class mechanically
+  found a third they had all missed. Scoped to what needs no reading for
+  sense: a quoted line must appear in the chapter it is attributed to, and a
+  cited chapter must exist.
 - **`test_rubric_contract.py`** — any computed aggregate is written `N.NN`.
   An integer cannot express a change smaller than 1, and revision stops on a
   change of less than 0.5.
@@ -132,7 +138,7 @@ strict.
 uv run pytest tests/ -q
 ```
 
-443 tests, about 8 seconds. CI runs exactly that, then validates every genre
+460 tests, about 7 seconds. CI runs exactly that, then validates every genre
 pack, every form pack, and runs `gate_solver.py` across all packs — so a cap
 that makes a gate unreachable fails the build rather than a user's book.
 
