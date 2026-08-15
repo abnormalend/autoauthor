@@ -9,6 +9,10 @@ Nothing that has landed belongs here. Shipped history is in
 number — work that changed nothing installable, which is most of the
 verification this project runs on.
 
+**This repo only.** Work belonging to another repository does not go here
+even when it depends on something this one ships; that repository can track
+its own.
+
 Last updated 2026-08-15.
 
 ---
@@ -42,8 +46,9 @@ parking lot.
 - **Run something through it.** The highest-value work in this file, and
   the only item that cannot be done by reading. Seed a small collection —
   three short stories, one genre — and take it to export. Every part of
-  that path now exists and none of it has been exercised together. Then
-  retire `autoanthology`.
+  that path now exists and none of it has been exercised together: no
+  container has run the cross-work pass, and `assemble.py` has bound
+  nothing but a `--check`.
 
 ## Later — identified, not specced
 
@@ -210,8 +215,6 @@ not need redoing.
 - **A pack per hybrid.** Compose unless you can name a dimension that scores
   the *interaction*. Cozy mystery, erotic paranormal romance, and sci-fi
   romance are all correctly composed today.
-- **Retiring the `autoanthology` repo** before `collection` ships and is
-  verified end to end.
 - **Restoring the standalone art/cover tools.** Removed in 0.4.1. If cover
   art is wanted later, write it fresh against the current project layout
   rather than recovering code that was written for one specific book and
