@@ -85,10 +85,13 @@ parking lot.
 
 ## Parking lot — not soon, not forgotten
 
-Deferred deliberately rather than rejected. Each entry states **what would
-bring it back**, because a parking lot without that is a graveyard with
-better manners. Nothing here is scheduled and nothing here should be treated
-as a gap.
+**No decision has been made about these.** They are not scheduled and not
+rejected; the moment for them has not come. Each entry states what would
+bring it back, because a parking lot without that is a graveyard with better
+manners.
+
+Contrast **Not doing**, which is the opposite state: a decision was made, and
+the entry exists so it is not made again.
 
 - **`epic` form.** Blocked on craft, not on plumbing. The form axis would
   take it tomorrow — a band, a gate, a layer list — but `epic` is not a
@@ -99,14 +102,6 @@ as a gap.
   Watch: `romantasy` already declares 110,000–140,000 against a novel band
   that stops at 120,000, which is the strongest live argument that `epic`
   is a real form rather than a wider `novel`.
-
-- **`flash` form.** Below the useful floor. Five phases cost more than a
-  thousand-word story is worth, and `short-story` already refuses under
-  1,000 words on the SFWA boundary for that reason. The blocker is not the
-  pack set, it is that the pipeline's shape is wrong at this length.
-  **Returns when** a two-phase path (seed → draft, no foundation loop) is
-  worth building on its own merits — at which point flash is its first user
-  rather than its justification.
 
 - **`structure: serial`.** Phase 7 of the form spec, which said to ship it
   last or drop it. One work released in parts, and the only structure that
@@ -190,9 +185,10 @@ Questions to answer, not work to schedule.
 
 ## Not doing
 
-Decided against, recorded so they are not re-litigated. The difference from
-the parking lot is intent: nothing here returns on a condition, because
-there is no condition — the answer is no.
+**Decisions already made**, recorded so they are not argued again. Several
+carry the condition that would reopen them, which is part of the record
+rather than a hedge — the point is that the thinking was done once and does
+not need redoing.
 
 - **Screenplay, teleplay, graphic novel script, poetry, interactive,
   nonfiction.** Different output medium, different craft rubric, different
@@ -204,6 +200,13 @@ there is no condition — the answer is no.
   real or wallpaper" is already `setting_specificity`.
 - **A `novelette` form.** An awards bucket with no market behind it, sharing
   the intermediate band with `novella` anyway.
+- **A `flash` form.** Below the useful floor of a five-phase pipeline: five
+  phases cost more than a thousand-word story is worth. This is already the
+  shipped position rather than a new one — `short-story` refuses under 1,000
+  words on the SFWA boundary, and says so in the pack. Reopen only if a
+  two-phase path (seed → draft, no foundation loop) is built for its own
+  reasons, in which case flash is its first user rather than its
+  justification.
 - **A pack per hybrid.** Compose unless you can name a dimension that scores
   the *interaction*. Cozy mystery, erotic paranormal romance, and sci-fi
   romance are all correctly composed today.
