@@ -21,6 +21,27 @@ and by reading, and not one of them by a finished work.
 
 ## Recently landed
 
+- **Caps bind — verified by judges**, 2026-08-14. Five clean-room judges
+  across two packs. `internal_consistency`'s three-contradictions cap fired
+  in **five runs out of five**, and three judges wrote the refusal out:
+  *"Cap applied, not weighed... The quality of the surrounding documents
+  does not lift it."* Two named the on-merits score — 6 and 8 — and applied
+  the cap anyway. That is the behaviour whose absence was the shakedown's
+  deepest finding, now unanimous across judges, packs, and a dimension
+  neither author was writing toward. Full result in
+  [the verification](docs/superpowers/2026-08-14-caps-bind-verification.md).
+
+  **The residual finding is a different defect.** On the planted dimensions
+  the scores still spread (6/8/9), but the reasoning shows judges disagreeing
+  about whether the cap's condition is **met**, not about whether to apply
+  it — one ran the redenomination test and capped, two ran it and concluded
+  it passed. Variance moved from the consequence to the premise. See the new
+  entry under Later.
+
+  The original planting sets had never been committed, which is why this item
+  sat for a day and cost two sets' worth of regeneration. Both are now in
+  `tests/fixtures/shakedown/`.
+
 - **Literary device overuse**, 0.17.0, 2026-08-14. `figurative_density` in
   `slop_score.py`, calibrated against a 36-chapter corpus across four
   projects (median 2.9 per 1000 words of narration) — and the chapter this
@@ -164,13 +185,33 @@ the way the fantasy port was.
 
 ## Later — identified, not specced
 
-- **Verify that caps now bind.** 0.5.0 declared them as data and told the
-  rubric a met cap is applied rather than weighed, but the defect was
-  found by observing two judges, and only a judge can show it is gone.
-  Re-run the two shakedown sets whose structure produced the split —
-  three dimension tests pass, one fails, criteria say "score 6 max" — and
-  check that both now cap. Cheap, and it closes the loop on the deepest
-  finding the shakedown produced.
+- **Detection variance on subtle cap conditions.** The successor to the
+  caps-bind finding, and a harder problem. Caps now bind unanimously once a
+  judge agrees the condition is met; what varies is whether they agree.
+  Three judges ran `magic_barrier_dependency`'s redenomination test on the
+  same documents and scored 6, 8 and 9 — one concluding the barrier survives
+  repricing in grain, two concluding that a debt denominated in a congenital,
+  non-transferable faculty is unpayable by anyone alive and therefore
+  magic-dependent. Both readings are defensible on the text, which is the
+  point: the test asks for a judgement the criteria do not settle.
+
+  Note what this is NOT. It is not the advisory-prose defect — that is fixed
+  and verified. It is not judge sloppiness; all three ran the test properly
+  and showed their work. The question is whether a dimension whose condition
+  needs an act of interpretation can be made to arbitrate itself, and the
+  candidate answers are worth thinking about before building: a worked
+  example of each verdict written into the criteria, a required artifact that
+  forces the redenomination onto the page rather than into the judge's head
+  (both dissenting judges independently suggested this), or accepting the
+  spread and taking a median across N judges on the dimensions that need it.
+  Cheap diagnostic first: re-run the committed fixture with more judges and
+  see whether 1-in-3 is the real rate.
+
+  Two judges also flagged that the fixture argues its own case at length in
+  two files, and read that as a tell. Worth checking whether a
+  camouflage-detector belongs in the rubric — a plan that pre-empts an
+  objection is evidence about the objection.
+
 - **`fantasy` caps only two of its five dimensions.** Visible for the first
   time now that the solver prints the cap list per pack: every other
   primary caps all or nearly all of its dimensions, while `magic_system`,
