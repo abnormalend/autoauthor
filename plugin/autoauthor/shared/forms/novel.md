@@ -36,7 +36,7 @@ is. A breach caps `overall_score` at 6 and never touches `pillar_score`.
 - The book is complete in itself. A volume of a series may leave its
   world plot open; it may not leave its own central question unasked or
   its own protagonist mid-arc.
-- The middle is load-bearing. A novel is not a short story with a delayed
+- The middle carries the book. A novel is not a short story with a delayed
   ending: the chapters between the midpoint and the black moment must
   change the protagonist's position, not restate it at greater length.
 

@@ -18,8 +18,8 @@
 ---
 
 This pack **replaces** `romance`; it does not extend it. That is what
-`conflicts_with: ["romance"]` is for, and it is the load-bearing decision
-here.
+`conflicts_with: ["romance"]` is for, and it is the decision this pack
+turns on.
 
 Every loaded pack's `## Genre Contract` is checked against the same book, so
 loading both packs would check two contradictory promises at once. Romance
@@ -177,7 +177,7 @@ produce something that CONSTRAINS a choice somewhere in the outline — a door
 that locks from one side, a person whose safety is the leverage, a
 jurisdiction that will not help, a rule the darker lead is himself subject
 to. A detail that constrains nothing is decoration and counts against the
-score. Keep this document short and load-bearing; a long world bible here is
+score. Keep this document short and every line working; a long world bible here is
 usually a sign the power relationship is underbuilt.
 
 - The Power Structure

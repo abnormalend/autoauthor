@@ -450,7 +450,7 @@ a genre-specific banned-phrase list.
 
 ## Seed Prompt
 
-**Field order is load-bearing.** `seed` presents each generated concept
+**Field order is not cosmetic.** `seed` presents each generated concept
 as TITLE + HOOK + *the first required field the neutral scaffold does not
 already define*. The scaffold defines WORLD, TENSION, THEME, and WHY IT'S NOT
 GENERIC — so whatever you list immediately after WORLD becomes the single
@@ -468,7 +468,7 @@ order:
 2. **The required concept fields**, introduced by the sentence
    `Required concept fields (these <genre> fields and phrasings replace
    the neutral scaffold's versions of the same fields):`. That sentence
-   is load-bearing — `seed` relies on it to know your fields
+   does real work — `seed` relies on it to know your fields
    override the neutral scaffold's, so keep the wording and swap only
    `<genre>`. Under it, one block per field: an ALL-CAPS name, a colon,
    and what it must contain. Every pack keeps WORLD, TENSION, THEME, and

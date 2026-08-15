@@ -77,7 +77,7 @@ hundred words orienting a reader — so what world there is lives inside
 `characters.md` and the outline, as the specific facts the story touches
 and no others.
 
-- `voice` — a full voice document. Voice is MORE load-bearing here, not
+- `voice` — a full voice document. Voice matters MORE here, not
   less: at this length it is most of what the reader experiences, and
   there is no plot architecture to carry a flat one.
 - `characters` — the protagonist in depth, and only the characters who

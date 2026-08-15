@@ -14,6 +14,8 @@ These words are statistically overrepresented in LLM output vs. human writing, p
 
 These almost never appear in casual human writing. If you see one, rewrite the sentence.
 
+Most of the list is corpus-derived — words overrepresented across every model. `load-bearing` is not: it is a Claude tell, noticed in use rather than measured. It earns Tier 1 anyway, because a phrase that identifies the model that wrote it is precisely what this file exists to catch.
+
 | Slop word | What a human would write |
 |---|---|
 | delve | dig into, look at, examine |
@@ -35,6 +37,7 @@ These almost never appear in casual human writing. If you see one, rewrite the s
 | nuanced (as filler) | (cut it. if the thing is nuanced, show how.) |
 | realm | area, field, domain |
 | landscape (metaphorical) | field, space, situation |
+| load-bearing / bears the load (metaphorical) | essential, holds it up, what the rest stands on |
 | tapestry of | (always delete) |
 | myriad | many, lots of |
 | plethora | many, a lot |

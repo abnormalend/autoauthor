@@ -117,7 +117,7 @@ obligations, money, and physical space that forces these two people into
 contact and then makes staying together expensive. Every section below must
 produce something that CONSTRAINS a choice somewhere in the outline. A
 detail that constrains nothing is decoration and counts against the score,
-not for it. Keep this document short and load-bearing — a fifty-page world
+not for it. Keep this document short and every line working — a fifty-page world
 bible in a romance is usually a sign the relationship is underbuilt.
 
 - Proximity & Adhesion

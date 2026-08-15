@@ -149,7 +149,7 @@ breaks, what happens when a rule is broken. Who can do it and who cannot,
 and whether that is birth, training, bargain, or accident.
 
 ### Magic System — Costs, Limits, and Prices
-The most load-bearing section in the document for this genre. State what
+The section this genre stands on. State what
 magic costs the user, what it cannot do, and what vulnerability it creates.
 Then state the system's PRICES: what the rules say it costs to bind
 yourself to another person, to break such a binding, to give power away, to
@@ -525,7 +525,7 @@ WORLD: What makes this world different? Not "there's magic" but the
   reorganized who may marry whom, who inherits, and who belongs to whom.
   Make it SENSORY.
 MAGIC/BARRIER: The core speculative element, what it COSTS, and — the
-  load-bearing part — how that cost specifically stands between these two
+  part that matters — how that cost specifically stands between these two
   people. Apply the deletion test before you write it down: remove the
   magic and the relationship must lose its problem entirely. If the
   obstacle survives as a disapproving parent or a bad contract, the

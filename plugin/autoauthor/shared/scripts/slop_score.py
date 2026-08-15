@@ -26,6 +26,20 @@ TIER1_BANNED = [
     "catalyst", "juxtapose", "myriad", "plethora",
 ]
 
+# Tier 1 entries the token loop above cannot see, because they are more than
+# one word. Scored in the same bucket and at the same weight — a phrase is
+# not a lesser offence than a word, it is only harder to match.
+#
+# The hyphen is required. `load bearing` unhyphenated is not reliably the
+# metaphor — "the load bearing down on her" is ordinary prose, and a scorer
+# that penalises it teaches the drafter to avoid a real sentence. The `\s*`
+# is there because chapters are hard-wrapped and the break lands on the
+# hyphen, which is exactly where a wrap prefers to land.
+TIER1_PHRASES = [
+    r"load-\s*bearing",
+    r"bear(?:s|ing)? the load",
+]
+
 TIER2_SUSPICIOUS = [
     "robust", "comprehensive", "seamless", "seamlessly", "cutting-edge",
     "innovative", "streamline", "empower", "foster", "enhance", "elevate",
@@ -138,12 +152,23 @@ def slop_score(text, genre_banned=()):
     words = text.lower().split()
     word_count = len(words) or 1
 
+    # Chapter files are hard-wrapped prose, so any multi-word phrase can
+    # straddle a line break. Collapse whitespace once, up front, and match
+    # every phrase scan against this rather than the raw text — otherwise the
+    # longer the phrase the likelier it is silently missed, which undercounts
+    # exactly the constructions the phrase lists exist to catch.
+    lowered = re.sub(r"\s+", " ", text.lower())
+
     # Tier 1
     tier1_hits = []
     for w in TIER1_BANNED:
         c = sum(1 for token in words if token.strip(".,;:!?\"'()") == w)
         if c > 0:
             tier1_hits.append((w, c))
+    for pattern in TIER1_PHRASES:
+        c = len(re.findall(pattern, lowered))
+        if c > 0:
+            tier1_hits.append((pattern, c))
 
     # Tier 2 -- count per paragraph, flag clusters
     paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
@@ -213,14 +238,8 @@ def slop_score(text, genre_banned=()):
 
     # Composite penalty (0 = clean, 10 = disaster)
     # Genre-specific banned phrases. Multi-word, so matched as substrings
-    # rather than through the token loop above.
-    #
-    # Whitespace is collapsed first because chapter files are hard-wrapped
-    # prose: without it, any phrase that happens to straddle a line break is
-    # silently missed, and the longer the phrase the likelier that is — so
-    # the scan would undercount exactly the florid multi-word constructions
-    # a genre banned list exists to catch.
-    lowered = re.sub(r"\s+", " ", text.lower())
+    # rather than through the token loop above, against the collapsed text
+    # prepared at the top of the scan.
     genre_hits = []
     for phrase in genre_banned:
         normalized = re.sub(r"\s+", " ", phrase.strip())

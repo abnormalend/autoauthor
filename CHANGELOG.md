@@ -6,6 +6,48 @@ is not the same as updating the plugin — see [README](README.md#install).
 
 ---
 
+## 0.16.0 — 2026-08-14
+
+`load-bearing` is a tell, and the plugin was teaching it.
+
+Most of the Tier 1 list is corpus-derived — words measured as
+overrepresented across every model. This one is not. It is a Claude tell,
+noticed in use, and it earns Tier 1 anyway: a phrase that identifies the
+model that wrote it is precisely what the anti-slop reference exists to
+catch.
+
+**Banned in all three places a ban has to exist.** `ANTI-SLOP.md` Tier 1,
+the `voice.md` guardrail table every project gets its own copy of, and
+`slop_score.py`, which is the only one of the three that can fail a
+chapter rather than advise it.
+
+**Added `TIER1_PHRASES` to the scorer.** Tier 1 matched exact tokens, so it
+could never see a phrase — `bears the load` was unreachable by
+construction. The new list is regex, scored in the same bucket at the same
+weight, because a phrase is not a lesser offence than a word, only a harder
+match.
+
+The hyphen is required. `load bearing` unhyphenated is not reliably the
+metaphor — *the load bearing down on her* is a sentence a person writes,
+and a scorer that penalises it trains the drafter away from real prose to
+catch a tell that isn't there. The pattern tolerates a line break on the
+hyphen instead, which is exactly where a hard wrap prefers to land.
+
+**Swept the plugin's own prose — 22 sites.** `foundation/SKILL.md` requires
+reading `ANTI-SLOP.md` *and* every genre pack, so the packs were putting the
+banned phrase in front of the drafter 22 times in the same context as the
+instruction to kill it on sight. That is priming, not inconsistency, and it
+is why a ban nobody in the required reading follows does not hold.
+
+Two occurrences deliberately survive. `darkness_load_bearing` is a scoring
+dimension key in `dark-romance`, and renaming it would make every existing
+dark-romance project's scores incomparable with its own history — the cost
+of a clean identifier is not worth a broken record. Two source comments in
+`base_dimensions.py` and `genre_pack.py` are also left: no drafting agent
+reads them, and the phrase is literal there.
+
+---
+
 ## 0.15.0 — 2026-08-14
 
 A title has somewhere to live.

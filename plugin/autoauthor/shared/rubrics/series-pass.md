@@ -64,8 +64,8 @@ earned, or a drift nobody noticed, and only reading it tells you which.
 
 ## Dimensions
 
-- canon_integrity [cap 4] — Take `bible/canon.md` fact by fact and check each against every volume that touches it. Then take each volume's own `canon.md` and ask whether any entry CONTRADICTS the series canon rather than adding to it. Name every contradiction with the volume and the fact. If any load-bearing fact is contradicted — one the plot of any volume stands on — score 4 max, because that is not a blemish, it is the series not being one series. If contradictions exist but none is load-bearing, score 6 max.
-- canon_promotion [cap 6] — A fact that becomes load-bearing for a later volume belongs in series canon, not duplicated in two volumes' local files. Test: find three facts a later volume depends on and say where they are recorded. If any is recorded only in the earlier volume's local canon, score 6 max — the next volume's author reads the series bible, and a fact that is not there is a fact that will be contradicted.
+- canon_integrity [cap 4] — Take `bible/canon.md` fact by fact and check each against every volume that touches it. Then take each volume's own `canon.md` and ask whether any entry CONTRADICTS the series canon rather than adding to it. Name every contradiction with the volume and the fact. If a fact the plot of any volume stands on is contradicted, score 4 max, because that is not a blemish, it is the series not being one series. If contradictions exist but no plot stands on any of them, score 6 max.
+- canon_promotion [cap 6] — A fact a later volume comes to depend on belongs in series canon, not duplicated in two volumes' local files. Test: find three facts a later volume depends on and say where they are recorded. If any is recorded only in the earlier volume's local canon, score 6 max — the next volume's author reads the series bible, and a fact that is not there is a fact that will be contradicted.
 - volume_closure [cap 4] — Each volume must close its own central question, whatever it leaves open for the series. Name each volume's own question and where it is answered. A volume may leave the world plot open; it may not leave its own protagonist mid-arc or its own question unasked. If any volume ends without closing something it opened, score 6 max. The last volume closes the series question as well, and if it does not, score 4 max.
 - arc_progression [cap 6] — Read `bible/arc.md`, then check each volume against what it owes. Name what each volume advances, in one sentence, and say what would be lost if it were removed from the series. If any volume's answer is "nothing that a paragraph in the next one could not carry", score 6 max. Escalation is not required — a quiet volume can advance a great deal — but movement is.
 - entry_and_recap [cap 6] — Where does a reader who starts here stand? For each volume after the first, name what it assumes and how it re-establishes it. Recap that stops the story to summarize the last volume is a fault; so is a volume that assumes everything and re-establishes nothing. If any volume opens with more than a page of recap, or if any assumes a fact it never re-establishes in passing, score 6 max.
@@ -95,7 +95,7 @@ decimal places — never rounded to an integer.)
   "character_continuity": {"score": N, "gap": "...", "fix": "...", "note": "..."},
   "series_voice": {"score": N, "gap": "...", "fix": "...", "note": "..."},
   "contradictions": [
-    {"fact": "...", "canon_says": "...", "volume": "...", "volume_says": "...", "load_bearing": true/false}
+    {"fact": "...", "canon_says": "...", "volume": "...", "volume_says": "...", "plot_depends_on_it": true/false}
   ],
   "promote_to_series_canon": ["facts that should move up into bible/canon.md"],
   "convergence_used": true/false,

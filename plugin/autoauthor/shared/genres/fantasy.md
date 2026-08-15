@@ -185,7 +185,7 @@ the world's speculative element. What's possible and what's not.
    personified. They believe they're protecting something legitimate.
 
 6. **An outsider perspective** on the protagonist's world or system,
-   representing something thematically load-bearing.
+   representing something the book's theme depends on.
 
 7. **At least 1-2 additional characters** the story needs — a peer or
    friend, someone connected to the absent character, an ally with

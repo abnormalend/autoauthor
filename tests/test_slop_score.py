@@ -136,3 +136,52 @@ def test_wrapped_and_flat_text_score_identically(tmp_path):
         assert r.returncode == 0, r.stdout + r.stderr
         scores.append(json.loads(r.stdout)["files"][0]["genre_banned_hits"])
     assert scores[0] == scores[1] != []
+
+
+# --- Tier 1 multi-word phrases ---------------------------------------------
+# `load-bearing` is a Claude tell rather than a corpus-derived one, and the
+# token loop cannot see it or its phrasal cousins. See TIER1_PHRASES.
+
+def _score(tmp_path, body, name="ch_01.md"):
+    chapter = tmp_path / name
+    chapter.write_text(body, encoding="utf-8")
+    return run_scorer(str(chapter))["files"][0]
+
+
+def test_load_bearing_is_a_tier1_hit(tmp_path):
+    report = _score(tmp_path, "The lie was load-bearing. She knew it.\n")
+    assert [h[0] for h in report["tier1_hits"]] == [r"load-\s*bearing"]
+
+
+def test_a_literal_load_bearing_down_is_not_a_hit(tmp_path):
+    """The hyphen is what makes it the metaphor.
+
+    "the load bearing down on her" is a sentence a person writes. Penalising
+    it would train the drafter away from real prose to catch a tell that
+    isn't there.
+    """
+    report = _score(tmp_path, "She felt the load bearing down on her.\n")
+    assert report["tier1_hits"] == []
+
+
+def test_bears_the_load_variants_are_caught(tmp_path):
+    for phrase in ("bears the load", "bear the load", "bearing the load"):
+        report = _score(tmp_path, f"His silence {phrase} of the marriage.\n")
+        assert [h[0] for h in report["tier1_hits"]] == [r"bear(?:s|ing)? the load"], phrase
+
+
+def test_tier1_phrase_survives_a_line_break(tmp_path):
+    """A hard wrap must not hide the hit — the same failure the genre list had.
+
+    Chapters are wrapped prose, so the phrase that straddles a newline is
+    the common case, not the exotic one.
+    """
+    wrapped = _score(tmp_path, "The lie was load-\nbearing. She knew it.\n")
+    assert wrapped["tier1_hits"] != []
+    split = _score(tmp_path, "His silence bears the\nload of the marriage.\n")
+    assert split["tier1_hits"] != []
+
+
+def test_clean_prose_has_no_phrase_hits(tmp_path):
+    report = _score(tmp_path, "The wall held the roof up. She knew it.\n")
+    assert report["tier1_hits"] == []

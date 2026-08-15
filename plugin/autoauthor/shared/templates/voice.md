@@ -40,6 +40,8 @@ If one appears, rewrite the sentence. No exceptions.
 | nuanced (filler)  | (cut it -- if it's nuanced, show how)          |
 | realm             | area, field, domain                            |
 | landscape (metaphorical) | field, space, situation                 |
+| load-bearing (metaphorical) | essential, holds it up, what it stands on |
+| bears/bearing the load | holds it up, carries it                   |
 | myriad            | many, lots of                                  |
 | plethora          | many, a lot                                    |
 
