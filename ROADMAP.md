@@ -69,8 +69,10 @@ parking lot.
   defining constraint in frontmatter and had to buy the same protection with
   a blunt `conflicts_with` against `ya` and `cozy`. romance.io's taxonomy
   separates steam level from consent warnings for the same reason.
-- **A `horror` pack.** A top-level Goodreads genre with no pack at all.
-  `autoanthology` has one; this repo does not.
+- **A `horror` pack.** A top-level Goodreads genre with no pack at all, and
+  the largest gap in the set by readership. Passes the interaction test on
+  its face — dread is a pacing contract and a withholding discipline, not a
+  premise — but nobody has written the dimensions that would score it.
 - **Shakedown slice 2 — chapter, drafting, reader panel.** The current run
   covers foundation only. `drafting-rules.md`, `chapter.md`, and
   `reader-panel.md` all read genre packs and none has been exercised.
