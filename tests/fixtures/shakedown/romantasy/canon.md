@@ -326,6 +326,16 @@ reversed anywhere in the book.
 - **Security pledged:** (a) the Sarrow common ground — six villages, ~1,900
   people, tenure through the Nesuir estate; (b) the drawing line of Ottun —
   presently Sahra, thereafter Yeshin, to be assessed at sixteen. (world.md)
+- **Alienation of the line.** The security at (b) is a line and runs by
+  descent. Issue of the debtor is pledged from birth and displaces the
+  collateral heir — a child of Sahra's takes Yeshin's place in the schedule
+  the day it is entered. Issue entered outside the merged estate is capacity
+  the creditor has pledged forward and cannot produce, and voids the
+  composition **for cause**, on the same clause and at the same speed as an
+  unrecorded carry. It is a security clause, not a morals clause: the Book
+  does not record whose household she keeps. Neither Halim nor Dovra can
+  waive it, because the pledge runs past Nesuir to the House. Named aloud by
+  Halim in ch 17. (world.md, ch 17, **HARD RULE**)
 - **On voiding:** the 1201 entry revives at 2,140 with eight years' accrued
   charge; the fen tenure is distrained; Yeshin is assessed against a live
   entry and set to the pump — twenty years' bonded drawing in the Amrith

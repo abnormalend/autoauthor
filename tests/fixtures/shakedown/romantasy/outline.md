@@ -49,7 +49,10 @@ that no setter is worked to full grey for a cistern.
 Quarterly reckoning at the Reckoning House. Her carries entered; her balance
 read aloud in a corridor full of people; an assessor reads her load off her
 cuticles and enters it. The Third Order's acceleration clause is read as part
-of the standard recitation and nobody remarks on it. **Dovra Nesuir** is
+of the standard recitation and nobody remarks on it — and so is the
+alienation clause, four items later in the same list, in the same voice, at
+the same speed. Sahra is counting her own carries against the figure the
+clerk just read and does not hear it. **Dovra Nesuir** is
 present and, citing the House's new warranting restrictions and the rate they
 will cost, moves the witnessing forward from autumn 1220 to spring 1220.
 Yeshin's name entered in the schedule: *capacity presumed, to be assessed at
@@ -223,8 +226,21 @@ worn through, and it is the cruellest gift in the book.
 release her. He would, in an instant, and says so, and means it — and cannot:
 release is not his to give while his mother lives, and the forward pledge
 stands whoever holds Nesuir, and he has four hundred tenants of his own. He
-offers the only thing in his gift: he will never touch her, and she may live
-as she likes, and nobody need ever know anything. It is meant. It is the
+offers the only thing in his gift: he will never touch her, not once, not
+ever, and nobody need know that either.
+
+Then she asks the question the offer invites — whether she may live as she
+likes — and watches him work out that he has already promised more than he
+owns. He reaches the alienation clause in front of her, out loud, badly,
+apologising inside the sentence: the security is the *line*, issue is
+pledged from birth, and a child of hers entered outside the merger is
+capacity the House has already been promised and cannot be handed. It voids
+for cause. Thirty days. The fen goes, and Yeshin goes to the pump. He does
+not say *so you must not*, because he is not that man and it is not his
+clause to enforce; he says the arithmetic and stops, and lets her hold it.
+
+So the offer is a marriage that is not a marriage, and a life she may have
+only in the two hours nobody is counting. It is meant, all of it. It is the
 kindest offer she has ever had and it is the worst thing anyone says to her
 in the book, and she comes back down to the flats unable to explain to Yannu
 why she is worse.
@@ -429,7 +445,15 @@ She has come to tell him before he can ask. She is going to the witnessing.
 
 He offers the indenture: twenty years of his hands. She says the number
 before he can — 280 against 2,140 — because she looked it up two months ago,
-in Ebb, before she had any right to. He says: *then what am I for.* She says:
+in Ebb, before she had any right to.
+
+Then he says the thing Halim said, without knowing Halim said it: *marry him
+and stay.* And she gives him the clause, flat, the way she gives every
+number — issue is pledged from birth, a child of hers entered outside the
+merger voids it for cause, thirty days, the fen, Yeshin at the pump — and
+the cruelty is that it is not an excuse and he can check it. He does check
+it. That is the worst part of the chapter. He says: *then what am I for.*
+She says:
 *nothing — and that is the point, and I have never been for anything either,
 and I would rather one of us found that out somewhere other than the bottom
 of a ledger.*
@@ -587,6 +611,12 @@ says yes and says why. They set their terms like two professionals, because
 that is what they are: she will say the numbers aloud, continuously, so that
 he knows what is happening inside his own hands when he can no longer tell.
 
+The clause is in the room and neither of them pretends otherwise. Tomorrow it
+is still live; the night is the two hours nobody is counting, and they take
+it on those terms and name them. This is not defiance and they do not call it
+that — it is a decision made inside an instrument that has not been
+discharged yet, by two people who can both read one.
+
 The second and last open-door scene, brief, and entirely about the border of
 what he can still feel and where it will be tomorrow.
 
@@ -642,7 +672,10 @@ Dovra reads the discharge, checks the arithmetic twice, says *"then it is
 discharged,"* and goes. She does not soften and she is not ruined; Nesuir is
 solvent and she will be at the next quarter's reckoning. Halim, released,
 gives Sahra the tally-ring to break herself and says the first selfish
-sentence of his life. Yeshin will be assessed at sixteen against a clean line
+sentence of his life — and before he does, he finishes the sentence he could
+not finish in ch 17, which now costs him nothing and is worth nothing and he
+says it anyway. The clause died with the entry. Yeshin will be assessed at
+sixteen against a clean line
 and complains about the queue. Bel Osse is already drafting the instrument
 that will make setter-service compulsory, and tells them so to their faces,
 because she wants it on the record that she was not converted.
@@ -687,6 +720,7 @@ Nothing in the final quarter arrives unpaid for.
 | F6 | **No relays (HR-8)** | ch 5 (the mismatched first working; he cannot take it and walk away) | ch 20 (Merrow's audit recites the rule); ch 37 (the plan needs hundreds of setters, one at a time) | ch 40 — High Tower Surprise: the plan is impossible in eleven hours *because* of this rule | Direct |
 | F7 | **A witnessed working on the House's account is credited at the assessed rate** | ch 3 (recited in the quarterly reckoning) | ch 20 (read aloud in the audit, unremarked); ch 36 (Yannu does the arithmetic) | ch 44 — 2,306 carries entered against 2,140 | Direct |
 | F8 | **The acceleration clause** | ch 3 (read as part of the standard recitation; nobody remarks) | ch 17 (Halim: *"the clause is the clause"*); ch 25 (Dovra moves the witnessing without it) | ch 32 — invoked; thirty days; produces the Black Moment | Direct |
+| F8b | **The alienation clause (issue is pledged security)** | ch 3 (read in the same recitation as F7 and F8, in the middle of a list; Sahra is counting her own carries and does not hear it) | ch 17 (Halim reaches it out loud and stops at the arithmetic); ch 33 (she says it to Yannu, flatly, as the reason — it is the *number* she gives him, not a feeling) | ch 42 — the terms they set before the working are set inside the clause; ch 45 — discharged, the clause is dead and the tally-ring is hers to break | Direct |
 | F9 | **Standing water on the Wallow** | ch 1 (closing image; Sahra does not know what she is looking at) | ch 2 (129 paces lost); ch 14 (the first return); ch 19 (the crust has lifted a foot) | ch 23 — the Whiting is full; ch 31 — the lobe gives | Symbolic / action |
 | F10 | **Veth's boots on the nail** | ch 2 | ch 18 (she does not ask); ch 33 (she leaves Halim's gloves beside them) | ch 34 — he walked Veth out and walked back alone | Symbolic |
 | F11 | **Yannu's falsified warrants** | ch 2 (writes *silting* and does not change it) | ch 14 (recognises his own warrant on the returned ground); ch 20 (Merrow: they are being pulled) | ch 26 — Bel Osse uses them; ch 27 — the reopened lobe nearly founders Sahra | Action |
@@ -717,6 +751,7 @@ and it is stated as a threat rather than a hook.
 | Why did the north lobe close? | ch 5 | ch 14 / ch 26 — Yannu falsified the warrant |
 | What is the Ottun debt and can it be paid? | ch 3 | ch 10 — 2,140 carries or a house that assumes them; ch 44 — 2,306 carries, once |
 | Can anyone release Sahra? | ch 5 | ch 10 (Dovra: no), ch 17 (Halim: no), ch 28 (Yannu: not enough) |
+| Then can she simply marry him and live as she likes? | ch 17 (Halim offers half of it) | ch 17 — no; the alienation clause makes issue outside the merger a default, and neither Halim nor Dovra can waive what is pledged forward. Restated by Sahra in ch 33 and dead at ch 44 |
 | What happened to Ines Ottun? | ch 1 (referenced) | ch 9 / ch 18 — foundered at the eleventh carry; died over three years |
 | What happened to Veth? | ch 2 (the boots) | ch 34 — Yannu walked him out |
 | Where does a load actually go? | ch 2 (theme stated) | ch 36 — nowhere, except into a setter, where it ends |

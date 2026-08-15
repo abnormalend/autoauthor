@@ -446,6 +446,15 @@ drawing line of Ottun.
   1,900 people, whose tenure runs through the Nesuir estate. (b) The drawing
   line of Ottun: presently Sahra, and after her Yeshin Ottun, aged fourteen,
   to be assessed at sixteen.
+- **Alienation of the line.** The security at (b) is a *line*, not a person,
+  and it runs by descent. Issue of the debtor is pledged from birth and takes
+  precedence over the collateral heir — a child of Sahra's displaces Yeshin
+  in the schedule the day it is entered. Issue born inside the merged estate
+  is Nesuir's asset. Issue born outside it is capacity the creditor has
+  pledged forward and cannot produce, which is alienation of security and
+  voids the composition **for cause**, on the same clause and at the same
+  speed as an unrecorded carry. The Book does not ask whose household she
+  keeps. It asks where the next assessable pair of hands will be entered.
 - **Balance at ch 3.** 1,806 carries outstanding after eight years. At her
   achieved rate — 334 carries in eight years, and lower now she has been
   impressed at a third — she clears it at sixty-two.
@@ -501,8 +510,14 @@ only while nobody asks is not a barrier.
    give. The composition is between estates and the estate is his mother's
    while she lives, and the forward pledge to the House stands regardless of
    who holds Nesuir. He offers her the only thing in his gift — that he will
-   never touch her, and she may live as she likes — and it is a kindness,
-   and it is the worst thing anyone says to her in the book.
+   never touch her — and then, because he is honest, he has to take back the
+   half of it that was not his to offer. *And she may live as she likes* is
+   the sentence he starts and does not finish, because the alienation clause
+   is above his signature and above his mother's: the line is pledged forward
+   to the House, and a child of hers entered outside the merger voids the
+   composition for cause. He can promise her a marriage that is not a
+   marriage. He cannot promise her a life. It is a kindness with the middle
+   taken out of it, and it is the worst thing anyone says to her in the book.
 3. **Yannu to anyone (ch 28, ch 33).** *Let me take it.* He is not a party,
    he cannot be made one, and the instrument that would let him try raises an
    eighth of the sum and costs him twenty years of hands.

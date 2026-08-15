@@ -510,8 +510,12 @@ composition he did not ask for and cannot release.
 - **Need.** To want one thing out loud.
 - **Beat:** ch 17 is his scene. He would release her and cannot; the estate
   is his mother's while she lives and the forward pledge stands whoever holds
-  Nesuir. He offers her the only thing in his gift — never to touch her, and
-  she may live as she likes — and it is meant, and it is the worst thing
+  Nesuir. He offers her the only thing in his gift — never to touch her — and
+  then has to reach the alienation clause in front of her and take back the
+  half he did not own, because issue outside the merger voids the composition
+  for cause and the line is pledged past his mother to the House. He gives her
+  the arithmetic and refuses to draw the conclusion from it, which is the most
+  and the least he can do. It is meant, all of it, and it is the worst thing
   anyone says to her in the book. In ch 45, discharged, he gives her the
   tally-ring to break herself and says the first selfish sentence of his
   life, which is that he is glad and he is sorry and both are for himself.

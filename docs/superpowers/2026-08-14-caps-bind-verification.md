@@ -106,6 +106,34 @@ did — that Halim's ch 17 offer of a marriage in name only dissolves the
 obstacle at 37% and no document says why she cannot take it — which is a
 real finding about the fixture, not about the rubric.
 
+### The Halim hole is now fixed, and the baseline predates the fix
+
+One judge in nine caught it, and it was correct: the barrier had a second
+door nobody planted. The fixture now carries an **alienation clause** — the
+pledged security at (b) is a *line*, not a person, so issue of the debtor is
+pledged from birth and a child entered outside the merged estate is capacity
+the creditor has promised forward and cannot produce, voiding for cause.
+Neither Halim nor Dovra can waive it, because the pledge runs past Nesuir to
+the House. Halim reaches it out loud in ch 17 and has to take back the half
+of his offer that was never his; Sahra hands it to Yannu as a number in ch
+33; the terms in ch 42 are set inside it; it dies with the entry at ch 44.
+Planted in the ch 3 recitation beside the acceleration clause, tracked as
+F8b, and entered in canon as a HARD RULE.
+
+It is a security clause and not a morals clause, which is what the world
+already required of it — this book states plainly that a broken composition
+is regarded "not as immorality, as damage."
+
+**The nine verdicts above were produced against the fixture as it stood
+before this edit.** They remain the baseline for the cap-binding result,
+which does not touch the barrier; a future run measuring
+`magic_barrier_dependency` is measuring a different document and should say
+so. The fix also makes an already-failed plant fail harder: it closes a hole
+by adding magic-dependence, and 8 of 9 judges already held the barrier
+magic-dependent. If this fixture is ever wanted as a working denomination
+plant, the surgery is the reverse one — removing the non-aggregability that
+HR-8 supplies — and that is a rebuild, not a patch.
+
 ## Arithmetic
 
 All nine verdicts reproduce exactly against the packs' declared weights. Of
@@ -126,9 +154,3 @@ the `slop_in_planning_docs` channel surfaces it without being asked.
 independently carried "a book-specific ban on `load-bearing` and its
 cousins", picked up from `ANTI-SLOP.md` and written forward into the project
 it was planning.
-
-## Arithmetic
-
-Four of five verdicts reproduce exactly against the packs' declared weights.
-The fifth is off by 0.02 — which is what `score_verdict.py` exists to catch,
-and it would have caught it.
