@@ -24,18 +24,24 @@ end to end in code. The one phase of the original spec never built is
 `serial`, which the spec itself said to ship last or drop; it is in the
 parking lot with the reason.
 
-**The largest risk in this project is no longer missing features.** It is
-that a great deal of machinery has shipped that no book has run through —
-see Known gaps. Every release from 0.5.0 to 0.12.0 was verified by tests
-and by reading, and not one of them by a finished work.
+**The largest risk in this project is no longer missing features, and it is
+no longer that nothing has been run.** One work has now been through the
+whole per-work pipeline — `small-hours/01-porter`, under `mystery` +
+`short-story`, seed to a PDF and an ePub — and every release from 0.13.1 to
+0.15.0 exists because that run found something a test could not. Fourteen
+clean-room judges have since confirmed that caps bind.
 
-That has partly changed. `small-hours` took a collection's first work from
-seed through foundation, drafting, two revision cycles and review, and every
-release from 0.13.1 to 0.15.0 exists because that run found something a test
-could not. Fourteen clean-room judges have since confirmed that caps bind.
-What remains unrun is the back half at scale: no container has been through
-the cross-work pass, `assemble.py` has bound nothing but a check, and no book
-has been drafted end to end under any non-fantasy pack.
+The risk now is **narrow coverage read as broad coverage**. That run was one
+pack, one form, four chapters, one work. 0.17.1 is the cautionary case:
+`export` ran against a real book, emitted four correct drop caps, and still
+left the dialogue branch cold, where it had been producing a backtick for a
+capital since before the rename.
+
+So the honest statement of what is unrun is now specific rather than
+sweeping, and it lives in Engineering: no container has run the cross-work
+pass, `assemble.py` has bound nothing but a `--check`, `series` and `import`
+have never executed at all, and four of five genre artifacts have never been
+produced.
 
 ## Next — specced, ready to plan
 
@@ -43,12 +49,23 @@ One item. [The form spec](docs/superpowers/specs/2026-08-13-form-parameterizatio
 that filled this section is delivered through phase 6; its phase 7 is in the
 parking lot.
 
-- **Run something through it.** The highest-value work in this file, and
-  the only item that cannot be done by reading. Seed a small collection —
-  three short stories, one genre — and take it to export. Every part of
-  that path now exists and none of it has been exercised together: no
-  container has run the cross-work pass, and `assemble.py` has bound
-  nothing but a `--check`.
+- **Finish `small-hours`.** The highest-value work in this file, the only
+  item that cannot be done by reading, and now much cheaper than it was:
+  the collection exists and is one-third built. `01-porter` went seed →
+  foundation → draft → revise → review → export and produced a PDF and an
+  ePub on 2026-08-14. What is still cold is everything that needs a
+  *second* work:
+
+  - the collection cross-work pass — the container is still at phase
+    `foundation` and its `results.tsv` has only a header, so
+    `convergence.py` and `collection-pass.md` have never seen real works
+  - `assemble.py` binding — no `assembled/` exists; it has only ever run
+    `--check`
+  - export against a *container* rather than a child
+
+  Two more short stories under the same mystery pack gets all three. The
+  variety check is meaningless at n=1 and marginal at n=2, so three is the
+  floor for the pass to say anything.
 
 ## Later — identified, not specced
 
@@ -73,12 +90,6 @@ parking lot.
   the largest gap in the set by readership. Passes the interaction test on
   its face — dread is a pacing contract and a withholding discipline, not a
   premise — but nobody has written the dimensions that would score it.
-- **Shakedown slice 2 — chapter, drafting, reader panel.** The current run
-  covers foundation only. `drafting-rules.md`, `chapter.md`, and
-  `reader-panel.md` all read genre packs and none has been exercised.
-- **Exercise the artifacts.** `braid.md`, `braid_map.md`, `power_ledger.md`,
-  `clue_ledger.md`, and `encounter_ledger.md` are declared by packs and have
-  never been produced by anything.
 - **Warn on a dropped `beat_system`.** `merge()` silently takes the
   primary's. A secondary declaring a *different* one is detectable and
   always wrong; there is no `beat_system_sources` analogue to
@@ -119,58 +130,83 @@ the entry exists so it is not made again.
   **Returns when** there is a reason to want it that is worth designing a
   second quality model for. No user has asked.
 
-## Engineering — untested surfaces and missing scaffolding
+## Engineering — ordered by what has already cost something
+
+Coverage here is now measurable rather than assumed: one real book has been
+through seed → foundation → draft → revise → review → export. What that run
+did *not* touch is what this section is for, and 0.17.1 is the warning about
+reading it too generously — `export` ran, emitted four correct drop caps, and
+still left a common branch cold.
+
+**Has already bitten.**
 
 - **Nothing tests the rubric → JSON contract.** Every test is structural:
   parse, validate, resolve. Rubrics are prompts, and the verdict schema six
-  skills parse is verified by nobody. This has already bitten once —
+  skills parse is verified by nobody. It has bitten once already —
   `gen_brief.py` read `lore_integration` and `world_consistency` through
   `.get()` after they were renamed, silently dropping feedback from every
   revision brief, covered by no plan task and no test. A fixture verdict per
-  rubric, asserting the keys the skills actually read, needs no live judge.
-- **`import` has never been exercised.** It infers a genre from a
-  finished manuscript and writes it into `state.json` — now across fifteen
-  packs rather than nine, including distinctions that are genuinely fine
-  (paranormal romance vs romantasy). The one skill this work never touched.
-- **`export` is untested and its input just changed.** It reads
-  `display_label` for `NOVEL-GENRE`; that is now a deduplicating function.
-  Export has also never run under any non-fantasy pack.
+  rubric, asserting the keys the skills actually read, needs no live judge
+  and is the cheapest real coverage left in the repo. **Do this first.**
+- **Packs require a framework the judge never receives.** Eleven of twelve
+  genre packs demand "three sliders with justification" in Cast
+  Requirements. The sliders are defined only in `shared/craft/CRAFT.md`,
+  which `foundation` lists as required reading for *itself* but does not
+  include in the judge dispatch — the judge gets `foundation.md`, the packs,
+  and the project directory. So it is asked to verify a framework it was
+  never given, and will guess, skip, or invent criteria. Fix by inlining the
+  axes into the packs, adding CRAFT.md to the dispatch, or dropping the
+  requirement. Found by a shakedown author writing against the pack.
+- **Interaction dimensions and their Genre Contract promises are the same
+  test at two severities, with no stated boundary.** Two shakedown authors
+  reported this independently about different packs. Each pack says to score
+  on degree and not double-count; none says where graded shortfall ends and
+  total failure begins. Not cosmetic — a contract breach caps
+  `overall_score` at 6, so two judges can differ by several points on
+  identical evidence. Systemic, and it includes the remedy TEMPLATE
+  currently recommends.
+
+**Untouched by any live run.**
+
+- **`import` has never been exercised.** It infers a genre from a finished
+  manuscript and writes it into `state.json` — across fifteen packs, with
+  distinctions that are genuinely fine (paranormal romance vs romantasy).
+  The one skill no work in this repo has ever run.
+- **`series` has never been exercised.** The whole structure: no volume, no
+  container, no continuity pass. `collection` is about to get its first real
+  run; its opposite twin has had none, and the two invert rather than share
+  behaviour, so the collection run will not cover it.
+- **Four of five genre artifacts have never been produced.** `clue_ledger.md`
+  now exists, written by the live mystery run. `braid.md`, `braid_map.md`,
+  `power_ledger.md` and `encounter_ledger.md` are declared by packs and have
+  never been generated by anything but a fixture author.
+
+**Known to be narrow rather than untested.**
+
+- **`export` has run once**, under `mystery` + `short-story`, as a child of a
+  container, four chapters. Untried: any other pack, a standalone project, a
+  bound container, and — until 0.17.1 — a chapter opening on dialogue. Treat
+  "export works" as "export worked on that shape".
+- **Shakedown slice 2 — chapter, drafting, reader panel.** The 2026-08-13 run
+  covered foundation only. `drafting-rules.md`, `chapter.md` and
+  `reader-panel.md` all read genre packs, and while the live run exercised
+  them for real, nothing has tested whether they *catch a planted defect*.
+  Use the same method; it worked, and it is now cheap because the fixtures
+  are committed.
 - **Modifier stacking is only checked pairwise.** Three modifiers put four
   contracts against one book, and `conflicts_with` compares packs two at a
   time. Nothing catches a triple that is jointly unsatisfiable while every
   pair is individually fine.
-- **Shakedown slice 2 — chapter, drafting, reader panel.** The 2026-08-13
-  run covered foundation only. `drafting-rules.md`, `chapter.md` and
-  `reader-panel.md` all read genre packs and none has been exercised. Use
-  the same planted-defect method; it worked.
-- **Judge variance is unmeasured and it constrains everything above.**
-  Re-judging an unchanged planting set moved four dimensions and lifted
-  `overall_score` by 0.36. Single-dimension deltas are noise, which is why
-  both 0.3.1 fixes were accepted on the judge *naming the new test* rather
-  than on a score moving. Any rubric-fixture test must pin keys and schema,
-  never values, or it encodes the noise.
-- **Packs require a framework the judge never receives.** Eleven of twelve
-  genre packs demand "three sliders with justification" in Cast
-  Requirements. The sliders are defined only in `shared/craft/CRAFT.md`,
-  which `foundation` lists as required reading for *itself* (step 3)
-  but does not include in the judge dispatch — the judge gets
-  `foundation.md`, the packs, and the project directory. So the judge is
-  asked to verify a framework it was never given, and will guess, skip, or
-  invent criteria. Fix by inlining the axes into the packs, adding CRAFT.md
-  to the dispatch, or dropping the requirement. Surfaced by a shakedown
-  author who hit it while writing against the pack.
-- **Interaction dimensions and their Genre Contract promises are the same
-  test at two severities, with no stated boundary.** Two shakedown authors
-  reported this independently about different packs —
-  `supernatural_indispensability` against paranormal romance's
-  load-bearing promise, and `redemption_cost` against dark romance's
-  earned-ending promise. Each pack says to score on degree and not
-  double-count, but none says where graded shortfall ends and total failure
-  begins. The consequence is not cosmetic: a contract breach caps
-  `overall_score` at 6, so two judges can differ by several points on
-  identical evidence. This applies to the `fantasy` fix in `b1265d2` as
-  well, which added a no-double-count note without a boundary — so it is
-  systemic and includes the remedy TEMPLATE currently recommends.
+
+**Constrains how everything above is tested.**
+
+- **Judge variance is unmeasured.** Re-judging an unchanged planting set
+  moved four dimensions and lifted `overall_score` by 0.36. Single-dimension
+  deltas are noise, which is why both 0.3.1 fixes were accepted on the judge
+  *naming the new test* rather than on a score moving, and why the
+  fourteen-judge caps result was read as a rate rather than a mean. Any
+  rubric-fixture test must pin keys and schema, never values, or it encodes
+  the noise.
 
 ## Open decisions
 
@@ -184,11 +220,18 @@ Questions to answer, not work to schedule.
 
 ## Known gaps
 
-- **No book has been drafted end to end under any non-fantasy pack.**
-  `clean-bill` cleared foundation under general fiction and stopped. This is
-  the largest untested surface in the project.
-- **`clean-bill` carries 5 open craft debts** in its `canon.md`. Project
-  work, not repo work, but it is the only non-fantasy project that exists.
+- **One pack, one form, one work.** `small-hours/01-porter` is the entire
+  body of evidence that the per-work pipeline works: `mystery` at
+  `short-story` length, four chapters, as a child of a container. Thirteen
+  other primaries, two other forms and the standalone structure have cleared
+  tests and nothing else. This is not "untested" — it is a single sample
+  being asked to speak for a matrix, and the failure it will produce looks
+  like 0.17.1: a real run, a correct-looking artifact, and a cold branch.
+- **No long-form work has been drafted.** Every chapter this repo has
+  produced is short-story length. `novel` and `novella` set different gates,
+  different layer lists and a different chapter budget, and the drafting loop
+  at 46 chapters has never been exercised at all — the freshness decay the
+  base rules fight after chapter 6 has never actually been tested past four.
 
 ## Not doing
 

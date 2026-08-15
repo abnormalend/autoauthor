@@ -40,9 +40,21 @@ in a git worktree under `.claude/worktrees/`, and found ten days later while
 auditing the repo for stray directories. The worktree predates the rename —
 it still had `plugin/autonovel/` and the `gen_*.py` tools 0.4.1 removed — so
 nothing about it looked like current work, and `git status` on master never
-mentioned it. Typesetting is the one surface with no live run behind it:
-`export` has still never been executed against a real book, which is why a
-fix could sit finished and unlanded without anything noticing.
+mentioned it.
+
+**Why a live run did not catch it.** `export` *has* been run against a real
+book: `small-hours/01-porter` produced a PDF and an ePub on 2026-08-14. It
+emitted four lettrines and every one was correct —
+
+```
+{T}{here}   {T}{he}   {T}{hey}   {H}{e}
+```
+
+— because all four chapters open on narration. The surface was exercised;
+this branch of it was not. That is the more useful lesson than "untested
+code": a stage can be driven end to end by a real book and still leave a
+common path cold, and the only thing that would have caught this is a
+chapter that happens to start with someone speaking.
 
 ---
 
