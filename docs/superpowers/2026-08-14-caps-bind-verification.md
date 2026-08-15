@@ -128,7 +128,49 @@ is regarded "not as immorality, as damage."
 before this edit.** They remain the baseline for the cap-binding result,
 which does not touch the barrier; a future run measuring
 `magic_barrier_dependency` is measuring a different document and should say
-so. The fix also makes an already-failed plant fail harder: it closes a hole
+so.
+
+#### Confirmed closed — three judges, post-fix
+
+| | `magic_barrier_dependency` | capped | mean |
+|---|---|---|---|
+| pre-fix, n=9 | 6, 7, 8, 8, 8, 8, 9, 9, 9 | 1/9 | 8.00 |
+| post-fix, n=3 | 8, 9, 9 | 0/3 | 8.67 |
+
+**No judge raised the escape.** All three read the new clause and treated it
+as machinery rather than as a gap — one listing it in the instrument's canon
+contents, one noting it is tracked as F8b "with its own three-chapter chain
+because it outlives the debt that produced it," and one naming it as the
+thing that *survives* the redenomination:
+
+> What does not survive translation is narrower than the documents claim —
+> chiefly the alienation clause, which is coherent only because the pledged
+> asset is a congenital faculty descending by blood.
+
+That is the clause doing exactly the job it was added for. The remaining
+critique of the dimension is the one the pre-fix judges already made — that
+the case is argued in prose rather than demonstrated in a scene — and the
+scores moved to the top of the prior range, which is what closing a hole in
+a barrier should do.
+
+`internal_consistency` capped at 4 in all three. **That is 12 of 12 across
+every run in this document.**
+
+#### Three defects the post-fix run surfaced
+
+All pre-existing, all verified against the files, none introduced by the fix:
+
+- **`F7`'s plant is unbacked.** The ledger says the credit rule is recited in
+  ch 3; the ch 3 entry recites the acceleration and alienation clauses and
+  never mentions it. Making ch 3's contents explicit is what let a judge see
+  the omission.
+- **`F8` cites a line that exists nowhere.** Halim's *"the clause is the
+  clause"* appears only in the ledger cell that cites it.
+- **The fixture uses `load-bearing` three times**, and a judge flagged it as
+  "a phrase the plugin bans." The romantasy author never read
+  `ANTI-SLOP.md` — only the dark-romance author picked the ban up — so this
+  is 0.16.0 being enforced through the judge channel rather than the
+  required-reading one. The fix also makes an already-failed plant fail harder: it closes a hole
 by adding magic-dependence, and 8 of 9 judges already held the barrier
 magic-dependent. If this fixture is ever wanted as a working denomination
 plant, the surgery is the reverse one — removing the non-aggregability that
