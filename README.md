@@ -402,6 +402,11 @@ an issue or an email is welcome.
 
 ## For contributors
 
+[AGENTS.md](AGENTS.md) is the orientation document — how the pieces relate,
+the invariants that span files, and the traps that have cost a release.
+Start there, whether you are a person or a coding agent (`CLAUDE.md` is a
+symlink to it).
+
 [ROADMAP.md](ROADMAP.md) tracks direction and open work, including what is
 deliberately *not* being built and why.
 `docs/superpowers/specs/` and `docs/superpowers/plans/` carry the design
