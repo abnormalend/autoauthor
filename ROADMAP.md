@@ -16,8 +16,9 @@ Last updated 2026-08-15.
 ## In flight
 
 Nothing. The form and structure axes are both complete and both reachable
-end to end in code. What remains of the original spec is `serial`, which
-the spec itself said to ship last or drop.
+end to end in code. The one phase of the original spec never built is
+`serial`, which the spec itself said to ship last or drop; it is in the
+parking lot with the reason.
 
 **The largest risk in this project is no longer missing features.** It is
 that a great deal of machinery has shipped that no book has run through —
@@ -34,17 +35,15 @@ has been drafted end to end under any non-fantasy pack.
 
 ## Next — specced, ready to plan
 
-All from [the form spec](docs/superpowers/specs/2026-08-13-form-parameterization-design.md),
-in its phase order. Phases 0–2 are behaviour-preserving and A/B-verifiable
-the way the fantasy port was.
+One item. [The form spec](docs/superpowers/specs/2026-08-13-form-parameterization-design.md)
+that filled this section is delivered through phase 6; its phase 7 is in the
+parking lot.
 
 - **Run something through it.** The highest-value work in this file, and
   the only item that cannot be done by reading. Seed a small collection —
   three short stories, one genre — and take it to export. Every part of
   that path now exists and none of it has been exercised together. Then
   retire `autoanthology`.
-- **7. `structure: serial`** — last, or dropped. The only value that breaks
-  the score-plateau model the pipeline rests on.
 
 ## Later — identified, not specced
 
@@ -61,11 +60,6 @@ the way the fantasy port was.
   now as well as a genre stack, so the name is wrong on the tin. Cosmetic,
   touches nine skill files, and deliberately not bundled into a phase that
   had to prove it changed nothing.
-- **`romantasy` straddles the novel/epic boundary.** It declares
-  110,000–140,000 against a novel band that stops at 120,000. Not an error
-  — the form check is overlap rather than containment precisely so a genre
-  may sit at the top of its form — but it is the strongest argument yet
-  for `epic` being a real form rather than a wider `novel`.
 - **A `consent` axis in `CONTENT_AXES`.** `dark-romance` cannot express its
   defining constraint in frontmatter and had to buy the same protection with
   a blunt `conflicts_with` against `ya` and `cozy`. romance.io's taxonomy
@@ -82,16 +76,46 @@ the way the fantasy port was.
   primary's. A secondary declaring a *different* one is detectable and
   always wrong; there is no `beat_system_sources` analogue to
   `content_register_sources`.
-- **`epic` form.** Deferred until multi-POV and subplot braiding are written
-  as actual dimensions rather than asserted as a difference from `novel`.
-- **`flash` form.** Below the useful floor of a five-phase pipeline; only
-  returns if a two-phase path is worth building.
 - **Urban fantasy's masquerade.** Composes adequately as `fantasy` +
   `mystery` secondary, but nothing scores why the ordinary world does not
   know.
 - **LitRPG / progression fantasy.** Runs on a power-milestone cadence rather
   than Save the Cat, so it has a genuine beat conflict — the strongest
   remaining candidate for a pack by the interaction test.
+
+## Parking lot — not soon, not forgotten
+
+Deferred deliberately rather than rejected. Each entry states **what would
+bring it back**, because a parking lot without that is a graveyard with
+better manners. Nothing here is scheduled and nothing here should be treated
+as a gap.
+
+- **`epic` form.** Blocked on craft, not on plumbing. The form axis would
+  take it tomorrow — a band, a gate, a layer list — but `epic` is not a
+  longer `novel`, it is multi-POV with braided subplots, and neither exists
+  as a scored dimension anywhere in the repo. Adding the form before the
+  dimensions would ship a length with nothing to judge it by.
+  **Returns when** multi-POV and subplot braiding are real dimensions.
+  Watch: `romantasy` already declares 110,000–140,000 against a novel band
+  that stops at 120,000, which is the strongest live argument that `epic`
+  is a real form rather than a wider `novel`.
+
+- **`flash` form.** Below the useful floor. Five phases cost more than a
+  thousand-word story is worth, and `short-story` already refuses under
+  1,000 words on the SFWA boundary for that reason. The blocker is not the
+  pack set, it is that the pipeline's shape is wrong at this length.
+  **Returns when** a two-phase path (seed → draft, no foundation loop) is
+  worth building on its own merits — at which point flash is its first user
+  rather than its justification.
+
+- **`structure: serial`.** Phase 7 of the form spec, which said to ship it
+  last or drop it. One work released in parts, and the only structure that
+  breaks the score-plateau model the whole pipeline rests on: a serial
+  cannot revise to a plateau, because earlier parts are published and
+  unrevisable while later ones are still being drafted. That is not an
+  implementation difficulty, it is a different quality model.
+  **Returns when** there is a reason to want it that is worth designing a
+  second quality model for. No user has asked.
 
 ## Engineering — untested surfaces and missing scaffolding
 
@@ -166,7 +190,9 @@ Questions to answer, not work to schedule.
 
 ## Not doing
 
-Recorded so they are not re-litigated.
+Decided against, recorded so they are not re-litigated. The difference from
+the parking lot is intent: nothing here returns on a condition, because
+there is no condition — the answer is no.
 
 - **Screenplay, teleplay, graphic novel script, poetry, interactive,
   nonfiction.** Different output medium, different craft rubric, different
