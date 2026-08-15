@@ -6,6 +6,34 @@ is not the same as updating the plugin — see [README](README.md#install).
 
 ---
 
+## 0.16.1 — 2026-08-14
+
+Audited the rest of the required reading for the same defect, using the
+plugin's own lists against the plugin's own prose.
+
+**One more real hit**, and a pointed one. `shared/rubrics/chapter.md` asked
+whether the dialogue sounded machine-made using *"not just the right thing,
+but a REAL thing"* — the construction `ANTI-PATTERNS.md` §10 names as the AI
+dialogue formula, and `ANTI-SLOP.md` calls the single most overused pattern
+in LLM output. The check now asks whether every line lands exactly where the
+scene needs it, which is the same question without the tell.
+
+**Everything else was a false positive**, which is worth recording. 34 hits,
+33 of them fine: `leverage` 19 times, always the noun the coercive-romance
+packs need (*"the antagonist's leverage"*, *"Leverage Acquired"*) — the ban
+is on the verb; `Catalyst` 14 times, the Save the Cat beat name sitting
+beside Opening Image and Adhesion; `tapestry` inside a quoted ban;
+`profound` inside a sentence describing the awed-narrator failure.
+
+**Added `test_required_reading_is_clean.py`** — 68 checks. Deliberately
+narrow: only the multi-word Tier 1 phrases and the structural formulas, the
+two lists that came back with no false positives. Pinning the full tier
+lists would fail on `Catalyst` and `leverage`, and a guard that cries wolf
+gets muted. The three files that quote the bans are exempt per-file, not
+per-directory, so every pack and rubric beside them stays strict.
+
+---
+
 ## 0.16.0 — 2026-08-14
 
 `load-bearing` is a tell, and the plugin was teaching it.

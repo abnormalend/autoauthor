@@ -135,9 +135,9 @@ Score these dimensions:
   speaking? Do characters ever sound alike? Does dialogue read as speech
   or as written prose? Does the POV character sound like a specific
   person of their age and background, or like a stock protagonist?
-  Does anyone say something surprising -- not just the right thing, but
-  a REAL thing? Characters who never stumble, hesitate, or say something
-  slightly wrong are AI-pattern characters.
+  Does anyone say something surprising, or does every line land exactly
+  where the scene needs it? Characters who never stumble, hesitate, or say
+  something slightly wrong are AI-pattern characters.
 
 - plants_seeded: Were foreshadowing elements placed naturally? A plant
   that's obvious is worse than a plant that's invisible. Score based on
