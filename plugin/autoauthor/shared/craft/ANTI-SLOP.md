@@ -177,6 +177,37 @@ Watch for responses that start by praising the question or rephrasing it:
 
 This is called "glazing" -- excessive flattery. [Collins Dictionary shortlisted it for 2025 word of the year](https://phys.org/news/2025-12-slop-vibe-coding-glazing-ai.html).
 
+### Figurative monoculture
+
+Identified in a real draft: 31 figurative constructions in 2,577 words, one
+every 83. Individually most of them were good. Collectively they were the
+narrator's tic — everything was reaching, so nothing stood out.
+
+**The operative test is detachability. Delete the figure; if the sentence
+loses nothing, it was ornament.**
+
+> flat, like a total she was reading off a register
+
+`flat` already did the work. The simile is decoration on a finished sentence.
+
+Three faults, and only the first is about volume:
+
+- **Monoculture.** One construction carrying most of the figures — `like` or
+  `the way` plus a specific human scenario, over and over. The reader stops
+  hearing them.
+- **Redundancy.** One trait drawing several separate figures inside ten
+  lines. The reader had it at the first.
+- **Detachability.** The figure is doing no work the sentence was not already
+  doing.
+
+This is not "use fewer similes". The same draft earned its figures where they
+carried the book's argument — a debt that "worked weekends", a metaphor in
+dialogue that a later line pays off. **A figure tied to the subject earns its
+place; a figure generated to make a sentence interesting does not.**
+
+Dialogue is exempt. A distinctive speaker's similes characterise the speaker,
+and should sound different from the narration's.
+
 ### The false-depth pattern
 
 LLMs simulate depth by:

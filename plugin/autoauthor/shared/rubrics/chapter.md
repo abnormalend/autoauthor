@@ -150,6 +150,22 @@ Score these dimensions:
   explain why. Also check for: repeated phrases, leaned-on constructions,
   paragraphs that could be cut without loss.
 
+  FIGURATIVE LOAD. Count the similes and metaphors in the narration —
+  dialogue is exempt, because a speaker's figures characterise the speaker.
+  Then apply the detachability test to each: DELETE THE FIGURE. If the
+  sentence loses nothing, it was ornament. "flat, like a total she was
+  reading off a register" fails — `flat` had already done the work.
+  A figure tied to the subject earns its place; a figure generated to make
+  a sentence interesting does not.
+
+  Judge the collective, not the individual. The failure this catches is a
+  chapter where every figure is defensible and the narrator still has a tic,
+  because everything is reaching and so nothing stands out. Two specific
+  faults to name if present: one construction carrying most of the figures,
+  and one trait drawing several figures in quick succession — a reader had
+  it at the first. If more than a third of the figures are detachable,
+  score 6 max, and quote three of them.
+
 - continuity: Does it follow logically from the previous chapter? Emotional
   continuity as well as plot continuity. Does the character's state of
   mind track?

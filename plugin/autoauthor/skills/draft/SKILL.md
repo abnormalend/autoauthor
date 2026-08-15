@@ -54,7 +54,18 @@ a 6.0 ships; revision is Phase 3's job.
    per-chapter, and so the more specific of the two). Follow
    every rule in drafting-rules.md. Title line: `# Chapter N: <Title>`.
 3. **Mechanical score:**
-   `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/slop_score.py" chapters/ch_NN.md`
+
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/slop_score.py" \
+       chapters/ch_NN.md \
+       --genre-pack <primary pack path> --form-pack <form.path>
+   ```
+
+   Both paths come from the resolver output kept in Setup. Pass them every
+   time: the genre pack carries this genre's own banned diction, and the
+   form's band sets the figurative density threshold — a compressed form
+   cannot afford the ornament budget a novel can. Without them the scan
+   falls back to the general lists and the novel-length threshold, silently.
    Note the `slop_penalty`. Copy the attempt to an untracked scratch
    file before judging: `cp chapters/ch_NN.md eval_logs/ch_NN_attempt_<k>.md`
    — eval_logs/ is untracked, so attempts survive discards.
@@ -118,9 +129,23 @@ a 6.0 ships; revision is Phase 3's job.
 ## Post-draft cleanup (after the last chapter)
 
 1. Slop pass over everything:
-   `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/slop_score.py" chapters/ch_*.md`
+
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/slop_score.py" \
+       chapters/ch_*.md \
+       --genre-pack <primary pack path> --form-pack <form.path>
+   ```
+
    Fix every tier-1 hit and any chapter with penalty > 2.0 by surgical
-   word/sentence edits only — no rewrites. Commit `post-draft slop pass`.
+   word/sentence edits only — no rewrites.
+
+   A chapter over its `figurative_threshold` is fixed by DELETION, not by
+   rewriting figures into different figures. Take the ones that fail the
+   detachability test in ANTI-SLOP.md — delete the figure, and if the
+   sentence loses nothing it was ornament — and cut those first. The count
+   is the fault; swapping one simile for another leaves it where it was.
+
+   Commit `post-draft slop pass`.
 2. Set state.json `phase: "revision"`. Commit.
 3. Pushover notification (pushover skill): title "autoauthor: drafting",
    message with chapters drafted, mean/min final scores, total words,

@@ -6,6 +6,64 @@ is not the same as updating the plugin — see [README](README.md#install).
 
 ---
 
+## 0.17.0 — 2026-08-14
+
+Literary device overuse, mechanical half and judged half.
+
+Identified from a 0.2.0 draft that ran one figurative construction every 83
+words. Individually most were good; collectively they were the narrator's
+tic, and nothing stood out because everything was reaching.
+
+**`figurative_density` in `slop_score.py`**, per 1000 words of *narration*.
+Dialogue is excluded before counting — a distinctive speaker's similes
+characterise the speaker and should differ from the narration's, and scoring
+them would penalise a book for having a vivid character in it.
+
+**Calibrated, not guessed.** 36 chapters across four projects: median 2.9,
+and the chapter this feature was specced from is the corpus maximum at 7.3.
+Four chapters trip the threshold, all from the project the fault was found
+in, and the motivating chapter takes the largest penalty of the four.
+
+**The threshold varies by form**, read from the band via `--form-pack`, and a
+genre pack can override it with a `FIGURATIVE DENSITY:` line — the same
+forgiving shape as `BANNED PHRASES:` — because literary fiction carries
+figures a thriller cannot. `draft` and `collection` now pass both packs on
+every invocation; without them the scan silently used the general lists and
+the novel-length threshold.
+
+**Two parts of the spec did not survive the data.**
+
+*The repeated-construction penalty is not shipped.* The roadmap expected
+monoculture to score worse than the same count spread across varied figures.
+Measured, it inverts: the motivating chapter repeats its commonest
+construction 53% of the time against a corpus median of 83% — it is *more*
+varied than typical. Penalising repetition would have hit the wrong
+chapters. Volume is what distinguishes it, so volume is what is scored. The
+breakdown is still reported, just not scored.
+
+*A five-figure floor was added*, and the existing clean fixture is what
+found it: one figure in an 89-word passage computes to 11.6 per 1000 and
+means nothing. A tic requires repetition — you cannot have a monoculture of
+one. The fixture failing was the test suite doing its job on a feature added
+years after it was written.
+
+**The judged half** carries what a regex cannot. `ANTI-SLOP.md` gains a
+figurative monoculture section built on the operative test — **delete the
+figure; if the sentence loses nothing, it was ornament** — and
+`prose_quality` in the chapter rubric now judges the collective rather than
+the individual figure, capping at 6 when more than a third are detachable.
+
+Neither half is "use fewer similes". The same draft earned its figures where
+they carried the book's argument. A figure tied to the subject earns its
+place; a figure generated to make a sentence interesting does not.
+
+Known limit, stated in the code: this measures the simile family. Metaphor
+cannot be regexed, and a hand count of 31 on the motivating chapter is 16
+here — a proxy for roughly half the true load. Only the `extended` threshold
+is corpus-grounded; no short-form chapters exist to measure yet.
+
+---
+
 ## 0.16.1 — 2026-08-14
 
 Audited the rest of the required reading for the same defect, using the

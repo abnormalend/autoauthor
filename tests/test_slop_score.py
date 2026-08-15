@@ -185,3 +185,118 @@ def test_tier1_phrase_survives_a_line_break(tmp_path):
 def test_clean_prose_has_no_phrase_hits(tmp_path):
     report = _score(tmp_path, "The wall held the roof up. She knew it.\n")
     assert report["tier1_hits"] == []
+
+
+# --- figurative density -----------------------------------------------------
+# Calibrated against a 36-chapter corpus across four projects (median 2.9 per
+# 1000 words of narration). The chapter this feature was written for is the
+# corpus maximum. See FIGURATIVE_CONSTRUCTIONS for what the proxy covers.
+
+FIGURES = ("She waited like a woman counting change. He answered as if he had "
+           "rehearsed it. The room emptied the way people leave a church. "
+           "The light was as thin as a promise. ")
+
+
+def test_figures_are_counted_per_thousand_words_of_narration(tmp_path):
+    report = _score(tmp_path, FIGURES + ("filler word " * 100))
+    assert report["figurative_count"] == 4
+    assert set(report["figurative_constructions"]) == {
+        "like + noun phrase", "the way + person",
+        "as if / as though", "as ADJ as"}
+
+
+def test_dialogue_is_exempt(tmp_path):
+    """A vivid speaker must not cost the book anything.
+
+    Their similes characterise them, and should differ from the narration's.
+    """
+    narrated = _score(tmp_path, FIGURES + ("filler word " * 100))
+    quoted = _score(tmp_path, f'"{FIGURES.strip()}" ' + ("filler word " * 100),
+                    name="ch_02.md")
+    assert narrated["figurative_count"] == 4
+    assert quoted["figurative_count"] == 0
+
+
+def test_typographic_quotes_are_exempt_too(tmp_path):
+    report = _score(tmp_path, f"“{FIGURES.strip()}” " + ("filler word " * 100))
+    assert report["figurative_count"] == 0
+
+
+def test_like_as_a_verb_is_not_a_figure(tmp_path):
+    """Precision over recall: a false positive teaches the drafter to avoid
+    a sentence that was fine."""
+    report = _score(tmp_path, "She liked the quiet. They like a bargain. "
+                              "He would like the house. " + ("word " * 100))
+    assert report["figurative_count"] == 0
+
+
+def test_density_over_threshold_adds_a_graduated_penalty(tmp_path):
+    dense = _score(tmp_path, FIGURES * 8 + ("filler word " * 200))
+    sparse = _score(tmp_path, FIGURES + ("filler word " * 400), name="ch_02.md")
+    assert dense["figurative_density"] > dense["figurative_threshold"]
+    assert sparse["figurative_density"] < sparse["figurative_threshold"]
+    assert dense["slop_penalty"] > sparse["slop_penalty"]
+
+
+def test_the_figurative_penalty_is_capped(tmp_path):
+    """A wall of similes is bad; it is not worth more than the Tier 1 list."""
+    report = _score(tmp_path, FIGURES * 40)
+    assert report["slop_penalty"] <= 10.0
+    over = report["figurative_density"] - report["figurative_threshold"]
+    assert over * 0.6 > 2.0  # the uncapped value would exceed the cap
+
+
+def test_threshold_comes_from_the_forms_band():
+    forms = SCRIPT.parent.parent / "forms"
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("slop_score", SCRIPT)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    compressed = mod.load_figurative_threshold(form_pack=forms / "short-story.md")
+    extended = mod.load_figurative_threshold(form_pack=forms / "novel.md")
+    assert compressed < extended
+    assert extended == mod.DEFAULT_FIGURATIVE_THRESHOLD
+
+
+def test_a_genre_pack_overrides_the_form_and_explicit_beats_both(tmp_path):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("slop_score", SCRIPT)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    pack = tmp_path / "literary.md"
+    pack.write_text("## Drafting Rules\n\nFIGURATIVE DENSITY: 8.0\n",
+                    encoding="utf-8")
+    forms = SCRIPT.parent.parent / "forms"
+    assert mod.load_figurative_threshold(
+        form_pack=forms / "short-story.md", genre_pack=pack) == 8.0
+    assert mod.load_figurative_threshold(
+        form_pack=forms / "short-story.md", genre_pack=pack,
+        explicit=1.0) == 1.0
+
+
+def test_a_missing_or_broken_pack_falls_back_rather_than_raising(tmp_path):
+    """The scorer runs inside the drafting loop; a crash there costs a chapter."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("slop_score", SCRIPT)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    junk = tmp_path / "junk.md"
+    junk.write_text("no frontmatter, no marker\n", encoding="utf-8")
+    for kwargs in ({"form_pack": tmp_path / "nope.md"},
+                   {"genre_pack": tmp_path / "nope.md"},
+                   {"form_pack": junk, "genre_pack": junk}):
+        assert mod.load_figurative_threshold(**kwargs) == \
+            mod.DEFAULT_FIGURATIVE_THRESHOLD
+
+
+def test_a_single_figure_in_a_short_passage_is_not_a_tic(tmp_path):
+    """The regression the existing clean fixture caught, pinned.
+
+    One figure in 89 words computes to 11.6 per 1000. A rate needs enough
+    events to be a rate, and a tic requires repetition.
+    """
+    report = _score(tmp_path, "She counted strikes the way her mother counted "
+                              "stitches. " + ("word " * 60))
+    assert report["figurative_count"] == 1
+    assert report["figurative_density"] > report["figurative_threshold"]
+    assert report["slop_penalty"] == 0.0

@@ -4,7 +4,7 @@ Direction and open work. Detail lives in `docs/superpowers/specs/` (design)
 and `docs/superpowers/plans/` (execution); this file is the index above them
 and the home for work not yet worth a spec.
 
-Last updated 2026-08-13. Shipped history is in [CHANGELOG.md](CHANGELOG.md).
+Last updated 2026-08-14. Shipped history is in [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
@@ -20,6 +20,36 @@ see Known gaps. Every release from 0.5.0 to 0.12.0 was verified by tests
 and by reading, and not one of them by a finished work.
 
 ## Recently landed
+
+- **Literary device overuse**, 0.17.0, 2026-08-14. `figurative_density` in
+  `slop_score.py`, calibrated against a 36-chapter corpus across four
+  projects (median 2.9 per 1000 words of narration) — and the chapter this
+  was specced from is the corpus maximum at 7.3, taking the largest penalty
+  of the four chapters that trip it. Dialogue is excluded before counting.
+  The threshold comes from the form's band, overridable by a genre pack's
+  `FIGURATIVE DENSITY:` line, because literary fiction carries figures a
+  thriller cannot. The detachability test went to `ANTI-SLOP.md` and to
+  `prose_quality` in the chapter rubric.
+
+  **Two parts of the spec did not survive contact with the data**, both
+  recorded in the code:
+
+  - *The repeated-construction penalty was dropped.* It inverts. The
+    motivating chapter repeats its commonest construction 53% of the time
+    against a corpus median of 83% — it is MORE varied than typical, not
+    less, and penalising repetition would have hit the wrong chapters. What
+    distinguishes it is volume, so volume is what is scored, and monoculture
+    went to the judged half where a reader can see that fifteen good figures
+    still add up to a tic.
+  - *A minimum of five figures was added.* The existing clean fixture caught
+    this on the first run: one figure in an 89-word passage computes to 11.6
+    per 1000 and means nothing. A tic requires repetition.
+
+  The metric measures the simile family only. Metaphor cannot be regexed, so
+  a hand count of 31 on the motivating chapter is 16 here — read it as a
+  proxy tracking roughly half the true load. Still open: no short-form
+  corpus exists, so only the `extended` threshold is grounded in
+  measurement; `compressed` and `intermediate` are a stated judgement.
 
 - **Containers become reachable**, 0.12.0, 2026-08-13. `seed` scaffolds a
   collection or a series; `assemble.py` binds a collection's works into
@@ -134,35 +164,6 @@ the way the fantasy port was.
 
 ## Later — identified, not specced
 
-- **Literary device overuse.** Identified from a 0.2.0 draft
-  (`time-squatting/ch_01.md`): 31 figurative constructions in 2,577 words,
-  one every 83. Three distinct faults, needing two layers to catch:
-  - *Monoculture.* ~25 of the 31 are one construction — `like` / `the way`
-    + a specific human scenario. Individually most are good; collectively
-    they become the narrator's tic, and nothing stands out because
-    everything is reaching.
-  - *Redundancy.* One character's single trait drew five separate figures
-    inside ten lines. The reader had it at the first.
-  - *Detachability.* "flat, like a total she was reading off a register" —
-    `flat` already did the work. This is the operative test: **delete the
-    figure; if the sentence loses nothing, it was ornament.**
-
-  Mechanical half: a `figurative_density` metric in `slop_score.py`, built
-  exactly like the existing `em_dash_density` (per 1000 words, threshold,
-  graduated penalty), plus a repeated-construction check so monoculture
-  scores worse than the same count spread across varied figures. Judged
-  half: the detachability test cannot be regexed and belongs in
-  `ANTI-SLOP.md` and `voice_clarity`. Thresholds should vary by form and
-  genre — a compressed form cannot afford this at all, and literary fiction
-  tolerates more than a thriller.
-
-  Must not become "fewer similes". The same chapter earns figures where
-  they carry the book's argument — a credit card "load-bearing since her
-  sophomore year", a debt that "worked weekends", a metaphor in dialogue
-  that a later line pays off. Figures tied to the subject earn their place;
-  figures generated to make a sentence interesting do not. Character
-  dialogue is exempt: a distinctive speaker's similes characterize the
-  speaker and should differ from the narration's.
 - **Verify that caps now bind.** 0.5.0 declared them as data and told the
   rubric a met cap is applied rather than weighed, but the defect was
   found by observing two judges, and only a judge can show it is gone.

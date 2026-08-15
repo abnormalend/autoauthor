@@ -68,6 +68,67 @@ TIER3_FILLER = [
     r"not just .+, but",
 ]
 
+# --- Figurative density ----------------------------------------------------
+# Identified from a 0.2.0 draft that ran one figurative construction every 83
+# words. Individually most were good; collectively they became the narrator's
+# tic, and nothing stood out because everything was reaching.
+#
+# WHAT THIS MEASURES, precisely: the simile family. Metaphor cannot be
+# regexed, and pretending otherwise would be worse than the gap. On the
+# motivating chapter a hand count found 31 figures where these patterns find
+# 15, so read the density as a PROXY that tracks roughly half the true
+# figurative load — the thresholds below are calibrated against the proxy,
+# not against the hand count.
+#
+# Dialogue is excluded before counting. A distinctive speaker's similes
+# characterise the speaker and should differ from the narration's; scoring
+# them as narration would penalise a book for having a vivid character in it.
+FIGURATIVE_CONSTRUCTIONS = {
+    # `like` is a verb at least as often as it is a simile marker. Requiring
+    # a determiner after it, and refusing a subject pronoun before it, is
+    # what separates "like a man selling a car on fire" from "I like the
+    # quiet". Precision matters more than recall here: a false positive
+    # teaches the drafter to avoid a sentence that was fine.
+    "like + noun phrase":
+        r"(?<!\bi )(?<!\byou )(?<!\bwe )(?<!\bthey )(?<!\bhe )(?<!\bshe )"
+        r"(?<!\bit )(?<!\bwho )(?<!\bwould )"
+        r"\blike (?:a|an|the|some|someone|somebody|something|his|her|their)\b",
+    "the way + person":
+        r"\bthe way (?:a|an|the|some|someone|somebody|people|he|she|they|"
+        r"you|his|her|their)\b",
+    "as if / as though": r"\bas (?:if|though)\b",
+    "as ADJ as": r"\bas [a-z]+ as (?:a|an|the|any)\b",
+}
+
+# Straight and typographic quotes both, because chapters carry either.
+DIALOGUE_RE = re.compile(r'"[^"]*"|“[^”]*”')
+
+# Per 1000 words of NARRATION. Grounded in a 36-chapter corpus across four
+# projects: median 2.9, and the chapter this feature was written for is the
+# corpus maximum at 6.9. A threshold of 5.0 penalises the top four chapters,
+# all of them from the project the fault was identified in.
+#
+# Only `extended` is corpus-grounded — every chapter measured was
+# novel-length. The tighter numbers below it are a stated judgement, on the
+# roadmap's reasoning that a compressed form cannot afford the same ornament
+# budget, and they should be re-derived when short-form chapters exist to
+# measure.
+BAND_FIGURATIVE_THRESHOLD = {
+    "compressed": 3.5,
+    "intermediate": 4.5,
+    "extended": 5.0,
+}
+DEFAULT_FIGURATIVE_THRESHOLD = 5.0
+
+# A rate needs enough events to be a rate. One figure in an 89-word passage
+# computes to 11.6 per 1000 and means nothing — which is exactly what the
+# existing clean fixture did the first time this ran, and it was right to.
+# The fault being detected is a TIC, and a tic requires repetition: you
+# cannot have a monoculture of one. Below this count no penalty applies at
+# any density. Five costs nothing in recall — the chapters that motivated
+# this feature carry nine to sixteen.
+MIN_FIGURES_FOR_DENSITY = 5
+
 TRANSITION_OPENERS = [
     "however", "furthermore", "additionally", "moreover",
     "nevertheless", "consequently", "nonetheless", "similarly",
@@ -138,7 +199,80 @@ def load_genre_banned(path=None):
     return phrases
 
 
-def slop_score(text, genre_banned=()):
+def load_figurative_threshold(form_pack=None, genre_pack=None, explicit=None):
+    """How much ornament this work can afford, most specific source winning.
+
+    An explicit number beats a genre pack, which beats the form's band,
+    which falls back to the default. The genre override exists because the
+    tolerance genuinely differs by genre — literary fiction carries figures
+    a thriller cannot — and only the pack knows its own appetite. A pack
+    declares one with a `FIGURATIVE DENSITY: N` line in its Drafting Rules,
+    the same forgiving shape as `BANNED PHRASES:`.
+
+    Every lookup fails soft to the next source. Scoring a chapter must never
+    fail because a pack is missing, unreadable, or says something strange —
+    the scorer runs inside the drafting loop, and a crash there costs a
+    chapter.
+    """
+    if explicit is not None:
+        return float(explicit)
+
+    if genre_pack:
+        try:
+            text = Path(genre_pack).read_text(encoding="utf-8")
+            match = re.search(r"^FIGURATIVE DENSITY:\s*([0-9.]+)\s*$", text, re.M)
+            if match:
+                return float(match.group(1))
+        except (OSError, ValueError):
+            pass
+
+    if form_pack:
+        try:
+            text = Path(form_pack).read_text(encoding="utf-8")
+            match = re.search(r'"band"\s*:\s*"([a-z]+)"', text)
+            if match:
+                return BAND_FIGURATIVE_THRESHOLD.get(
+                    match.group(1), DEFAULT_FIGURATIVE_THRESHOLD)
+        except OSError:
+            pass
+
+    return DEFAULT_FIGURATIVE_THRESHOLD
+
+
+def strip_dialogue(text):
+    """Narration only. See FIGURATIVE_CONSTRUCTIONS for why."""
+    return DIALOGUE_RE.sub(" ", text)
+
+
+def figurative_report(text):
+    """Count simile-family constructions in the narration.
+
+    Returns (count, per-1000-words, {construction: count}). The breakdown is
+    reported but NOT scored, and that is a measured decision rather than an
+    omission: the roadmap expected a repeated-construction penalty so that
+    monoculture would score worse than the same count spread across varied
+    figures, and across the 36-chapter corpus that check INVERTS. The
+    motivating chapter repeats its commonest construction 53% of the time
+    against a corpus median of 83% — it is more varied than typical, not
+    less, and a penalty on repetition would have hit the wrong chapters.
+
+    What distinguishes it is volume. So volume is what this scores, and
+    monoculture is left to the judged half, where a reader can see that
+    fifteen good figures still add up to a tic.
+    """
+    narration = strip_dialogue(text)
+    words = len(narration.split()) or 1
+    counts = {}
+    for name, pattern in FIGURATIVE_CONSTRUCTIONS.items():
+        found = len(re.findall(pattern, narration, re.IGNORECASE))
+        if found:
+            counts[name] = found
+    total = sum(counts.values())
+    return total, (total / words) * 1000, counts
+
+
+def slop_score(text, genre_banned=(),
+               figurative_threshold=DEFAULT_FIGURATIVE_THRESHOLD):
     """
     Mechanical slop detection. Returns a dict with:
       - tier1_hits: list of (word, count)
@@ -247,6 +381,9 @@ def slop_score(text, genre_banned=()):
         if c > 0:
             genre_hits.append((phrase, c))
 
+    figurative_count, figurative_density, figurative_constructions = \
+        figurative_report(text)
+
     penalty = 0.0
     penalty += min(len(genre_hits) * 1.5, 4.0)       # genre banned: up to 4 pts
     penalty += min(len(tier1_hits) * 1.5, 4.0)       # tier1: up to 4 pts
@@ -261,6 +398,12 @@ def slop_score(text, genre_banned=()):
     penalty += min(fiction_tell_count * 0.3, 2.0)     # fiction AI tells: up to 2 pts
     penalty += min(telling_count * 0.2, 1.5)          # show-don't-tell: up to 1.5 pts
     penalty += min(structural_tic_count * 0.5, 2.0)   # structural AI tics: up to 2 pts
+    if (figurative_count >= MIN_FIGURES_FOR_DENSITY
+            and figurative_density > figurative_threshold):
+        # Graduated from the threshold rather than stepped at it: the fault
+        # is a gradient, and a chapter one figure over the line is not a
+        # different kind of chapter from one just under it.
+        penalty += min((figurative_density - figurative_threshold) * 0.6, 2.0)
 
     penalty = min(penalty, 10.0)
 
@@ -274,6 +417,10 @@ def slop_score(text, genre_banned=()):
         "structural_ai_tics": structural_tics,
         "telling_violations": telling_count,
         "em_dash_density": round(em_dash_density, 2),
+        "figurative_count": figurative_count,
+        "figurative_density": round(figurative_density, 2),
+        "figurative_threshold": figurative_threshold,
+        "figurative_constructions": figurative_constructions,
         "sentence_length_cv": round(sentence_length_cv, 3),
         "transition_opener_ratio": round(transition_ratio, 3),
         "slop_penalty": round(penalty, 2),
@@ -285,14 +432,25 @@ def main():
     parser.add_argument("files", nargs="+", help="chapter files to score")
     parser.add_argument(
         "--genre-pack", default=None,
-        help="genre pack whose BANNED PHRASES extend the Tier 1 scan")
+        help="genre pack whose BANNED PHRASES extend the Tier 1 scan, and "
+             "whose FIGURATIVE DENSITY line overrides the form's threshold")
+    parser.add_argument(
+        "--form-pack", default=None,
+        help="form pack whose band sets the figurative density threshold")
+    parser.add_argument(
+        "--figurative-threshold", type=float, default=None,
+        help="figures per 1000 words of narration before a penalty applies")
     args = parser.parse_args()
 
     genre_banned = load_genre_banned(args.genre_pack)
+    figurative_threshold = load_figurative_threshold(
+        form_pack=args.form_pack, genre_pack=args.genre_pack,
+        explicit=args.figurative_threshold)
     reports = []
     for p in args.files:
         text = Path(p).read_text()
-        r = slop_score(text, genre_banned=genre_banned)
+        r = slop_score(text, genre_banned=genre_banned,
+                       figurative_threshold=figurative_threshold)
         r["path"] = str(p)
         reports.append(r)
     penalties = [r["slop_penalty"] for r in reports]

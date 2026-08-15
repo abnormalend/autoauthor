@@ -60,8 +60,20 @@ Then the slop scanner across the collection, which catches vocabulary
 sameness the CV cannot:
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/slop_score.py" works/*/chapters/*.md
+python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/slop_score.py" \
+    works/*/chapters/*.md \
+    --genre-pack <primary pack path> --form-pack <form.path>
 ```
+
+One invocation covers every work, because a container's genre and form are
+inherited and a work may not override them — the threshold is the same for
+all of them by construction.
+
+Read `figurative_density` across the works as well as the penalties. A
+collection in which every work reaches for figures at the same rate is a
+variety finding even when no individual work trips its threshold: that is
+one narrator wearing several hats, which is the defect this pass exists to
+catch.
 
 ## Step 2 — The judge
 
