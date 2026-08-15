@@ -10,7 +10,43 @@ the reason a thing was *not* changed is worth the same record as a change.
 
 ---
 
-## Unreleased — 2026-08-15
+## 0.17.1 — 2026-08-15
+
+A chapter that opens on dialogue got a backtick for a drop cap.
+
+`make_drop_cap` took the first character of the first paragraph and wrapped
+it in a `lettrine`. After `md_to_latex`, a paragraph opening with speech
+starts with a LaTeX open quote, so the first character is a grave accent —
+and the second one was swallowed into the lettrine's second argument:
+
+```
+narration  ->  \lettrine[...]{W}{ren} was awake before the bell.
+dialogue   ->  \lettrine[...]{`}{`Pick} them up,'' she said,
+```
+
+Two lines tall, at the head of the chapter, in the PDF. `time-squatting`
+ch_03 opens on dialogue, so this was reachable by a book already on disk.
+
+The fix strips the quote before choosing the letter and sets it back through
+lettrine's own `ante` option, which is what that option is for — the mark
+hangs ahead of the capital instead of becoming it.
+
+```
+dialogue   ->  \lettrine[..., ante=``]{P}{ick} them up,'' she said,
+```
+
+**Where it had been.** Written on 2026-08-05 with its test, left uncommitted
+in a git worktree under `.claude/worktrees/`, and found ten days later while
+auditing the repo for stray directories. The worktree predates the rename —
+it still had `plugin/autonovel/` and the `gen_*.py` tools 0.4.1 removed — so
+nothing about it looked like current work, and `git status` on master never
+mentioned it. Typesetting is the one surface with no live run behind it:
+`export` has still never been executed against a real book, which is why a
+fix could sit finished and unlanded without anything noticing.
+
+---
+
+## Caps bind — 2026-08-15
 
 **Caps bind. Fourteen clean-room judges, and no plugin change.**
 

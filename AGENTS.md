@@ -138,7 +138,7 @@ strict.
 uv run pytest tests/ -q
 ```
 
-460 tests, about 7 seconds. CI runs exactly that, then validates every genre
+461 tests, about 7 seconds. CI runs exactly that, then validates every genre
 pack, every form pack, and runs `gate_solver.py` across all packs — so a cap
 that makes a gate unreachable fails the build rather than a user's book.
 

@@ -72,12 +72,22 @@ def make_drop_cap(latex_body):
     para_text = ' '.join(first_para)
     rest = '\n'.join(lines[rest_start:])
     
+    # Paragraphs opening with dialogue start with a LaTeX open quote
+    # (`` or `) after md_to_latex; the drop cap is the letter after it,
+    # with the quote set before the lettrine via its ante option.
+    quote_prefix = ""
+    if para_text.startswith('``'):
+        quote_prefix = '``'
+    elif para_text.startswith('`'):
+        quote_prefix = '`'
+    para_text = para_text[len(quote_prefix):]
+
     if len(para_text) < 2:
         return latex_body
-    
+
     first_letter = para_text[0]
     after_first = para_text[1:]
-    
+
     # Find the rest of the first word to put in the lettrine second arg
     # e.g. "Wren was awake" -> lettrine{W}{ren} was awake
     space_idx = after_first.find(' ')
@@ -87,8 +97,9 @@ def make_drop_cap(latex_body):
     else:
         word_rest = after_first
         para_rest = ""
-    
-    drop = f"\\lettrine[lines=2, lhang=0.1, nindent=0.2em]{{{first_letter}}}{{{word_rest}}}{para_rest}"
+
+    ante = f", ante={quote_prefix}" if quote_prefix else ""
+    drop = f"\\lettrine[lines=2, lhang=0.1, nindent=0.2em{ante}]{{{first_letter}}}{{{word_rest}}}{para_rest}"
     return drop + '\n\n' + rest
 
 chapters_tex = []
