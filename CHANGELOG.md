@@ -4,6 +4,66 @@ Versions are the plugin's, declared in `plugin/autoauthor/.claude-plugin/plugin.
 and mirrored in `.claude-plugin/marketplace.json`. Updating the marketplace
 is not the same as updating the plugin — see [README](README.md#install).
 
+Dated entries with no version number changed nothing under
+`plugin/autoauthor/`, so there is nothing to install. They are here because
+the reason a thing was *not* changed is worth the same record as a change.
+
+---
+
+## Unreleased — 2026-08-15
+
+**Caps bind. Fourteen clean-room judges, and no plugin change.**
+
+The deepest finding of the 0.3.1 shakedown was that `score 6 max` was
+advisory prose a judge could weigh against passing tests, and that whether it
+bound varied by judge. 0.5.0 answered it at the rubric layer with declared
+`[cap N]` plus one sentence establishing that a met cap condition is a cap
+**applied**, not a factor weighed. Only a judge could show that landed.
+
+`internal_consistency`'s cap fired in **every run** — nine of nine on
+romantasy, both on dark-romance, three of three on the repaired fixture — and
+the judges wrote the refusal out themselves:
+
+> Cap applied, not weighed: three or more contradictions caps this dimension
+> at 4. The quality of the surrounding documents does not lift it.
+
+Several named the on-merits score — 6, 8, "would otherwise have scored high"
+— and applied the cap anyway.
+
+**A finding filed on three judges was withdrawn on nine.** The first three
+split 9/8/6 on the planted dimension, which read as a new defect: variance
+moving from whether a cap binds to whether its condition is met. Six more
+judges put the capping rate at 1 in 9, with eight independently concluding
+the redenomination test passes. n=3 was too few to file from, and six judges
+cost less than the feature that finding would have justified.
+
+The two planting sets are now committed under `tests/fixtures/shakedown/`.
+Their loss is what blocked this item for a day and cost two sets' worth of
+regeneration.
+
+**One real hole, closed.** A single judge found that Halim's ch 17 offer of a
+marriage in name only dissolved the fixture's barrier at 37%. It now carries
+an alienation clause the world already implied — the pledged security is a
+*line*, so issue entered outside the merged estate voids for cause, and
+nobody in the book can waive what is pledged forward. Three fresh judges
+raised nothing.
+
+**Added `test_fixture_ledgers.py`.** A ledger row may not cite a chapter that
+does not carry the plant. Fixing that class rather than the three instances
+judges found turned up a fourth that all fourteen had missed. Mutation-tested
+both ways.
+
+A judge also flagged the fixture for using `load-bearing`, naming it as a
+phrase the plugin bans — 0.16.0 arriving through the judge channel rather
+than the required-reading one, since the romantasy author never read
+`ANTI-SLOP.md` and the dark-romance author did.
+
+Full result in
+[`docs/superpowers/2026-08-14-caps-bind-verification.md`](docs/superpowers/2026-08-14-caps-bind-verification.md).
+
+Nothing under `plugin/autoauthor/` changed, so the shipped content is
+byte-identical to 0.17.0 and no version moved.
+
 ---
 
 ## 0.17.0 — 2026-08-14
@@ -822,6 +882,18 @@ projects need no migration.
 
 ---
 
+## CI — 2026-08-13
+
+No version. `.github/workflows/ci.yml` runs the suite and the pack validator
+CLI on every push and pull request.
+
+The consistency checks live in `tests/test_plugin_manifest.py` rather than in
+YAML, so they run locally too — version agreement across the three plugin
+strings, and skill frontmatter matching its directory, which is the defect
+0.4.0 shipped and a human caught. Both mutation-tested.
+
+---
+
 ## 0.4.1 — 2026-08-13
 
 No change to the plugin. This removes the last upstream-derived code from
@@ -933,6 +1005,37 @@ table.
 from — autonovel by emozilla / Jeffrey Quesnelle at Nous Research — and
 records the licensing position. Note that "autonovel" continues to refer to
 *their* project throughout; this rename does not reach it.
+
+---
+
+## Pack shakedown — 2026-08-13
+
+No version, and the most useful thing done to the packs. Four authors each
+wrote a five-file planning set for one new primary pack — competent
+everywhere except one deliberate defect targeting the dimension that
+justifies that pack existing. Four clean-room judges then scored each set
+with the real dispatch prompt. No judge was told a test was happening, that a
+defect existed, or that other judges existed.
+
+**One clean pass, two confirmed pack gaps, one inconclusive.** `dark-romance`
+named its failure and did not test for it; `romantasy` accepted a
+denomination argument as a mechanism. Both were fixed and re-judged, and both
+judges cited the new test by name.
+
+**And the finding that transferred.** Both packs handed their judge the same
+structure — three tests pass, one fails, criteria say "score 6 max" — and one
+judge capped while the other averaged. That was a rubric-layer defect
+affecting all fifteen packs rather than a pack-layer one, and it became phase
+0 of the form work. See 0.5.0, and the Unreleased entry above for the
+fourteen-judge verification that it is now closed.
+
+A correction mid-run decided the whole thing: authors were initially told not
+to create their packs' declared artifacts, which was wrong, because three
+packs score their absence across two to four dimensions — exactly the
+dimensions that needed to score high to demonstrate a spread.
+
+Full result in
+[`docs/superpowers/2026-08-13-pack-shakedown-result.md`](docs/superpowers/2026-08-13-pack-shakedown-result.md).
 
 ---
 
