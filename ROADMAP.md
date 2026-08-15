@@ -4,7 +4,7 @@ Direction and open work. Detail lives in `docs/superpowers/specs/` (design)
 and `docs/superpowers/plans/` (execution); this file is the index above them
 and the home for work not yet worth a spec.
 
-Last updated 2026-08-14. Shipped history is in [CHANGELOG.md](CHANGELOG.md).
+Last updated 2026-08-15. Shipped history is in [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
@@ -19,11 +19,20 @@ that a great deal of machinery has shipped that no book has run through —
 see Known gaps. Every release from 0.5.0 to 0.12.0 was verified by tests
 and by reading, and not one of them by a finished work.
 
+That has partly changed. `small-hours` took a collection's first work from
+seed through foundation, drafting, two revision cycles and review, and every
+release from 0.13.1 to 0.15.0 exists because that run found something a test
+could not. Fourteen clean-room judges have since confirmed that caps bind.
+What remains unrun is the back half at scale: no container has been through
+the cross-work pass, `assemble.py` has bound nothing but a check, and no book
+has been drafted end to end under any non-fantasy pack.
+
 ## Recently landed
 
-- **Caps bind — verified by eleven judges**, 2026-08-14. The shakedown's
+- **Caps bind — verified by fourteen judges**, 2026-08-14. The shakedown's
   deepest finding is closed. `internal_consistency`'s cap fired in **every
-  run**, nine of nine on romantasy and both on dark-romance, and the judges
+  run** — nine of nine on romantasy, both on dark-romance, and three of three
+  on the repaired fixture — and the judges
   wrote the refusal out themselves: *"The cap is applied rather than weighed;
   the surrounding documentation is unusually rigorous, and that is not
   grounds for scoring above it."* Several named the on-merits score — 6, 8,
@@ -44,6 +53,32 @@ and by reading, and not one of them by a finished work.
   The original planting sets had never been committed, which is why this item
   sat for a day and cost two sets' worth of regeneration. Both are now in
   `tests/fixtures/shakedown/`.
+
+  **The one real finding from the nine was a hole in the fixture, and it is
+  closed.** A single judge saw that Halim's ch 17 offer of a marriage in name
+  only dissolved the obstacle at 37% with nothing explaining why Sahra could
+  not take it. The barrier now carries an alienation clause the world already
+  implied — the pledged security is a *line*, so issue entered outside the
+  merged estate is capacity the creditor has promised forward and cannot
+  produce, voiding for cause, and neither Halim nor Dovra can waive what is
+  pledged past them to the House. Three fresh judges raised nothing; one named
+  the clause as the thing that *survives* the redenomination. It is a security
+  clause and not a morals clause, which is what a world that calls a broken
+  composition "not immorality, damage" required of it.
+
+  **Fixing the class rather than the instances beat the judges.** The post-fix
+  run surfaced three pre-existing defects — a ledger row citing a plant its
+  chapter never made, another quoting a line that existed only in the cell
+  citing it, and three uses of a phrase the plugin bans. Checking every quoted
+  attribution in all 23 rows instead of patching those three found a fourth
+  that **fourteen judges had missed**: Turi's *"It isn't gone, boy. It's in
+  me."* credited to a chapter where he says his other aphorism. That check is
+  now `test_fixture_ledgers.py`, mutation-tested both ways.
+
+  A judge also caught the fixture using `load-bearing` and named it as a
+  phrase the plugin bans — 0.16.0 arriving through the judge channel rather
+  than the required-reading one, since the romantasy author never read
+  `ANTI-SLOP.md`.
 
 - **Literary device overuse**, 0.17.0, 2026-08-14. `figurative_density` in
   `slop_score.py`, calibrated against a 36-chapter corpus across four
