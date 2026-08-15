@@ -45,47 +45,72 @@ anyway. That is exactly the behaviour whose absence was the shakedown's
 finding, and it is now the unanimous behaviour across five independent
 judges, two packs, and a dimension neither author was writing toward.
 
-## The residual finding, which is a different defect
+## Rate check at n=9 — and a correction
 
-On the *planted* dimensions the scores still spread:
+The first three judges split 9 / 8 / **6** on the planted dimension, and this
+document originally read that as a new defect: variance moving from the
+consequence to the premise. **Six more judges were run on the committed
+fixture to measure the rate, and that reading does not survive.**
 
-| | judge A | judge B | judge C |
-|---|---|---|---|
-| romantasy `magic_barrier_dependency` [cap 6] | 9 | 8 | **6 — capped** |
-| dark-romance `redemption_cost` [cap 6] | 7 | 7 | — |
+| romantasy `magic_barrier_dependency` [cap 6] | scores |
+|---|---|
+| all nine judges | 6, 7, 8, 8, 8, 8, 9, 9, 9 |
+| **capped** | **1 of 9 — 11%** |
 
-This looks like the original split and is not. Read the reasoning and the
-judges are not disagreeing about whether to apply a cap — they are
-disagreeing about whether its condition is **met**. Judge C ran the
-redenomination test, concluded the barrier survives repricing in grain, and
-wrote:
+Eight of nine ran the redenomination test and concluded it **passes**. That
+is not a split, it is a consensus with one outlier, and 1-in-3 was small-n
+noise. The honest conclusion is that this fixture is a **failed plant**
+rather than a hard case: the author, building the barrier well, gave it
+genuine magic-dependence.
 
-> CAP APPLIED at 6 under test one's redenomination clause. Tests two and
-> three pass strongly and are not weighed against the cap.
+Three judges reached the same mechanism independently, and none of them got
+it from the fixture's own argument — which they dismissed:
 
-Judges A and B ran the same test and concluded it was passed, because
-capacity is congenital and non-transferable, so no third party can ever buy
-the debt out and the sum is unpayable by anyone alive. Both then flagged that
-the plan argues this at length in two files, which they read as a tell.
+> HR-4 and HR-8 together: the unit is a finite bodily faculty that cannot be
+> minted, stored, transported, lent, relayed or conveyed, so the sentence
+> "here are 2,140 carries" cannot be spoken by any living person.
 
-Both dark-romance judges landed on 7, both said the fourth test very nearly
-fires, both independently found the same concentration of reliefs, and both
-named the camouflage paragraph as a tell — *"a plan that pre-empts the
-objection to its weakest dimension is a tell, and redemption_cost is in fact
-the weakest of the six."*
+> HR-8 forbids relays, lending and pooling... That non-aggregability is what
+> makes the sum absolutely unpayable rather than merely severe, and it is
+> purely magical.
 
-So: **variance has moved from the consequence to the premise.** Whether a cap
-binds is settled. Whether a subtle condition is met is a detection question,
-and it is the harder one.
+Several added that the documents argue the wrong case at length in two
+files — one noting the world's own markets falsify the "no exchange rate"
+claim the plan leans on. The camouflage was seen through by nearly everyone;
+it just happened to be camouflage over a real foundation.
 
-## A limitation this run cannot escape
+**Cap binding at n=9: 9 of 9.** Stronger than the first result. Eight capped
+`internal_consistency` at 4; the ninth counted two contradictions rather than
+three and applied the single-contradiction branch at 6 — still a cap, applied
+by its own terms. Every one of the nine named `internal_consistency` as
+`weakest_dimension`.
 
-The reconstructed romantasy barrier is more genuinely magic-dependent than
-the original plant was. The author built the debt on a congenital,
-inalienable faculty, which supplies real unpayability — so judges A and B may
-simply be right on the merits, and this set is a weaker instrument for the
-question than the original. The dark-romance result is the cleaner one: two
-judges, same score, same reasoning, camouflage seen through by both.
+> Cap applied: the criteria set this at 4 for three or more contradictions...
+> The cap is applied rather than weighed; the surrounding documentation is
+> unusually rigorous, and that is not grounds for scoring above it.
+
+> The [cap 4] condition is met and applied... regardless of the surrounding
+> rigour.
+
+## What the second run actually taught
+
+**n=3 was too few to file a finding from.** The detection-variance item
+entered the roadmap on one dissenting judge and is withdrawn on nine. The
+cost of checking was six judges; the cost of not checking would have been a
+speculative feature built to fix a defect that was not there.
+
+Residual variance is ordinary and bounded: overall scores across the nine
+span 7.65–8.37 (mean 8.01), consistent with the ±1 per-dimension judge
+variance the original shakedown measured. One judge found a hole nobody else
+did — that Halim's ch 17 offer of a marriage in name only dissolves the
+obstacle at 37% and no document says why she cannot take it — which is a
+real finding about the fixture, not about the rubric.
+
+## Arithmetic
+
+All nine verdicts reproduce exactly against the packs' declared weights. Of
+the two dark-romance verdicts, one is off by 0.02 — which is what
+`score_verdict.py` exists to catch.
 
 ## Two things nobody was looking for
 

@@ -21,22 +21,25 @@ and by reading, and not one of them by a finished work.
 
 ## Recently landed
 
-- **Caps bind — verified by judges**, 2026-08-14. Five clean-room judges
-  across two packs. `internal_consistency`'s three-contradictions cap fired
-  in **five runs out of five**, and three judges wrote the refusal out:
-  *"Cap applied, not weighed... The quality of the surrounding documents
-  does not lift it."* Two named the on-merits score — 6 and 8 — and applied
-  the cap anyway. That is the behaviour whose absence was the shakedown's
-  deepest finding, now unanimous across judges, packs, and a dimension
-  neither author was writing toward. Full result in
+- **Caps bind — verified by eleven judges**, 2026-08-14. The shakedown's
+  deepest finding is closed. `internal_consistency`'s cap fired in **every
+  run**, nine of nine on romantasy and both on dark-romance, and the judges
+  wrote the refusal out themselves: *"The cap is applied rather than weighed;
+  the surrounding documentation is unusually rigorous, and that is not
+  grounds for scoring above it."* Several named the on-merits score — 6, 8,
+  "would otherwise have scored high" — and applied the cap anyway. Full
+  result in
   [the verification](docs/superpowers/2026-08-14-caps-bind-verification.md).
 
-  **The residual finding is a different defect.** On the planted dimensions
-  the scores still spread (6/8/9), but the reasoning shows judges disagreeing
-  about whether the cap's condition is **met**, not about whether to apply
-  it — one ran the redenomination test and capped, two ran it and concluded
-  it passed. Variance moved from the consequence to the premise. See the new
-  entry under Later.
+  **A finding filed here on 3 judges was withdrawn on 9.** The first three
+  split 9/8/6 on the planted dimension and that read as a new defect —
+  variance moving from whether a cap binds to whether its condition is met.
+  Six more judges on the committed fixture put the capping rate at **1 in 9**,
+  with eight independently concluding the redenomination test passes and
+  three reaching the same magical mechanism (HR-8 forbids relays and pooling,
+  so the debt is non-aggregable and unpayable by any number of hands). The
+  fixture is a failed plant, not a hard case. **n=3 was too few to file from;
+  six judges cost less than the feature that finding would have justified.**
 
   The original planting sets had never been committed, which is why this item
   sat for a day and cost two sets' worth of regeneration. Both are now in
@@ -184,33 +187,6 @@ the way the fantasy port was.
   the score-plateau model the pipeline rests on.
 
 ## Later — identified, not specced
-
-- **Detection variance on subtle cap conditions.** The successor to the
-  caps-bind finding, and a harder problem. Caps now bind unanimously once a
-  judge agrees the condition is met; what varies is whether they agree.
-  Three judges ran `magic_barrier_dependency`'s redenomination test on the
-  same documents and scored 6, 8 and 9 — one concluding the barrier survives
-  repricing in grain, two concluding that a debt denominated in a congenital,
-  non-transferable faculty is unpayable by anyone alive and therefore
-  magic-dependent. Both readings are defensible on the text, which is the
-  point: the test asks for a judgement the criteria do not settle.
-
-  Note what this is NOT. It is not the advisory-prose defect — that is fixed
-  and verified. It is not judge sloppiness; all three ran the test properly
-  and showed their work. The question is whether a dimension whose condition
-  needs an act of interpretation can be made to arbitrate itself, and the
-  candidate answers are worth thinking about before building: a worked
-  example of each verdict written into the criteria, a required artifact that
-  forces the redenomination onto the page rather than into the judge's head
-  (both dissenting judges independently suggested this), or accepting the
-  spread and taking a median across N judges on the dimensions that need it.
-  Cheap diagnostic first: re-run the committed fixture with more judges and
-  see whether 1-in-3 is the real rate.
-
-  Two judges also flagged that the fixture argues its own case at length in
-  two files, and read that as a tell. Worth checking whether a
-  camouflage-detector belongs in the rubric — a plan that pre-empts an
-  objection is evidence about the objection.
 
 - **`fantasy` caps only two of its five dimensions.** Visible for the first
   time now that the solver prints the cap list per pack: every other
