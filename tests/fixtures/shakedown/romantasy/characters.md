@@ -347,7 +347,7 @@ counted the bodies for the House and the number is in her handwriting.
 - **Ghost.** 1201. She wrote the Hungry Year's mortality return herself: 4,100
   names, in her own hand, at twenty-six, over eleven weeks.
 - **Wound.** She believes she is the only person in the building who
-  understands that arithmetic is a load-bearing wall.
+  understands that the arithmetic is what everything else is standing on.
 - **Lie.** *A panic kills more people than a truth prevents, so the truth is
   mine to time.*
 - **Want.** To hold the currency together long enough to find a second sink

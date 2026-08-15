@@ -156,7 +156,7 @@ a barrier should do.
 `internal_consistency` capped at 4 in all three. **That is 12 of 12 across
 every run in this document.**
 
-#### Three defects the post-fix run surfaced
+#### Three defects the post-fix run surfaced — all now fixed
 
 All pre-existing, all verified against the files, none introduced by the fix:
 
@@ -170,7 +170,23 @@ All pre-existing, all verified against the files, none introduced by the fix:
   "a phrase the plugin bans." The romantasy author never read
   `ANTI-SLOP.md` — only the dark-romance author picked the ban up — so this
   is 0.16.0 being enforced through the judge channel rather than the
-  required-reading one. The fix also makes an already-failed plant fail harder: it closes a hole
+  required-reading one.
+
+The credit rule and Halim's line are now written into the chapters that cite
+them, and the three `load-bearing` metaphors are gone.
+
+**Fixing the class rather than the instances found a fourth.** Checking every
+quoted attribution in all 23 ledger rows against the chapter it names turned
+up `F2` — Turi's *"It isn't gone, boy. It's in me."* is credited to ch 2,
+where he says his *other* aphorism instead. No judge caught that one in nine
+runs plus three.
+
+The checker itself needed the lesson twice: its first pass reported `F8` as
+still broken after the fix, because the phrase was hard-wrapped across a
+newline and the check matched raw text. That is precisely the defect 0.16.0
+fixed in `slop_score.py` — collapse whitespace before matching prose, because
+chapter files are wrapped and the longer the phrase the likelier it straddles
+a break. The fix also makes an already-failed plant fail harder: it closes a hole
 by adding magic-dependence, and 8 of 9 judges already held the barrier
 magic-dependent. If this fixture is ever wanted as a working denomination
 plant, the surgery is the reverse one — removing the non-aggregability that

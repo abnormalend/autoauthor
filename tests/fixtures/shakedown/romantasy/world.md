@@ -534,7 +534,7 @@ in the history of the Long Book has taken in a working life.
 
 If the Draw vanished tomorrow, this barrier would not weaken; it would
 **cease to exist**, and it would do so instantly and completely, because
-every load-bearing part of it is made of the Draw and nothing else.
+every part of it that holds any weight is made of the Draw and nothing else.
 
 Begin with the instrument. The Ottun entry is not an amount of value; it is
 an amount of **capacity** — 2,140 carries, a quantity of a bodily faculty

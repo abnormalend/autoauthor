@@ -38,8 +38,10 @@ Yannu walks the spring survey of the eastern lobes and has to move three
 cairns inward — 129 paces lost at the north lobe alone. He writes *silting*
 in the warrant book and looks at the word and does not change it. Establish
 grey by location, the gloves, the salt on everything, Veth's boots on the
-nail. At the Kell Ammar salt-house, **Turi Osse states the theme**: *"Nothing's
-been paid, boy. It's only been put somewhere."* Yannu files a false warrant
+nail. At the Kell Ammar salt-house, Yannu asks him what happens to what he
+takes, and Turi holds up a grey hand: *"It isn't gone, boy. It's in me."* Then
+**Turi states the theme**: *"Nothing's been paid, boy. It's only been put
+somewhere."* Yannu files a false warrant
 closing the north lobe. His independent goal on the page: the honest map, so
 that no setter is worked to full grey for a cistern.
 
@@ -51,8 +53,12 @@ read aloud in a corridor full of people; an assessor reads her load off her
 cuticles and enters it. The Third Order's acceleration clause is read as part
 of the standard recitation and nobody remarks on it — and so is the
 alienation clause, four items later in the same list, in the same voice, at
-the same speed. Sahra is counting her own carries against the figure the
-clerk just read and does not hear it. **Dovra Nesuir** is
+the same speed, and so is the credit rule two items after that: *a working
+performed on the House's account and witnessed by a reckoner is credited to
+the worker's entry at the assessed rate.* Three clauses, one breath, read
+the way a clerk reads a form he has read four hundred times. Sahra is
+counting her own carries against the figure the clerk just gave her and
+hears none of them. **Dovra Nesuir** is
 present and, citing the House's new warranting restrictions and the rate they
 will cost, moves the witnessing forward from autumn 1220 to spring 1220.
 Yeshin's name entered in the schedule: *capacity presumed, to be assessed at
@@ -238,6 +244,9 @@ capacity the House has already been promised and cannot be handed. It voids
 for cause. Thirty days. The fen goes, and Yeshin goes to the pump. He does
 not say *so you must not*, because he is not that man and it is not his
 clause to enforce; he says the arithmetic and stops, and lets her hold it.
+When she asks whether he could not simply — he says *the clause is the
+clause*, which is the only hard sentence he speaks in the book, and he
+cannot look at her while he says it.
 
 So the offer is a marriage that is not a marriage, and a life she may have
 only in the two hours nobody is counting. It is meant, all of it. It is the
@@ -246,7 +255,7 @@ in the book, and she comes back down to the flats unable to explain to Yannu
 why she is worse.
 
 **ch 18 — 39% — Yannu — the Shell Bank — 28 Longsun**
-*Plot: — · Romance: —* (quiet chapter, sensory, load-bearing)
+*Plot: — · Romance: —* (quiet chapter, sensory, and it carries the act)
 
 He takes her to the hut because there is nowhere else and the tide is wrong.
 Veth's boots on the nail; she does not ask and he does not say. He talks
