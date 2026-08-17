@@ -12,8 +12,9 @@ INPUT FILES (read from the project directory you were given):
   passages and key dialogue. Word and chapter counts are stated at the
   top of the file.
 - outline.md's `## Author-facing only (never on the page)` section, if
-  present — items there are withheld by design; do not name them as
-  missing.
+  present — items there are withheld by design; do not name one as the
+  missing scene. If the summary left you unable to follow something one
+  of them would explain, say what you could not follow.
 
 If arc_summary.md is missing or empty, return exactly
 {"error": "arc_summary.md missing — the invoking skill must regenerate it first"}

@@ -21,7 +21,7 @@ INPUT FILES (read all of them from the project directory you were given):
   over lore detail)
 - characters.md
 - canon.md
-- outline.md (extract the target chapter's entry)
+- outline.md (extract the target chapter's entry, and its Author-facing only section if present)
 - the previous chapter file (read its last ~1500 words)
 - the target chapter file
 
@@ -91,10 +91,10 @@ CANON (established hard facts -- violations are bugs):
 Read canon.md from the project directory.
 
 CHAPTER OUTLINE ENTRY:
-Extract the target chapter's entry from outline.md. Also read outline.md's
-`## Author-facing only (never on the page)` section if present: an item
-there is withheld by design and is not a canon violation or a missing beat
-when the chapter does not state it.
+Extract the target chapter's entry from outline.md. Also read the
+`## Author-facing only (never on the page)` section of outline.md and of
+characters.md, if present: an item there is withheld by design and is not
+a canon violation or a missing beat when the chapter does not state it.
 
 PREVIOUS CHAPTER (last 1500 words):
 Read the last ~1500 words of the previous chapter file.

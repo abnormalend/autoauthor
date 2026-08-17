@@ -105,7 +105,10 @@ CROSS-CHECKS (perform these before scoring):
    it reads as a choice" are the tell. On one run a substantial
    fraction of two documents was this, and the one hole a drafter would
    actually stop at survived four iterations because it was never
-   argued about.
+   argued about. A bare one-line item under `## Author-facing only
+   (never on the page)` in outline.md or characters.md is not this — it
+   is a deliberate withholding in the sense of check 3, and it is exempt
+   only as a list; an argument there is the tell again.
 3. Check for CONVENIENT GAPS vs DELIBERATE MYSTERY:
    - Convenient: "the details are unclear" where specifics are needed
    - Deliberate: withholding information from the READER while the
@@ -222,8 +225,8 @@ decimal places — never rounded to an integer.)
     "<dimension_key>": {"score": N, "gap": "...", "fix": "...", "note": "..."}
   },
   "genre_contract": {"violations": ["list any promises the plan would breach"], "note": "..."},
-  "slop_in_planning_docs": {"found": ["list any AI slop patterns found in exemplar dialogue, voice examples, or character descriptions"], "note": "..."},
-  "contradictions_found": ["list any factual contradictions between documents"],
+  "slop_in_planning_docs": {"found": ["list any AI slop patterns found in exemplar dialogue, voice examples, or character descriptions, or prose addressed to the evaluator rather than a writer"], "note": "..."},
+  "contradictions_found": ["every contradiction found in binding text — fact table, outline beat, quoted in-story text, character fact — each naming the documents, marked MAJOR where the plot depends on it; commentary-only disagreements go in internal_consistency's note"],
   "overall_score": N.NN,
   "pillar_score": N.NN,
   "weakest_dimension": "...",

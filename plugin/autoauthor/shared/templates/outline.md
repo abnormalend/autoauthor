@@ -25,8 +25,7 @@
 <!-- Rules, mechanisms, and withholdings that govern the story but are
      deliberately never stated in it: a physical constraint the reader
      can only infer, a character's unnamed job whose namelessness is the
-     payoff. One line each, no argument. Judges treat items here as
-     withheld by design, not as unpaid debts. -->
+     payoff. One line each, no argument. -->
 
 ## Act 1: [Title]
 <!-- For each chapter:

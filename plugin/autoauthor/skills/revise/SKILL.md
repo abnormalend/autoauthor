@@ -196,8 +196,10 @@ can gut chapters.
    `<resolved pack paths, primary first, each labeled with its role>`,
    and follow the rubric exactly. Your
    assigned persona is <editor|genre_reader|writer|first_reader>. The
-   project directory is `<absolute project path>`; the input file is
-   arc_summary.md. Return ONLY the JSON the rubric specifies."
+   project directory is `<absolute project path>`; the input files are
+   arc_summary.md and, if outline.md carries one, its `## Author-facing
+   only (never on the page)` section — nothing else from outline.md.
+   Return ONLY the JSON the rubric specifies."
    Assemble `edit_logs/reader_panel.json` as:
    `{"readers": {"editor": {...}, "genre_reader": {...}, "writer":
    {...}, "first_reader": {...}}, "consensus": [...],

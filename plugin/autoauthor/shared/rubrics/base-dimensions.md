@@ -66,7 +66,8 @@ prose twice, once as its pillar and once as base craft.
   Cross-ref dates, ages, character counts, named locations, and every
   number in the outline's facts section against every other document.
   Count only contradictions in text a writer must not violate: fact
-  tables, outline beats, quoted in-story text, and character facts. A
+  tables, outline beats, quoted in-story text, character facts, and
+  author-facing rules. A
   disagreement confined to authorial commentary is a note under this
   dimension, not a contradiction. A MAJOR contradiction is one the plot
   depends on — a clock the climax runs on stated three ways, an interval

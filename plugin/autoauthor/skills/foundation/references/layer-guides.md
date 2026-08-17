@@ -16,7 +16,9 @@ owe fifteen tracked threads or three quiet chapters; it owes the ratio.
 
 These documents address the drafting agent, not the evaluator. Do not
 write arguments about why a choice satisfies a rubric, a contract, or
-this guide into a planning document. If a choice needs defending, the
+this guide into a planning document — the single exception is the
+`## Author-facing only (never on the page)` list; see outline.md part 1.
+If a choice needs defending, the
 defence belongs in the commit message. On one run a judge found "a
 substantial fraction" of two documents was parenthetical self-defence
 addressed to it — and the one genuine hole in the climax survived four
@@ -140,6 +142,10 @@ FOR EACH CHARACTER INCLUDE:
 - Secrets (what the reader doesn't learn immediately)
 - Key relationships (mapped to other characters)
 - Thematic role (what question does this character embody?)
+- A fact about a character the story deliberately never states — a job
+  whose namelessness is the payoff — goes under `## Author-facing only
+  (never on the page)`, one line, no argument; the "Secrets" line is for
+  what the reader learns late, this is for what they never learn.
 
 IMPORTANT:
 - Characters must INTERCONNECT. Their wants should conflict with each
