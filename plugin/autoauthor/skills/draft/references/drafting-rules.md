@@ -28,8 +28,10 @@ ahead.
 5. Show sensory detail: what the POV character hears, smells, feels
    physically.
 6. The genre's central system, where it appears, manifests as SPECIFIC
-   physical or concrete detail defined in world.md — never vague. Use the
-   exact established specifics.
+   physical or concrete detail defined in the fact-bearing layer — the
+   world bible where the form builds one, otherwise the outline's facts
+   section — never vague. Use the exact established specifics; a rule
+   you cannot find written down is one you have not been given.
 7. Dialogue follows the speech patterns defined in characters.md.
 8. No banned words from voice.md Part 1 guardrails.
 9. No AI fiction tells: no "a sense of," no "couldn't help but feel,"

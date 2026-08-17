@@ -372,7 +372,7 @@ has one.
 ## Drafting Rules
 
 25. Write the encounters in full, at the declared register. The heat level in the resolved `content_register` is a floor as well as a ceiling: where it is `explicit`, do not cut away, summarize, or resolve the scene in white space. Where a modifier has clamped it lower, that clamp governs and this pack should not have been loaded.
-26. Name bodies and acts in the register `world.md` established under "The Vocabulary of This World". Decide the register once, in the world bible, and hold it — the euphemism is not modesty, it is imprecision, and it reads as embarrassment on the writer's part.
+26. Name bodies and acts in the register the world layer established under "The Vocabulary of This World". Decide the register once, in the world bible, and hold it — the euphemism is not modesty, it is imprecision, and it reads as embarrassment on the writer's part.
 27. Interiority does not pause for the encounter. The POV character keeps thinking, noticing, misreading, and wanting throughout; a scene where the interior line stops and the choreography starts is the single most reliable tell of unfelt prose in this genre.
 28. Every encounter must contain something no earlier encounter contained, and you must be able to say what it is in one clause before you begin drafting it. Record it in `encounter_ledger.md` as you write, where the project has one. If you cannot name it, the scene is a repeat and belongs in summary or out of the book.
 29. Willingness is shown, never assumed. Someone initiates, someone answers, someone changes the pace and is heeded. At least once in the book, a limit is stated and honoured on the page — the scene where someone is heard is what makes every other scene readable as desire rather than as pressure.

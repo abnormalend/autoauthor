@@ -232,7 +232,7 @@ the world's speculative element. What's possible and what's not.
 
 ## Drafting Rules
 
-25. Magic and its costs manifest as SPECIFIC physical sensation defined in world.md — never vague discomfort. Use the exact established sensations.
+25. Magic and its costs manifest as SPECIFIC physical sensation defined in the world layer (the outline's facts section where the form builds no world bible) — never vague discomfort. Use the exact established sensations.
 26. Style is not ornament — it IS the fantasy. The language doesn't describe the world; the language CREATES it. If your fantasy world sounds like a Poughkeepsie bus schedule, you're not writing fantasy. The prose must have a register appropriate to the world. (Le Guin's core insight.)
 
 ## Seed Prompt

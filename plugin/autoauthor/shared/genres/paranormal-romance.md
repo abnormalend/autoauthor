@@ -319,7 +319,7 @@ the dead cannot say), and the convenient outs this book will not use.
 
 ## Drafting Rules
 
-25. The supernatural is felt in the body before it is explained on the page. Every time the condition operates, give it the exact sensory signature established in world.md — the same cold, the same wrongness in the heartbeat, the same smell before a shift — never a generic shiver and never a new one.
+25. The supernatural is felt in the body before it is explained on the page. Every time the condition operates, give it the exact sensory signature established in the world layer (or the outline's facts section, where the form builds no world bible) — the same cold, the same wrongness in the heartbeat, the same smell before a shift — never a generic shiver and never a new one.
 26. Never explain a rule the couple is not currently being hurt by. Lore arrives at the moment it costs someone something in the scene. A paragraph of history nobody in the room is paying for is a paragraph to cut, however interesting it is.
 27. When a bond, hunger, or compulsion pushes a lead, keep their judgement visible in the prose: what they want, what the pull wants, and which of the two they acted on. A lead who is simply carried is not a character in that scene, and the reader stops being able to credit anything they choose later.
 28. This book belongs to one couple, in a world that will hold more. Whoever could carry the next book must want something in THIS one and must matter to THIS plot; and the couple the reader came for must end this book with nothing outstanding.

@@ -495,7 +495,7 @@ against the marks in `## Plot Architecture`. The judge confirms:
 
 ## Drafting Rules
 
-25. Magic and its costs manifest as SPECIFIC physical sensation defined in world.md — never vague discomfort, and never a sensation that arrives only when the plot needs a mood. Use the exact established sensations.
+25. Magic and its costs manifest as SPECIFIC physical sensation defined in the world layer (the outline's facts section where the form builds no world bible) — never vague discomfort, and never a sensation that arrives only when the plot needs a mood. Use the exact established sensations.
 26. Every scene the two leads share must leave the relationship in a different state than it started — more known, more risked, more foreclosed. A scene of pleasant company that changes nothing is a scene to cut, however well it reads.
 27. Attraction is shown through specific noticing, never asserted, and never attributed to the bond. If the world has a magical tie between the leads, the tie may report a fact ("he knew she was three rooms away") and may never report a feeling ("the bond told him she was the one").
 28. Interiority is the plot here as much as the magic is. The reader must know, in every scene, what each POV lead believes about where they stand — and the gap between what the two believe is where the tension lives.
