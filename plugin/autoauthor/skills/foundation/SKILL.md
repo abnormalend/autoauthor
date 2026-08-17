@@ -129,6 +129,14 @@ chapters untouched).
    artifact the pack declares is filled and current; the foreshadowing
    ledger balances (every plant has a payoff); canon.md captures all new
    facts.
+   The eval's per-dimension `fix` strings and `top_3_improvements` are
+   hypotheses from an agent that has seen one set of documents and no
+   other constraint. Take the diagnosis; design the fix yourself, and
+   check it against the outline's fact table before writing it. One
+   run's `novum_specificity.fix` proposed a specific window that
+   contradicted the ten-hour window the same eval was complaining about
+   two dimensions earlier — applying it verbatim would have preserved
+   the fault it diagnosed.
 3b. **Record the title if the work has acquired one.** A story usually
    names itself while its outline is being built, and that name tends to
    end up only in a document heading. Write it to `state.json`'s `title`
@@ -137,12 +145,31 @@ chapters untouched).
    and a title nobody recorded gets asked for at export and answered
    differently than the one the plan used.
 
-4. **Keep/discard.** Score improved over the best previous score (or
-   first scored iteration) → `git add -A && git commit -m "foundation
-   iter <N>: <weakest_dimension> (<score>)"`. After every KEPT
-   iteration, update `foundation_score`, `pillar_score`, and `iteration:
-   <N>` in state.json to the new best values (this is what makes the
-   run resumable — the router reads `iteration`). A
+4. **Keep/discard.** Compare `overall_score` against the best previous
+   score (or treat the first scored iteration as the best). Three cases:
+
+   - **Improved by more than 0.15** → `git add -A && git commit -m
+     "foundation iter <N>: <weakest_dimension> (<score>)"`.
+   - **Within ±0.15 of the best** → a TIE, which is inside single-judge
+     noise (per-dimension variance on unchanged text was measured at
+     two full points on one run). Keep the state with the higher
+     `pillar_score`; if those tie too, keep the state whose eval lists
+     fewer contradictions in fact tables, outline beats, quoted text, or
+     character facts. Commit if keeping the new state.
+   - **Regressed by more than 0.15** → before discarding, read the two
+     evals side by side. If the dimension you targeted improved and the
+     contradictions the new eval lists are NEW ones (surface faults you
+     introduced while rewriting), the revision worked and you dropped a
+     wrench on the way out: keep it, and target the new faults next
+     iteration. Discard only when the targeted dimension did not
+     improve. One run's iteration 3 fixed the transmission-cadence
+     fault two judges had called MAJOR and regressed 0.12 because it
+     introduced four one-line surface errors; discarding would have
+     restored the major fault to recover 0.12.
+
+   After every KEPT iteration, update `foundation_score`, `pillar_score`,
+   and `iteration: <N>` in state.json to the new best values (this is
+   what makes the run resumable — the router reads `iteration`). A
    resuming session takes "best previous score" from state.json,
    cross-checking the last `keep` row in results.tsv.
    If the project's genre changed since the last scored iteration (compare
@@ -150,8 +177,7 @@ chapters untouched).
    `genre-change` marker row in results.tsv), do NOT compare against the old
    best score — the weights differ, so the numbers are not comparable.
    Treat the next scored iteration as the first one.
-   Score regressed
-   → discard with `git reset --hard HEAD` (resets tracked files,
+   Discard means `git reset --hard HEAD` (resets tracked files,
    staged and unstaged, back to the last kept iteration; untracked
    files like the new eval log survive, which is what we want — the
    eval record is kept even for discarded iterations). Either way
