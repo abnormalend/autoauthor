@@ -67,6 +67,14 @@ Read characters.md from the project directory.
 OUTLINE + FORESHADOWING LEDGER:
 Read outline.md from the project directory.
 
+If outline.md or characters.md carries a `## Author-facing only (never
+on the page)` section, its items are withheld by design. Do not score
+their absence from the manuscript as an unpaid debt, a missing beat, or
+a hole; score whether the story works WITHOUT them stated, which is the
+test the author chose. Judge only what appears there as a bare list —
+an argument in that section is rubric-facing prose and gets no such
+protection.
+
 CHAPTER SUMMARIES AND SCORES:
 Read arc_summary.md from the project directory (chapter-by-chapter
 summaries maintained by the invoking skill).

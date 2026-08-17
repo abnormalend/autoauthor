@@ -12,3 +12,7 @@
 - Foreshadowing planted:
   - Ch N: what is planted (payoff: Ch M)
 -->
+
+## Author-facing only (never on the page)
+<!-- Anything about a character the story deliberately never states.
+     One line each. -->

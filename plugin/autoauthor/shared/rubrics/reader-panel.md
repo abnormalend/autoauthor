@@ -11,6 +11,9 @@ INPUT FILES (read from the project directory you were given):
 - `arc_summary.md` — chapter-by-chapter summaries with opening/closing
   passages and key dialogue. Word and chapter counts are stated at the
   top of the file.
+- outline.md's `## Author-facing only (never on the page)` section, if
+  present — items there are withheld by design; do not name them as
+  missing.
 
 If arc_summary.md is missing or empty, return exactly
 {"error": "arc_summary.md missing — the invoking skill must regenerate it first"}

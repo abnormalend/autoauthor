@@ -91,7 +91,10 @@ CANON (established hard facts -- violations are bugs):
 Read canon.md from the project directory.
 
 CHAPTER OUTLINE ENTRY:
-Extract the target chapter's entry from outline.md.
+Extract the target chapter's entry from outline.md. Also read outline.md's
+`## Author-facing only (never on the page)` section if present: an item
+there is withheld by design and is not a canon violation or a missing beat
+when the chapter does not state it.
 
 PREVIOUS CHAPTER (last 1500 words):
 Read the last ~1500 words of the previous chapter file.

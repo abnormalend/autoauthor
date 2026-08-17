@@ -21,6 +21,13 @@
      this section; a number that lives only in prose elsewhere is one it
      cannot find. Keep it a list, not an argument. -->
 
+## Author-facing only (never on the page)
+<!-- Rules, mechanisms, and withholdings that govern the story but are
+     deliberately never stated in it: a physical constraint the reader
+     can only infer, a character's unnamed job whose namelessness is the
+     payoff. One line each, no argument. Judges treat items here as
+     withheld by design, not as unpaid debts. -->
+
 ## Act 1: [Title]
 <!-- For each chapter:
 ### Ch N: "Title" (POV, target word count)

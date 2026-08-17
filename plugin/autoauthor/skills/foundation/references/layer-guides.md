@@ -227,6 +227,14 @@ CONSTRAINTS:
 - The document carries a `## Facts the story must not contradict`
   section (after Themes in the template): the clock, the fact table, every number a chapter may need
   to state. This is what `continuity_check.py` reads during drafting.
+- Anything the story deliberately never states — a rule the reader can
+  only infer, a withheld name whose withholding is the payoff — goes
+  under `## Author-facing only (never on the page)`, one line each,
+  without argument. This is the one place the plan may speak to a judge
+  rather than a drafter, and it is a list, not a defence. Three rewrite
+  attempts on one run tried to put a codec rule into prose because a
+  judge read its absence as a debt; each introduced a new arithmetic
+  error, and the rule was correct physics and unwritable prose.
 - The Stability Trap: bad things must stay bad. Not everything
   resolves cleanly.
 - Any character established as "absent but plot-critical" must appear
