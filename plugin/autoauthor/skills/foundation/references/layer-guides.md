@@ -194,6 +194,18 @@ CONSTRAINTS:
 - The climax must be mechanically resolvable using established world
   rules — a reader should be able to see, in hindsight, that the
   pieces were already on the board.
+- Any text the story quotes verbatim — a letter, a prophecy, a
+  contract, a transmission, a will, a song — must exist IN FULL in the
+  plan, at the length the world's own rules permit. A plan that
+  describes such an object instead of containing it has left the scene
+  it appears in unplanned, and no judge can check whether the object
+  does what the outline claims. On one run the single most useful
+  planning move was writing the central letter out at exactly the
+  byte budget the plan allowed; two evals then caught it contradicting
+  its own frame, which is only possible because the text existed.
+- The document opens with a `## Facts the story must not contradict`
+  section: the clock, the fact table, every number a chapter may need
+  to state. This is what `continuity_check.py` reads during drafting.
 - The Stability Trap: bad things must stay bad. Not everything
   resolves cleanly.
 - Any character established as "absent but plot-critical" must appear

@@ -14,6 +14,13 @@
 ## Themes
 <!-- Core themes the story explores -->
 
+## Facts the story must not contradict
+<!-- The authoritative clock and the fact table: dates, ages, distances,
+     counts, rates, durations — every number a chapter may state, in one
+     place, reconciled with each other. Drafting's continuity check reads
+     this section; a number that lives only in prose elsewhere is one it
+     cannot find. Keep it a list, not an argument. -->
+
 ## Act 1: [Title]
 <!-- For each chapter:
 ### Ch N: "Title" (POV, target word count)

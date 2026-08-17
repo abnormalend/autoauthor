@@ -43,6 +43,16 @@ phase. Typical runs take 5–15 iterations.
    - the project's `seed.txt` if present; otherwise derive the premise
      from whatever layer docs already exist (imported or hand-built
      projects are valid — never require seed.txt).
+3b. **Check the seed's arithmetic before building anything.** If the
+   seed states quantities the premise depends on — dates, ages,
+   distances, rates, budgets, intervals — verify them against each
+   other now, and write the resolved set into outline.md's `## Facts
+   the story must not contradict` section as the single source. A
+   seed's numbers are an input, not an authority: one seed conflated a
+   per-year allowance with an annual window in a way that could not
+   both be true, and it took two scored iterations to surface because
+   nothing asked Setup to check. Foundation inherits a seed's errors
+   and multiplies them across three documents.
 4. If `chapters/` already contains prose (imported project), the
    manuscript is ground truth: layer revisions during iteration must
    document and deepen what the prose establishes — never contradict
