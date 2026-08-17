@@ -41,6 +41,7 @@ guards the narrow version of this.
 | `assemble.py` | binding a collection's works into one manuscript |
 | `slop_score.py` | the tier lists that can fail a chapter |
 | `continuity_check.py` | numbers a chapter states that no fact-bearing document states |
+| `splice_audit.py` | paragraph-level damage a mechanical cut leaves behind |
 
 Read the module docstrings. They are long on purpose and they carry the
 reasoning, not just the interface.
