@@ -53,7 +53,30 @@ can gut chapters.
    chapter: a 4–6 sentence event summary, the opening and closing
    ~100-word passages, and 1–2 key dialogue exchanges. Commit
    `cycle N: arc summary`.
-2. **Adversarial edit** — for EACH chapter, dispatch a fresh judge
+2. **Build `edit_logs/protected.md`** (create on cycle 1, append every
+   cycle after). It is a newline-delimited list of lines no cutting
+   pass may touch, and it comes from two sources that already exist:
+   - every entry in `three_strongest_sentences` from every chapter
+     verdict in `eval_logs/` (drafting and prior revision cycles);
+   - every line quoted in outline.md's plant/harvest table and every
+     `Plants:`/`Payoffs:` entry that quotes prose.
+   Group them under `#` headings by source; the scripts ignore
+   headings and blank lines. Cutting judges see one chapter and have
+   no memory: across three cycles on one project five lines were
+   protected by hand and two of them were attacked in consecutive
+   cycles, including the sentence both cycle-1 judges had named the
+   chapter's strongest. Commit `cycle N: protected lines`.
+3. **Adversarial edit.**
+   **Which chapters.** In cycle 1, every chapter. In later cycles, only
+   chapters whose score fell last cycle, or whose last reported
+   `overall_fat_percentage` was 12% or higher. Judges asked for 10–20
+   cuts return 10–20 cuts whatever the fat; on a manuscript at 9–13%
+   fat one run's cycle-2 pass removed 269 words, needed four
+   protections and one restore, left five splice defects, and moved
+   the full-novel score 7.86 → 7.86 with `overall_engagement` down a
+   point. Record any chapter you skip, and why, in `edit_logs/skipped.md`.
+
+   For EACH chapter, dispatch a fresh judge
    subagent: "Read the rubric at
    `<absolute plugin path>/shared/rubrics/adversarial-edit.md` and the
    genre pack(s) at `<resolved pack paths, primary first, each labeled
@@ -63,8 +86,8 @@ can gut chapters.
    Save each response verbatim to `edit_logs/chNN_cuts.json` (exact
    filename — apply_cuts.py globs it). Dispatch in parallel batches
    of 4–6 (malformed responses: see Setup's shared policy).
-3. **Apply mechanical cuts:**
-   `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/apply_cuts.py" all --types OVER-EXPLAIN REDUNDANT --min-fat 15`
+4. **Apply mechanical cuts:**
+   `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/apply_cuts.py" all --types OVER-EXPLAIN REDUNDANT --min-fat 15 --protect-file edit_logs/protected.md`
    Review its FAIL lines; apply any high-value failed cuts by hand.
    **Also handle its SKIP [REWRITE] lines** — do not filter the
    script's output down to FAIL/SAVED and move on, or you will silently
@@ -89,25 +112,33 @@ can gut chapters.
      ones recovered voice to 8 and lifted the novel score above where
      it started. Apply the narration-only trims freely; leave the
      dialogue paragraphs alone.
+   - **Skip any the script reported as `PROTECT`.** It reports them
+     even for REWRITE cuts, because the by-hand pass would otherwise
+     be the first place protection applied — and on one run it was,
+     one step too late.
    **If the run reports `Applied: 0` because every chapter fell under
-   `--min-fat 15`,** that is expected on a draft that already had a
-   post-draft slop pass (judges typically return 7–12% fat there). Do
-   not accept the empty result and do not raise the fat numbers: re-run
-   the same command with `--min-fat 0`, which keeps the type filter and
-   drops only the gate. Say so in the commit message.
+   `--min-fat 15`,** re-run with `--min-fat 0`, which keeps the type
+   filter and drops only the gate, and say so in the commit message.
+   This is the usual case, not the exception: a draft that had a
+   post-draft slop pass typically comes back at 7–13% fat, and on one
+   run the 15% gate excluded three of four chapters on the first pass.
    **Then audit for splice damage — REQUIRED, and not optional because
    the word counts look fine.** The script deletes quoted spans
-   mid-paragraph, so a cut that removes a trailing or interior sentence
-   can leave a paragraph ending on a comma, ending with no terminal
-   punctuation at all, or two speeches glued into one line. Neither the
-   word-count check nor the slop scorer detects any of this. Diff each
-   changed paragraph against the pre-cut tree and flag any that now:
-   end in `[,;]`; end without terminal punctuation; contain a double
-   space; contain adjacent or empty quote pairs (`" "`, `""`); contain
-   whitespace before punctuation (this catches `he said, , and`, which
-   a double-space-only scan misses); or contain a doubled word. Compare
-   only paragraphs that actually changed — unchanged text is not your
-   damage and will drown the signal.
+   mid-paragraph, and neither the word-count check nor the slop scorer
+   detects what that leaves. Run:
+
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/splice_audit.py" chapters/ch_*.md
+   ```
+
+   It diffs each changed paragraph against the tree at HEAD (pass
+   `--ref <sha>` for the commit that started this cycle if you have
+   made intermediate commits) and names each finding by kind:
+   ends-on-comma, no-terminal-punctuation, double-space, doubled-comma,
+   empty-quotes, space-before-punct, doubled-word, glued-sentence,
+   leading-whitespace, trailing-whitespace. Six mechanical cuts in one
+   cycle produced five of these, and two kinds were outside the
+   checklist this step used to carry.
 
    Repair each by hand against the pre-cut text: usually promoting a
    comma to a period, restoring a paragraph break, or merging two
@@ -129,10 +160,10 @@ can gut chapters.
    **Finally, resync arc_summary.md** (see the resync procedure under
    Measure). This step just edited most of the manuscript, and the file
    built in step 1 now quotes sentences that no longer exist in the
-   book — the reader panel in step 4 and the full-novel judge in
+   book — the reader panel in step 5 and the full-novel judge in
    Measure both read it. Commit `cycle N: adversarial cuts (<words
    removed> words)`.
-4. **Reader panel** — dispatch FOUR judge subagents in parallel, one
+5. **Reader panel** — dispatch FOUR judge subagents in parallel, one
    per persona: "Read the rubric at `<absolute plugin
    path>/shared/rubrics/reader-panel.md` and the genre pack(s) at
    `<resolved pack paths, primary first, each labeled with its role>`,
@@ -178,6 +209,11 @@ missing scene → thin character → weak scene → consistency):
    the readers saw only arc_summary.md, so an item can carry 3-of-4
    agreement and still be an artifact of one compressed summary line.
    Check the specific claim:
+   - *any item already in `edit_logs/skipped.md` from a prior cycle* →
+     skip it again unless the panel supplies evidence the earlier
+     verification did not have. "Cut chapter 2" carried 4/4 in three
+     consecutive cycles on one run and was verified-and-skipped the
+     same way each time.
    - *missing scene* → grep the chapter for the beat. If it is already
      dramatized, the summary was lossy, not the chapter. Do not rewrite.
    - *cut candidate* → find what actually repeats. Compare the chapter's
@@ -209,7 +245,9 @@ missing scene → thin character → weak scene → consistency):
    next chapter's opening ~1500 chars). Before cutting any element,
    grep the rest of the manuscript for it: a compression brief that
    removes a plant (an object, a card, a named regular) silently breaks
-   its payoff chapters later.
+   its payoff chapters later. Check the old chapter's lines against
+   `edit_logs/protected.md` too: a rewrite may reword a protected line,
+   but it may not lose it.
 
    **Three canon pre-flight checks before you write a line.** These are
    the errors that actually recur, and each one costs an attempt:
@@ -309,7 +347,7 @@ missing scene → thin character → weak scene → consistency):
    scores the novel from this file alone, so a stale line here is a
    wrong score for the whole cycle.
 
-   **Resync procedure** (used here and at the end of Diagnose step 3;
+   **Resync procedure** (used here and at the end of Diagnose step 4;
    run it over EVERY chapter changed since the file was written — cuts
    and by-hand repairs, not just rewritten chapters):
    - Rebuild each changed chapter's opening and closing ~100-word
@@ -323,6 +361,11 @@ missing scene → thin character → weak scene → consistency):
      still occurs in its chapter. For any that no longer match, locate
      the longest surviving prefix and replace the quote with the
      current paragraph containing it.
+   - For any beat a prior cycle's panel consensus asked for and you
+     then wrote, the summary must carry it at the granularity that was
+     asked for — a scene the panel wanted gets its dialogue, not a
+     clause. A 16-line exchange rendered as one clause was named
+     "missing" by 3 of 4 readers in each of the next two cycles.
    - Repeat until zero quoted passages fail the check. Do not hand a
      summary containing invented or deleted prose to a judge.
 
