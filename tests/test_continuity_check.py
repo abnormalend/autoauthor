@@ -91,6 +91,15 @@ def test_words_to_int_handles_scales_and_rejects_bad_joins():
     assert w("twenty ten") is None
 
 
+def test_rejected_join_still_surfaces_its_tokens():
+    found = continuity_check.numbers_in("In twenty ninety-one")
+    assert found
+    assert {n.key for n in found} == {20, 91}
+    assert {n.text for n in found} == {"twenty ninety-one"}
+    assert {n.key for n in continuity_check.numbers_in("nineteen eighty")} == {19, 80}
+    assert continuity_check.numbers_in("one-two") == []
+
+
 def test_and_joins_only_after_a_scale_word():
     found = continuity_check.numbers_in("One hundred and twenty came; eight and eighty stayed.")
     keys = {n.key for n in found}

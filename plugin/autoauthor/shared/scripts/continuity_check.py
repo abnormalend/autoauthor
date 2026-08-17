@@ -80,7 +80,8 @@ def words_to_int(phrase):
     ("nineteen eighty", "twenty ten") — the one exception being a unit
     below ten after a tens word ("twenty-six") — or "and" anywhere but
     after a scale word. Refusing is safer than a wrong key — "nineteen
-    eighty" once came out as 103.
+    eighty" once came out as 103. numbers_in() then falls back to the
+    valid runs inside the phrase, so the tokens still surface.
     """
     total, current = 0, 0
     prev = None
@@ -102,6 +103,24 @@ def words_to_int(phrase):
             return None
         prev = w
     return total + current
+
+
+def _split_runs(phrase):
+    """Break a phrase words_to_int rejected into its longest valid runs.
+
+    "twenty ninety-one" -> [20, 91]; "nineteen eighty" -> [19, 80]. A
+    rejected phrase that vanished entirely was a silent false negative,
+    which is worse than the wrong key it replaced.
+    """
+    values, run = [], []
+    for tok in re.split(r"[-\s]+", phrase):
+        if run and words_to_int(" ".join(run + [tok])) is None:
+            values.append(words_to_int(" ".join(run)))
+            run = []
+        run.append(tok)
+    if run:
+        values.append(words_to_int(" ".join(run)))
+    return [v for v in values if v is not None]
 
 
 def _clock_key(text):
@@ -134,9 +153,11 @@ def numbers_in(text, min_word_value=MIN_WORD_VALUE):
                 found.setdefault((key, m.group(1)), Number(key, m.group(1), lineno))
         for m in WORDS_RE.finditer(stripped):
             value = words_to_int(m.group(1))
-            if value is None or value < min_word_value:
-                continue
-            found.setdefault((value, m.group(1)), Number(value, m.group(1), lineno))
+            values = [value] if value is not None else _split_runs(m.group(1))
+            for value in values:
+                if value < min_word_value:
+                    continue
+                found.setdefault((value, m.group(1)), Number(value, m.group(1), lineno))
     return list(found.values())
 
 
