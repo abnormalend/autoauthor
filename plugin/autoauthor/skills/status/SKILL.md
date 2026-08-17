@@ -23,6 +23,12 @@ anything else.
      review_round, debts
    - last 15 lines of `results.tsv`
    - `git log --oneline -10` and `git status --porcelain`
+   - **and reconcile them:** if `git log` shows `draft: ch`, `cycle N
+     complete` or `revision complete` commits but `state.json` says
+     `chapters_drafted: 0` or `chapters/` is empty, report that as the
+     headline — the state file and the repository disagree, and the
+     next skill will otherwise redo work that already exists in
+     history.
    - chapter count and total words across `chapters/ch_*.md`
    - newest files in `eval_logs/`, `edit_logs/`, `briefs/`
    - the resolved genre: run

@@ -38,13 +38,47 @@ a 6.0 ships; revision is Phase 3's job.
      `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py"`
 4. Resume point: next chapter = highest N among existing
    `chapters/ch_NN.md` + 1. First chapter of a fresh project is 1.
+5. **Build the input-file list from the form.** The resolver's
+   `form.layers` names which planning documents exist. Map them through
+   `LAYER_FILES` in `form_pack.py` (`voice` → voice.md, `world` →
+   world.md, `characters` → characters.md, `mystery` → MYSTERY.md,
+   `outline`/`foreshadowing` → outline.md, `canon` → canon.md). That
+   list, plus canon.md, is what every judge dispatch below names as
+   "the other input files" and what step 1 loads. Do not name the
+   novel's five files by habit: at `short-story` there is no world.md,
+   and a judge told to read one spends its tool calls hunting for it.
+6. **Ensure `canon.md` exists.** Compressed forms do not build a canon
+   layer in foundation, but drafting establishes facts on the page that
+   the chapter judge checks later chapters against. If `canon.md` is
+   missing, create it now from
+   `"${CLAUDE_PLUGIN_ROOT}/shared/templates/canon.md"` with the primary
+   pack's `## Canon Categories` as its section headings, and commit
+   `draft: canon.md scaffold`.
+7. **Reconcile state against history.** Compare `state.json`'s
+   `chapters_drafted` with the files in `chapters/` AND with
+   `git log --oneline | grep -cE '^[0-9a-f]+ (draft: ch|revision complete|cycle [0-9]+ complete)'`.
+   If history records drafting or revision work the working tree does
+   not reflect (a `revision complete` commit above an empty
+   `chapters/`, say), STOP and report the discrepancy — do not infer
+   the resume point from the empty directory. One session drafted an
+   entire story from scratch on top of a repository whose HEAD was
+   `revision complete: 3 cycles`; every check the skill named passed.
 
 ## Per-chapter loop (repeat through state.json chapters_total)
 
 1. **Load context — exactly this, fresh each chapter:**
-   - voice.md (full), world.md (full), characters.md (full)
-   - THIS chapter's outline entry from outline.md (including its
-     Plants list)
+   - every layer file the form builds (Setup step 5), in full, except
+     outline.md — voice.md and characters.md always; world.md and
+     MYSTERY.md where the form built them
+   - from outline.md: THIS chapter's entry (including its Plants list)
+     AND every section that precedes the first chapter entry — the
+     structure, the fact table, the clock, the register contract, the
+     foreshadowing table. Those sections are what prevent the arithmetic
+     and clock errors that were the dominant defect class on one run
+     (eight of them across four chapters, every one derivable from the
+     outline's fact table). At `form.band == "compressed"` load
+     outline.md whole; at that length it costs less than the chapter it
+     is used to write.
    - the previous chapter's last ~1000 words (skip for chapter 1)
    - the NEXT chapter's outline entry, first ~10 lines (for
      continuity; skip for the final chapter)
@@ -133,8 +167,8 @@ a 6.0 ships; revision is Phase 3's job.
    `git add -A && git commit` — the full experiment log lands
    atomically with the kept chapter. Row format:
    `<ISO timestamp>\tdrafting\t<final score>\t<chapter word count>\t<keep|discard|noscore>\tch NN attempt <k>`
-7. **Canon.** Append the judge's `new_canon_entries` to canon.md,
-   each tagged `(ch_NN)`. If writing revealed a lore gap or
+7. **Canon.** Append the judge's `new_canon_entries` to canon.md
+   (created in Setup step 6 if the form did not build one), each tagged `(ch_NN)`. If writing revealed a lore gap or
    contradiction, log a debt in state.json:
    `{"trigger": "ch_NN: <gap>", "affected": ["<files>"], "status": "pending"}`.
 
