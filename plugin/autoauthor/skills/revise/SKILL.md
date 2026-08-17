@@ -241,6 +241,9 @@ missing scene → thin character → weak scene → consistency):
    record the item in `edit_logs/skipped.md`. Attempt rows go to
    `eval_logs/attempts.tsv` and fold into results.tsv at commit (same
    columns as draft's rows, but the phase column is `revision`).
+   Baseline rows carry `baseline` in the keep_discard column and fold
+   in with the rest; they are the record of what each cycle's judge
+   thought of the text it started from.
    Commit kept rewrites: `cycle N: <item type> ch NN (<score>)`.
 
    **The baseline must be same-cycle. This is not optional and it is
@@ -253,13 +256,33 @@ missing scene → thin character → weak scene → consistency):
    7.0. Gating a revision-phase score against a drafting-phase number
    silently discards work that is not actually worse.
 
-   So: use the recorded score as a first pass, but **the moment a
-   rewrite fails the gate, re-score the CURRENT committed text of that
-   chapter** (dispatch the same judge, same labeled paths, write to
-   `eval_logs/chNN_baseline.json`) and compare against that number
-   instead. One extra dispatch settles whether you are discarding a
-   regression or a phantom. Log the baseline row to attempts.tsv with
-   `baseline` in the keep_discard column so later cycles can reuse it.
+   So: **baseline before you rewrite, not after a rewrite fails.** At
+   the start of Fix, dispatch the chapter judge once for EVERY chapter
+   you intend to touch this cycle, in parallel, against the current
+   committed text (same labeled paths as a scoring dispatch; write each
+   to `eval_logs/chNN_baseline_cycleN.json`). These run concurrently
+   with drafting the first brief, so they cost wall-clock nothing. Two
+   things you get only by doing it first: an honest gate from the first
+   attempt (a chapter carrying 7.33 from drafting baselined at 7.00 in
+   revision — the rewrite's real gain was +0.78, not +0.45), and a
+   fresh read of the committed text that names defects the debt list
+   missed (one run's baselines found a continuity contradiction and an
+   archive keyed by different calendars in two chapters, none of it on
+   any list). A baseline dispatch is not an attempt: it does not count
+   against the 3 per chapter per cycle. Log each as a row in
+   attempts.tsv with `baseline` in the keep_discard column.
+
+   **A baseline is valid only within the cycle it was measured.** This
+   is not just a drafting-vs-revision effect. Measured on one project:
+   a chapter's committed text scored 7.89 by the cycle-1 revision judge
+   and 7.22 by the cycle-2 revision judge, unchanged in between. A
+   cycle-2 rewrite scored 7.78 and "failed" the 7.89 gate by 0.11;
+   against the true same-cycle baseline it beat it by 0.56 and was one
+   command from being discarded. Never gate against a number from a
+   prior cycle. If you skipped the start-of-Fix baseline for a chapter
+   and a rewrite then fails, re-baseline it before discarding — one
+   dispatch settles whether you are discarding a regression or a
+   phantom.
 
    Two consequences worth internalising:
    - Same-judge variance on identical text runs about ±0.5, so a
@@ -374,8 +397,11 @@ action beats between lines of dialogue alone — they are what keeps an
 exchange from being talking heads, and every cutting judge reads them
 as redundant.
 
-Never discard a rewrite against a score you did not measure this cycle.
-Drafting-phase numbers run high; re-baseline the committed text first.
+Never discard a rewrite against a score you did not measure THIS cycle.
+Drafting-phase numbers run high and prior-cycle numbers drift by more
+than half a point on identical text; baseline every chapter you will
+touch at the start of Fix, and re-baseline before any discard that
+would otherwise rest on an older number.
 
 ## Optional cycle-1 diagnostic: chapter tournament
 
