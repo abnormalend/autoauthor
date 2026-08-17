@@ -26,13 +26,14 @@ does not.
 
 Then write a compression brief (`gen_brief.py --cuts <ch>` or
 `--panel <ch>`) and rewrite in-session per that brief.
-Target: cut 40-60% of the chapter's words.
+Target: cut 40-60% of the unit's words.
 Keep: the 2-3 essential beats the panel identified.
-WARNING: don't over-compress. Below ~1800 words is too thin for any chapter.
-Sweet spot: 2200-3000 words for a compressed chapter.
-WARNING: the script's COMPRESS target (55% of current) will ask for a
-count under the 1800 floor on any chapter below ~3,300 words. Override
-it by hand; the guardrail wins.
+WARNING: don't over-compress. Below the unit floor — half the resolved
+`shape.chapter_words`, 1800 for a novel — is too thin for any unit.
+Sweet spot: 0.6–0.85 × `shape.chapter_words` (2200–3000 for a novel).
+gen_brief.py clamps its COMPRESS target to the floor when given
+`--chapter-words`; a brief whose TARGET sits at the floor is telling you
+the chapter has no compression left, and the item wants a different fix.
 
 **The compression trap — read before any cut-candidate rewrite.**
 The panel and the chapter judge want opposite things, and the chapter
@@ -140,9 +141,10 @@ same dimension, stop — diminishing returns.
 
 ## Dangers
 
-- **Over-compressing.** Cutting a chapter below 1800 words tends to
-  make it the new weakest chapter. Sweet spot for a compressed chapter
-  is 2200-3000 words.
+- **Over-compressing.** Cutting a unit below the floor (0.5 ×
+  `shape.chapter_words`; 1800 for a novel) tends to make it the new
+  weakest chapter. Sweet spot is 0.6–0.85 × the unit length
+  (2200–3000 for a novel).
 - **Expansion bloat.** Rewrites driven by a brief tend to run ~30%
   longer than briefed. A brief targeting 3200 words will often produce
   3800-4200 words — brief for shorter than the actual target.

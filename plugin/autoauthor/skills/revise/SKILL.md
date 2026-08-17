@@ -26,6 +26,19 @@ measure (full-novel score). Stop on plateau: full-novel score change
    `genre` field at all, or its `genre` is null, STOP and run the migration
    in `novel/SKILL.md` first — a null genre resolves silently to `general`,
    so the resolver exiting 0 is NOT evidence that anyone chose a genre.
+   Keep `shape.chapter_words` too, and compute — and STATE in your
+   first message, so it is in the transcript — this project's length
+   guardrails from it:
+
+   ```
+   unit floor  = 0.5 × shape.chapter_words   (novel 3600 → 1800; short story 1200 → 600)
+   sweet spot  = 0.6–0.85 × shape.chapter_words
+   ```
+
+   Every "1800" and "2200–3000" in the playbook is the novel case of
+   these ratios. On a short-story project every scene was already
+   below 1800 before revision began; read literally, the guardrail
+   forbade all cutting.
 3. Required reading: `"${CLAUDE_PLUGIN_ROOT}/shared/craft/ANTI-PATTERNS.md"`,
    the project's voice.md, `references/revision-playbook.md` (this
    skill's directory), and every genre pack path the resolver reported.
@@ -166,7 +179,7 @@ can gut chapters.
    the manuscript indefinitely, because cycle N+1 diffs against a tree
    that already contains it — that is exactly how a `he said, , and`
    survived a cycle.
-   Then verify no chapter fell below 1800 words
+   Then verify no chapter fell below the unit floor (Setup step 2)
    (`wc -w chapters/ch_*.md`). If one did, restore it with
    `git checkout HEAD -- chapters/ch_NN.md` and exclude it from cuts
    this cycle. Run the slop scorer over the touched chapters as a
@@ -246,10 +259,11 @@ missing scene → thin character → weak scene → consistency):
    (or `--cuts <ch>`; use `--eval <ch>` once this cycle's chapter
    evals exist). Review the brief; sharpen it by hand if the playbook
    recipe for this item type demands specifics the script missed.
-   **Check the brief's TARGET before using it.** A COMPRESS brief sets
-   the target at 55% of current length, which on a chapter already near
-   the floor asks for a word count the 1800-word guardrail forbids
-   (2,400 → 1,320). The guardrail wins; override the number by hand.
+   **Check the brief's TARGET before using it.** Pass
+   `--chapter-words <shape.chapter_words>` so the script clamps COMPRESS
+   and TIGHTEN targets to the unit floor; without it the floor is the
+   novel's 1800. If the brief's TARGET is at the floor, the chapter has
+   no compression left in it and the item wants a different fix.
 3. Rewrite the chapter in-session following the brief plus the
    playbook's Rewrite rules, with the drafting context recipe
    (every layer file the form builds — voice.md and characters.md
@@ -448,7 +462,8 @@ step `/autoauthor:review`. Report the same to the user.
 
 ## Guardrails (from the playbook — non-negotiable)
 
-Never compress a chapter below 1800 words. Expect rewrites to run ~30%
+Never compress a unit below the floor computed in Setup (0.5 ×
+shape.chapter_words; 1800 for a novel). Expect rewrites to run ~30%
 long — brief for shorter than you want. If the full-novel eval names a
 NEW weakest chapter twice in a row after fixes, stop chasing it.
 
