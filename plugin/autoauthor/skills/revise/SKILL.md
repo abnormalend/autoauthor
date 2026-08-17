@@ -400,7 +400,8 @@ missing scene → thin character → weak scene → consistency):
    Dispatch the full-novel judge: "Read the rubric at
    `<absolute plugin path>/shared/rubrics/full-novel.md` and the genre
    pack(s) at `<resolved pack paths, primary first, each labeled with its
-   role>`, and follow the rubric exactly. The project directory is
+   role>`, and follow the rubric exactly. The form is `<form.name>` and
+   its band is `<form.band>`. The project directory is
    `<absolute project path>`. The input files are voice.md, characters.md,
    outline.md, `<world.md, where the resolved form builds it>` and
    arc_summary.md. Write the JSON the
