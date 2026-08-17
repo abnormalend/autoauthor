@@ -10,6 +10,66 @@ the reason a thing was *not* changed is worth the same record as a change.
 
 ---
 
+## 0.18.0 — 2026-08-17
+
+The findings from one full foundation → draft → revise run on a
+short-story project, filed under `docs/superpowers/specs/2026-08-17-*` and
+acted on by the plan beside them. Six parts, each shippable alone.
+
+**Baselines and keep/discard.** Revise baselines every chapter it will
+touch at the start of Fix, in parallel, and trusts only a same-cycle number
+— identical text drifted 0.67 between two revision cycles' judges, and a
+rewrite that beat its true baseline by 0.56 was one command from discard.
+Foundation gets a ±0.15 tie band, checks whether the targeted fault cleared
+before discarding a regression, treats a fired cap as overriding a cleared
+gate, and reads the judge's `fix` strings as hypotheses.
+
+**Judges write their own verdicts.** Every scored dispatch names an
+absolute output path; the judge writes it and returns the path and score.
+`score_verdict.py` was certifying the orchestrator's transcription. The
+rubrics' OUTPUT lines and file lists agree, and a judge may no longer infer
+that a file it was not shown does not exist.
+
+**Form-aware drafting.** Draft builds its input-file list from
+`form.layers`, scaffolds `canon.md` at compressed forms, loads the outline's
+preamble (fact table, clock) with every chapter, and reconciles `state.json`
+against `git log` before inferring a resume point. Six drafting rules that
+named `world.md` name the fact-bearing layer by role; a test keeps them so.
+
+**A facts checker and a canon gate.** `continuity_check.py` lists every
+clock time and number a chapter states and whether any fact-bearing document
+states it too. Draft runs it beside the slop score, keeps only chapters
+whose `canon_compliance.violations` is empty (or ≥ 7), and gains a
+surgical-correction branch that is not a discard. The outline template
+carries `## Facts the story must not contradict`; foundation checks the
+seed's arithmetic into it and requires any text the story quotes verbatim
+to exist in full in the plan.
+
+**Cutting protection.** `apply_cuts.py --protect-file`; `splice_audit.py`
+with the four checks the prose list missed; revise builds
+`edit_logs/protected.md` from prior judges' strongest sentences and the
+ledger's carrying sentences before any mechanical pass, archives the prior
+cycle's cuts JSON before re-dispatching, gates the cuts pass by chapter
+after cycle 1, and carries prior-cycle skips into Fix.
+
+**Ratios, not novel literals.** The 1800-word floor is 0.5 ×
+`shape.chapter_words`; `gen_brief.py --chapter-words` clamps to it;
+layer-guides' thread, quiet-unit, character-doc and canon counts scale with
+the resolved shape; forms declare `iteration_cap` (novel 15, novella 8,
+short story 4); the full-novel judge honours the band section.
+
+**Rubric prose.** `internal_consistency` caps on major contradictions in
+binding text; the foundation judge discounts prose addressed to it; an
+`## Author-facing only (never on the page)` section in the outline and
+character templates that every judge treats as withheld by design.
+
+Not done, and why: triple-judge median (trebles a cost the same findings
+complain about); a suppression list for the layer guide (ratios do it);
+cumulative voice budgets in `slop_score.py` (needs a `voice_budgets.json`
+contract from foundation — its own plan). 461 → 520 tests.
+
+---
+
 ## 0.17.1 — 2026-08-15
 
 A chapter that opens on dialogue got a backtick for a drop cap.
