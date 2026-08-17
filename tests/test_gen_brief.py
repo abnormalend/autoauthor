@@ -92,3 +92,43 @@ def test_malformed_state_json_does_not_break_the_brief(tmp_path):
     )
     assert result.returncode == 0, result.stdout + result.stderr
     assert "no generic genre diction" in (tmp_path / "briefs/ch05_eval.md").read_text()
+
+
+def test_compress_target_clamps_to_half_the_unit_length(tmp_path, monkeypatch):
+    """55% of a 1,100-word scene is 605; the floor for a 1,200-word unit is
+    600, so the target is 605. For a 900-word scene 55% is 495 and the
+    floor wins: 600. Without --chapter-words the floor is the novel's 1800."""
+    import json
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "chapters").mkdir()
+    (tmp_path / "edit_logs").mkdir()
+    (tmp_path / "voice.md").write_text("# Voice\n")
+    (tmp_path / "chapters/ch_02.md").write_text(
+        "# Chapter 2: Short\n\n" + ("word " * 900).strip() + "\n")
+    (tmp_path / "edit_logs/reader_panel.json").write_text(json.dumps({
+        "readers": {"editor": {"cut_candidate": "Chapter 2"}},
+        "consensus": ["cut_candidate: chapter 2"],
+        "disagreements": []}))
+    r = subprocess.run([sys.executable, str(SCRIPT), "--panel", "2",
+                        "--chapter-words", "1200", "--dry-run"],
+                       capture_output=True, text=True, cwd=tmp_path)
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert "~600 words" in r.stdout          # 495 clamped up to the 600 floor
+    assert "floor 600" in r.stdout
+
+
+def test_compress_target_floor_defaults_to_the_novel_1800(tmp_path, monkeypatch):
+    import json
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "chapters").mkdir()
+    (tmp_path / "edit_logs").mkdir()
+    (tmp_path / "voice.md").write_text("# Voice\n")
+    (tmp_path / "chapters/ch_02.md").write_text(
+        "# Chapter 2: Short\n\n" + ("word " * 2400).strip() + "\n")
+    (tmp_path / "edit_logs/reader_panel.json").write_text(json.dumps({
+        "readers": {"editor": {"cut_candidate": "Chapter 2"}},
+        "consensus": [], "disagreements": []}))
+    r = subprocess.run([sys.executable, str(SCRIPT), "--panel", "2", "--dry-run"],
+                       capture_output=True, text=True, cwd=tmp_path)
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert "~1800 words" in r.stdout         # 1320 clamped up to 1800

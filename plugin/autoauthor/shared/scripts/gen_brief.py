@@ -24,6 +24,17 @@ VOICE_PATH = BASE_DIR / "voice.md"
 STATE_PATH = BASE_DIR / "state.json"
 PLUGIN_GENRES = Path(__file__).resolve().parent.parent / "genres"
 
+# The novel's unit length; the floor below is 50% of it (1800), which is
+# where the revision playbook's guardrail came from. A form with a shorter
+# unit passes its own via --chapter-words and the floor scales with it.
+DEFAULT_CHAPTER_WORDS = 3600
+FLOOR_RATIO = 0.5
+CHAPTER_WORDS = DEFAULT_CHAPTER_WORDS
+
+
+def chapter_floor() -> int:
+    return int(CHAPTER_WORDS * FLOOR_RATIO)
+
 
 # ---------------------------------------------------------------------------
 # helpers
@@ -343,16 +354,20 @@ def build_panel_brief(ch: int) -> str:
             "Consider combining with --eval or --cuts for concrete revision items."
         )
 
-    # Determine word count target
+    # Determine word count target. COMPRESS and TIGHTEN clamp to the floor
+    # (half the resolved unit length): 55% of a chapter already near the
+    # floor asked for 1,320 words on a 2,400-word chapter, and the skill
+    # had to override it by hand.
+    floor = chapter_floor()
     if brief_type == "COMPRESS":
-        target_wc = int(wc * 0.55)
-        target_note = f"~{target_wc} words (compress from current {wc})"
+        target_wc = max(int(wc * 0.55), floor)
+        target_note = f"~{target_wc} words (compress from current {wc}; floor {floor})"
     elif brief_type == "DRAMATIZE":
         target_wc = wc  # restructure, not expand
         target_note = f"~{target_wc} words (restructure, roughly same length)"
     elif brief_type == "TIGHTEN":
-        target_wc = int(wc * 0.85)
-        target_note = f"~{target_wc} words (tighten from current {wc})"
+        target_wc = max(int(wc * 0.85), floor)
+        target_note = f"~{target_wc} words (tighten from current {wc}; floor {floor})"
     else:
         target_note = f"~{wc} words (current length, unless changes dictate otherwise)"
 
@@ -832,8 +847,15 @@ def main():
                         help="Auto-detect weakest chapter and generate combined brief")
     parser.add_argument("--dry-run", action="store_true",
                         help="Print brief to stdout without saving")
+    parser.add_argument("--chapter-words", type=int, metavar="N",
+                        help="the resolved shape.chapter_words; the compression "
+                             "floor is half of it (default 3600 → 1800)")
 
     args = parser.parse_args()
+
+    global CHAPTER_WORDS
+    if args.chapter_words:
+        CHAPTER_WORDS = args.chapter_words
 
     # Validate: exactly one mode
     modes = sum([
