@@ -45,6 +45,16 @@ ahead.
 13. Start the chapter in scene, not with exposition. End on a moment,
     not a summary.
 
+## Pre-scoring self-check
+
+Before running the slop score, list every clock time and every bare
+number you wrote in this chapter — ages, counts, dates, distances,
+durations — and check each against the outline's facts and clock
+sections. A number you cannot trace to that section is a defect until
+you have decided otherwise, not a detail. `continuity_check.py` prints
+the list; the deciding is yours. If you do not need the number, do not
+write one.
+
 ## Anti-pattern rules (14–24) — these exist to counter freshness decay after ~chapter 6
 
 14. NO triadic sensory lists. Never "X. Y. Z." or "X and Y and Z" as

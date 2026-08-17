@@ -104,6 +104,23 @@ a 6.0 ships; revision is Phase 3's job.
    form's band sets the figurative density threshold — a compressed form
    cannot afford the ornament budget a novel can. Without them the scan
    falls back to the general lists and the novel-length threshold, silently.
+
+   Then, in the same breath:
+
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/continuity_check.py" chapters/ch_NN.md
+   ```
+
+   It lists every clock time and number the chapter states and whether
+   any fact-bearing document (outline, canon, world, characters —
+   whichever exist) states it too. Read the NOT FOUND list against the
+   outline's fact table before dispatching the judge. Most entries will
+   be harmless inventions; the ones that are not are the cheapest
+   defects you will ever fix — six of eight canon violations on one run
+   were single-word edits, and every one of them survived into a later
+   phase because nothing looked. Fix what is wrong, re-run both scripts,
+   then judge.
+
    Note the `slop_penalty`. Copy the attempt to an untracked scratch
    file before judging: `cp chapters/ch_NN.md eval_logs/ch_NN_attempt_<k>.md`
    — eval_logs/ is untracked, so attempts survive discards.
@@ -156,7 +173,24 @@ a 6.0 ships; revision is Phase 3's job.
 5. **Final score** = judge `overall_score` minus the script's
    `slop_penalty` (floor 0). This mirrors the original pipeline's
    independent mechanical adjustment.
-6. **Gate.** Final score > 6.0 → keep: update state.json
+6. **Gate.** Keep requires BOTH: final score > 6.0 AND the judge's
+   `canon_compliance.violations` list is empty (or `canon_compliance`
+   scored 7 or higher). A canon violation is unlike a weak sentence: it
+   is cheap now, it compounds (a wrong line in ch1 forced ch2 to write
+   around it on one run, and the judge discounted ch2's version as a
+   repeat), and it is invisible to revision, whose instruments cut and
+   compress and read a wrong number as perfectly good prose.
+
+   **If the chapter fails ONLY on canon** — score clears, violations
+   listed — do not discard. Take the surgical-correction branch: apply
+   edits that address the named violations and nothing else, re-run
+   step 3, re-dispatch the judge, and log the attempt row as `correct`
+   rather than `keep`/`discard`. A correction counts against the
+   5-attempt budget so it cannot loop. Cost is one edit pass and one
+   dispatch, against a debt that otherwise waits for a phase that will
+   not see it.
+
+   Score clears and canon clean → keep: update state.json
    `chapters_drafted`, fold in the attempt rows (fix 2), then
    `git add -A && git commit -m "draft: ch NN (<final score>)"`.
    Otherwise discard with `git reset --hard HEAD` (untracked eval logs
@@ -173,7 +207,7 @@ a 6.0 ships; revision is Phase 3's job.
    from eval_logs/attempts.tsv into results.tsv, then
    `git add -A && git commit` — the full experiment log lands
    atomically with the kept chapter. Row format:
-   `<ISO timestamp>\tdrafting\t<final score>\t<chapter word count>\t<keep|discard|noscore>\tch NN attempt <k>`
+   `<ISO timestamp>\tdrafting\t<final score>\t<chapter word count>\t<keep|discard|correct|noscore>\tch NN attempt <k>`
 7. **Canon.** Append the judge's `new_canon_entries` to canon.md
    (created in Setup step 6 if the form did not build one), each
    tagged `(ch_NN)`. If writing revealed a lore gap or contradiction,
