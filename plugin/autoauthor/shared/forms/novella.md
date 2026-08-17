@@ -7,6 +7,7 @@
   "target_words": 30000,
   "chapter_words": 2500,
   "gate": {"overall": 7.0, "pillar": 6.5},
+  "iteration_cap": 8,
   "layers": ["voice", "world", "characters", "outline", "canon"],
   "base_dimensions": {
     "drop": ["foreshadowing_balance"],

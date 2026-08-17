@@ -84,6 +84,10 @@ def layer_files(layers):
 
 GATE_KEYS = ("overall", "pillar")
 
+# How many foundation iterations a form allows before the loop stops
+# regardless of the gate, when the form does not declare its own.
+DEFAULT_ITERATION_CAP = 15
+
 # The template's filename stem, matching genre_pack's convention so a
 # forms/ directory can carry an authoring guide without it resolving as a
 # form.
@@ -141,6 +145,13 @@ def validate_form(form):
                       "declares one only to override the genre's, which a "
                       "compressed form must because its unit is not a "
                       "chapter")
+    cap = meta.get("iteration_cap")
+    if cap is not None and not (isinstance(cap, int)
+                                and not isinstance(cap, bool) and cap > 0):
+        errors.append("'iteration_cap' must be a positive integer; it is "
+                      "how many foundation iterations this length can "
+                      "earn before the plan cannot be much righter than "
+                      "the work")
     errors.extend(_validate_base_dimensions(meta.get("base_dimensions"), form))
 
     if "role" in meta:

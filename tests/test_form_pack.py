@@ -232,7 +232,7 @@ def test_a_project_with_no_form_resolves_to_novel(tmp_path):
 def test_the_form_block_carries_what_the_skills_need(tmp_path):
     form = resolve(tmp_path, {"genre": "mystery"})["form"]
     assert set(form) == {"name", "label", "band", "words", "target_words",
-                         "gate", "layers", "path"}
+                         "gate", "layers", "iteration_cap", "path"}
     assert form["band"] == "extended"
 
 
@@ -326,3 +326,23 @@ def test_outline_and_foreshadowing_are_one_file():
     """The ledger is part two of the outline, not a document of its own —
     so a form declaring both must not scaffold it twice."""
     assert form_pack.layer_files(["outline", "foreshadowing"]) == ["outline.md"]
+
+
+def test_iteration_cap_is_optional_and_defaults_to_fifteen(tmp_path):
+    assert validate(tmp_path, "testform", VALID_FORM_META) == []
+    assert resolve(tmp_path, {"genre": "mystery"})["form"]["iteration_cap"] == 15
+
+
+@pytest.mark.parametrize("cap", [0, -1, 2.5, "8", True])
+def test_iteration_cap_must_be_a_positive_integer(tmp_path, cap):
+    meta = dict(VALID_FORM_META, iteration_cap=cap)
+    errors = validate(tmp_path, "testform", meta)
+    assert any("iteration_cap" in e for e in errors), errors
+
+
+def test_shipped_forms_declare_shorter_caps_at_shorter_lengths():
+    caps = {p.stem: form_pack.parse_form(p)["meta"].get("iteration_cap")
+            for p in FORMS.glob("*.md")}
+    assert caps["novel"] == 15
+    assert caps["novella"] == 8
+    assert caps["short-story"] == 4

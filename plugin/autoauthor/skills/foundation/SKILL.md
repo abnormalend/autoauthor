@@ -9,7 +9,8 @@ Builds the planning layers the work's form calls for and iterates until
 both scores clear that form's gate — `foundation_score > 7.5 AND
 pillar_score > 7.0` for a novel — and no cap is firing. No prose
 chapters are written in this
-phase. Typical runs take 5–15 iterations.
+phase. Typical runs take 5–15 iterations at novel length; the form's
+`iteration_cap` bounds it.
 
 ## Setup
 
@@ -217,10 +218,14 @@ chapters untouched).
    eval record is kept even for discarded iterations). Either way
    append to results.tsv:
    `<ISO timestamp>\tfoundation\t<score>\t0\t<keep|discard|noscore>\t<one line>`.
-5. **Iteration cap.** After 15 iterations without exiting the loop,
-   STOP. Report the best score, the stubborn dimension or the cap that
-   keeps firing, and options
-   (accept and move on / keep iterating / revise the seed).
+5. **Iteration cap.** After `form.iteration_cap` iterations (from the
+   resolver's `form` block — 15 for a novel, 8 for a novella, 4 for a
+   short story) without exiting the loop, STOP. Report the best score,
+   the stubborn dimension or the cap that keeps firing, and options
+   (accept and move on / keep iterating / revise the seed). The cap is
+   the form's for the same reason the gate is: six evals at 119k tokens
+   each to plan 5,000 words was the cost on one run, and the last two
+   moved the mean 0.10.
 
    **Compute the score; do not take the judge's word for it.**
 

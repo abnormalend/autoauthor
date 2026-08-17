@@ -6,6 +6,7 @@
   "words": [40000, 120000],
   "target_words": 85000,
   "gate": {"overall": 7.5, "pillar": 7.0},
+  "iteration_cap": 15,
   "layers": ["voice", "world", "characters", "mystery", "outline",
              "foreshadowing", "canon"],
   "base_dimensions": {"drop": [], "add": {}}

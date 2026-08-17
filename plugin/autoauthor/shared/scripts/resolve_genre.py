@@ -85,11 +85,14 @@ skills parse this, none of which can see this module's source:
                        'artifacts' entries are deliberately excluded —
                        see merge().
   form              — {"name", "label", "band", "words", "target_words",
-                       "gate", "layers", "path"} from the resolved form
-                       pack. 'band' is what a genre pack's length-scoped
-                       sections key off; 'gate' is the pair the foundation
-                       loop exits on; 'layers' is which planning documents
-                       get built at this length. A state.json with no
+                       "gate", "iteration_cap", "layers", "path"} from the
+                       resolved form pack. 'band' is what a genre pack's
+                       length-scoped sections key off; 'gate' is the pair
+                       the foundation loop exits on; 'iteration_cap' is
+                       how many foundation iterations before the loop
+                       stops regardless (form's own, default 15); 'layers'
+                       is which planning documents get built at this
+                       length. A state.json with no
                        'form' resolves to 'novel', under the same
                        defaulting rule as 'genre' above and with the same
                        caveat — a clean exit never proves anyone chose it.
@@ -480,6 +483,8 @@ def merge(packs, form, base_dims, pillar, structure):
             "words": form["meta"]["words"],
             "target_words": form["meta"]["target_words"],
             "gate": form["meta"]["gate"],
+            "iteration_cap": form["meta"].get("iteration_cap",
+                                              form_pack.DEFAULT_ITERATION_CAP),
             "layers": form["meta"]["layers"],
             "path": str(form["path"]),
         },
