@@ -63,9 +63,20 @@ prose twice, once as its pillar and once as base craft.
 ## Craft
 
 - internal_consistency [cap 4] — Actively hunt for contradictions.
-  Cross-ref dates, ages, character counts, named locations. Flag any case
-  where documents disagree. A single major contradiction caps this at 6.
-  Three or more caps at 4.
+  Cross-ref dates, ages, character counts, named locations, and every
+  number in the outline's facts section against every other document.
+  Count only contradictions in text a writer must not violate: fact
+  tables, outline beats, quoted in-story text, and character facts. A
+  disagreement confined to authorial commentary is a note under this
+  dimension, not a contradiction. A MAJOR contradiction is one the plot
+  depends on — a clock the climax runs on stated three ways, an interval
+  that cannot both be what two chapters need. One major caps this at 6;
+  three or more major caps at 4. Two judges on one run handled the
+  same class of set oppositely because the rule gave no severity axis:
+  one capped at 4 on four one-line typography and wording faults, the
+  other scored 8 by declining to count comparable ones. List every
+  contradiction you found, major or not, so the author can fix all of
+  them; cap on the major ones.
 - voice_clarity — Voice definition must be specific and ACTIONABLE.
   Exemplar passages must demonstrate the voice. Anti-exemplars must define
   boundaries. Check exemplar dialogue for AI slop patterns. A voice doc
