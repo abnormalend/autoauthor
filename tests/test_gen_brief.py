@@ -132,3 +132,44 @@ def test_compress_target_floor_defaults_to_the_novel_1800(tmp_path, monkeypatch)
                        capture_output=True, text=True, cwd=tmp_path)
     assert r.returncode == 0, r.stdout + r.stderr
     assert "~1800 words" in r.stdout         # 1320 clamped up to 1800
+
+
+def _short_story_project(tmp_path, words):
+    (tmp_path / "chapters").mkdir()
+    (tmp_path / "edit_logs").mkdir()
+    (tmp_path / "voice.md").write_text("# Voice\n")
+    (tmp_path / "chapters/ch_02.md").write_text(
+        "# Chapter 2: Short\n\n" + ("word " * words).strip() + "\n")
+
+
+def test_cuts_target_clamps_to_the_floor(tmp_path, monkeypatch):
+    """1,000 words with 500 cuttable would ask for 500; the floor for a
+    1,200-word unit is 600."""
+    monkeypatch.chdir(tmp_path)
+    _short_story_project(tmp_path, 1000)
+    (tmp_path / "edit_logs/ch02_cuts.json").write_text(json.dumps({
+        "cuts": [{"type": "REDUNDANT", "action": "CUT", "text": "word word",
+                  "reason": "repeats", "words_saved": 500}],
+        "total_cuttable_words": 500, "overall_fat_percentage": 50,
+        "one_sentence_verdict": "half of it is fat"}))
+    r = subprocess.run([sys.executable, str(SCRIPT), "--cuts", "2",
+                        "--chapter-words", "1200", "--dry-run"],
+                       capture_output=True, text=True, cwd=tmp_path)
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert "~600 words" in r.stdout
+    assert "floor 600" in r.stdout
+
+
+def test_a_chapter_under_the_floor_is_told_not_to_compress(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    _short_story_project(tmp_path, 500)
+    (tmp_path / "edit_logs/reader_panel.json").write_text(json.dumps({
+        "readers": {"editor": {"cut_candidate": "Chapter 2"}},
+        "consensus": [], "disagreements": []}))
+    r = subprocess.run([sys.executable, str(SCRIPT), "--panel", "2",
+                        "--chapter-words", "1200", "--dry-run"],
+                       capture_output=True, text=True, cwd=tmp_path)
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert "words (already at or under the floor 600" in r.stdout
+    assert "do not compress" in r.stdout
+    assert "~600 words" not in r.stdout      # not clamped UP to the floor

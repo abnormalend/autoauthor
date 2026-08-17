@@ -29,8 +29,8 @@ phase. Typical runs take 5–15 iterations at novel length; the form's
    genre stack must be fixed before any layer work. Keep the reported pack
    paths; every judge dispatch below needs them. Keep the `form` block
    too: `form.layers` is which layers to build, `form.gate` is what the
-   loop exits on, and `form.band` is which length-scoped section of a
-   genre pack applies. If `state.json` has no
+   loop exits on, `form.iteration_cap` is when it stops regardless, and
+   `form.band` is which length-scoped section of a genre pack applies. If `state.json` has no
    `genre` field at all, or its `genre` is null, STOP and run the migration
    in `novel/SKILL.md` first — a null genre resolves silently to `general`,
    so the resolver exiting 0 is NOT evidence that anyone chose a genre.

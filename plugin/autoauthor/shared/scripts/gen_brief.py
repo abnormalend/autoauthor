@@ -8,6 +8,9 @@ Usage:
   python gen_brief.py --eval 12     # brief from eval callouts for ch 12
   python gen_brief.py --cuts 12     # brief from adversarial cuts for ch 12
   python gen_brief.py --auto        # auto-detect weakest chapter and generate
+  python gen_brief.py --panel 12 --chapter-words 1200
+                                    # clamp COMPRESS/TIGHTEN targets to half
+                                    # the resolved shape.chapter_words
 """
 import argparse
 import json
@@ -34,6 +37,18 @@ CHAPTER_WORDS = DEFAULT_CHAPTER_WORDS
 
 def chapter_floor() -> int:
     return int(CHAPTER_WORDS * FLOOR_RATIO)
+
+
+def clamped_target(wc: int, proposed: int, verb: str) -> tuple[int, str]:
+    """Clamp a compression target to the floor. A chapter already at or
+    under the floor gets its current count back and a note saying so:
+    the item wants a different fix, not a shorter chapter."""
+    floor = chapter_floor()
+    if wc <= floor:
+        return wc, (f"~{wc} words (already at or under the floor {floor} — "
+                    f"do not compress; the item wants a different fix)")
+    target_wc = max(proposed, floor)
+    return target_wc, f"~{target_wc} words ({verb} from current {wc}; floor {floor})"
 
 
 # ---------------------------------------------------------------------------
@@ -358,16 +373,13 @@ def build_panel_brief(ch: int) -> str:
     # (half the resolved unit length): 55% of a chapter already near the
     # floor asked for 1,320 words on a 2,400-word chapter, and the skill
     # had to override it by hand.
-    floor = chapter_floor()
     if brief_type == "COMPRESS":
-        target_wc = max(int(wc * 0.55), floor)
-        target_note = f"~{target_wc} words (compress from current {wc}; floor {floor})"
+        target_wc, target_note = clamped_target(wc, int(wc * 0.55), "compress")
     elif brief_type == "DRAMATIZE":
         target_wc = wc  # restructure, not expand
         target_note = f"~{target_wc} words (restructure, roughly same length)"
     elif brief_type == "TIGHTEN":
-        target_wc = max(int(wc * 0.85), floor)
-        target_note = f"~{target_wc} words (tighten from current {wc}; floor {floor})"
+        target_wc, target_note = clamped_target(wc, int(wc * 0.85), "tighten")
     else:
         target_note = f"~{wc} words (current length, unless changes dictate otherwise)"
 
@@ -626,11 +638,11 @@ def build_cuts_brief(ch: int) -> str:
             change_parts.append(entry)
             change_num += 1
 
-    # Word count target
-    target_wc = wc - total_cuttable
-    target_note = (
-        f"~{target_wc} words (cut ~{total_cuttable} from current {wc}). "
-        f"Tighten {fat_pct}% fat without losing the chapter's strongest beats."
+    # Word count target, clamped to the floor like the panel brief's.
+    target_wc, target_note = clamped_target(wc, wc - total_cuttable,
+                                            f"cut ~{total_cuttable}")
+    target_note += (
+        f" Tighten {fat_pct}% fat without losing the chapter's strongest beats."
     )
 
     brief = f"# Revision Brief: Chapter {ch} — {title} ({brief_type})\n\n"

@@ -9,10 +9,10 @@ Two things govern how to read the numbers here. First, the form pack's
 `## Foundation Guidance` says which layers exist at this length and what
 each means; a layer the form does not name is not a gap. Second, every
 count and length below is written for a novel and scales by the resolved
-`shape` — where a line says "per N chapters" or "per N words", compute it
-from `shape.chapters` and `shape.target_words` and use that number. A
-5,000-word story does not owe fifteen tracked threads or three quiet
-chapters; it owes the ratio.
+`shape` — where a line says "per N words", "one unit in N", or "N% of
+`shape.target_words`", compute it from `shape.chapters` and
+`shape.target_words` and use that number. A 5,000-word story does not
+owe fifteen tracked threads or three quiet chapters; it owes the ratio.
 
 These documents address the drafting agent, not the evaluator. Do not
 write arguments about why a choice satisfies a rubric, a contract, or
@@ -153,8 +153,10 @@ IMPORTANT:
   something specific in the backstory, not be decorative.
 - The antagonist should be as fully realized as the protagonist — a
   worthy opposition.
-- Target roughly 4% of `shape.target_words` (3000–4000 for a novel).
-  Dense character work, not padding.
+- Target roughly 4% of `shape.target_words` (3000–4000 for a novel),
+  and at compressed length whatever the cast at the pack's stated depth
+  actually needs — the ratio is a novel guide, not a cap on a
+  5,000-word story's registry. Dense character work, not padding.
 
 ---
 
@@ -231,12 +233,14 @@ CONSTRAINTS:
   in person at some point, not only in memory or secondhand report —
   unless the impossibility of their appearing IS the story's subject,
   in which case the outline states that once, plainly, and moves on.
-- About one unit in four should be "quiet" — character-focused,
-  low-action, emotionally rich (at least 3 for a novel; a four-scene
-  story owes one).
+- About one unit in eight should be "quiet" — character-focused,
+  low-action, emotionally rich (three or so for a 24-chapter novel; a
+  four-scene story owes one — the ratio rounds up, never to zero).
 - Vary the try-fail types: 60%+ should be "yes-but" or "no-and."
 - The foreshadowing ledger (part 2) must have plant-to-payoff
-  distances of at least 3 chapters.
+  distances of at least one-eighth of the units, never adjacent
+  (3 chapters for a novel; a four-scene story plants in scene 1 and
+  pays in scene 4).
 
 ---
 
@@ -262,7 +266,9 @@ RULES:
   BALANCE. A thread with a "Planted" entry and no "Payoff" entry is a
   gap, not a mystery; the rubric scores an empty or unbalanced ledger
   at 0 regardless of implicit threads elsewhere in the documents.
-- Plant-to-payoff distance must be at least 3 chapters.
+- Plant-to-payoff distance must be at least one-eighth of the units,
+  never adjacent (3 chapters for a novel; a four-scene story plants in
+  scene 1 and pays in scene 4).
 - The protagonist's lie (from characters.md) must be fully confronted
   — reinforced, challenged, and finally shattered or consciously
   kept — by the climax; the ledger must show where.

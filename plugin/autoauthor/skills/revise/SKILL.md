@@ -255,9 +255,9 @@ missing scene → thin character → weak scene → consistency):
    the next item. Rewriting a chapter to add a scene it already
    contains costs it its score and gains nothing.
 2. Generate a brief:
-   `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/gen_brief.py" --panel <ch>`
-   (or `--cuts <ch>`; use `--eval <ch>` once this cycle's chapter
-   evals exist). Review the brief; sharpen it by hand if the playbook
+   `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/gen_brief.py" --panel <ch> --chapter-words <shape.chapter_words>`
+   (or `--cuts <ch>`, which takes the same flag; use `--eval <ch>` once
+   this cycle's chapter evals exist). Review the brief; sharpen it by hand if the playbook
    recipe for this item type demands specifics the script missed.
    **Check the brief's TARGET before using it.** Pass
    `--chapter-words <shape.chapter_words>` so the script clamps COMPRESS

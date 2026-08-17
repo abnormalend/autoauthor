@@ -32,11 +32,14 @@ closed-door. Where two loaded packs declare the same axis at
 different levels, the MORE RESTRICTIVE one governs — you read the
 packs directly, so apply that clamp yourself before judging.
 
-BAND: the dispatching prompt names the work's form and band. Where the
-primary pack carries a section for that band (`## At Compressed Length`,
-`## At Intermediate Length`), the pillar dimensions it names — and only
-those — are the ones you score; the ones it drops are absent by the
-form's decision, not the plan's. Every full-novel judge on one
+BAND: the dispatching prompt names the work's form and band. The seven
+dimensions below are the ones you score, at any length. But when scoring
+`pillar_consistency`, the systems to check are those governed by the
+pillar dimensions the primary pack's section for this band keeps
+(`## At Compressed Length`, `## At Intermediate Length`); a system the
+band section drops — `consequence_cascade` and `rule_integrity` at
+compressed science fiction, for instance — is absent by the form's
+decision, not a contradiction to hunt. Every full-novel judge on one
 short-story run volunteered that it was scoring a 4,600-word work
 against a novel's instrument; the pack already said which instruments
 apply, and this rubric did not tell you to read it.
