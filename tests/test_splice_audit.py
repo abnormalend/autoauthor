@@ -100,3 +100,63 @@ def test_cli_defaults_to_git_head_for_the_before_text(tmp_path):
                        capture_output=True, text=True, cwd=tmp_path)
     assert r.returncode == 1, r.stdout + r.stderr
     assert "doubled-comma" in r.stdout
+
+
+def test_cut_dialogue_tag_leaves_ends_on_comma_and_no_space_after_quote():
+    before = '"Yes," she said, looking away.\n\n"No," he said, and left.\n'
+    after = '"Yes,"looking away.\n\n"No,"\n'
+    kinds = {f.kind for f in splice_audit.audit(before, after)}
+    assert "no-space-after-quote" in kinds   # "Yes,"looking
+    assert "ends-on-comma" in kinds          # "No,"
+    assert "no-terminal-punctuation" not in kinds
+
+
+def test_doubled_word_already_in_before_is_allowed_and_scene_breaks_skipped():
+    before = "What she had had was enough, and she said so.\n\n* * *\n\nHe went home.\n"
+    after = "What she had had was enough.\n\n* * *\n\nHe went went home.\n"
+    findings = splice_audit.audit(before, after)
+    doubled = [f for f in findings if f.kind == "doubled-word"]
+    assert len(doubled) == 1 and "went went" in doubled[0].text
+    assert not any("* * *" in f.text for f in findings)
+
+
+def test_colon_and_dash_are_terminal():
+    before = "He listed them: a, b, c.\n\nShe stopped—\n"
+    after = "He listed them:\n\nShe stopped —\n"
+    kinds = {f.kind for f in splice_audit.audit(before, after)}
+    assert "no-terminal-punctuation" not in kinds
+
+
+def test_cli_from_a_subdirectory_still_finds_the_head_text(tmp_path):
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    (tmp_path / "chapters").mkdir()
+    (tmp_path / "sub").mkdir()
+    (tmp_path / "chapters/ch_04.md").write_text(BEFORE)
+    subprocess.run(["git", "add", "-A"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t",
+                    "commit", "-qm", "before"], cwd=tmp_path, check=True)
+    (tmp_path / "chapters/ch_04.md").write_text(AFTER)
+    r = subprocess.run([sys.executable, str(CLI), "../chapters/ch_04.md"],
+                       capture_output=True, text=True, cwd=tmp_path / "sub")
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "WARNING: no pre-cut text" not in r.stderr
+    assert "cooler" not in r.stdout          # unchanged paragraph not audited
+    # An absolute path resolves too.
+    r = subprocess.run([sys.executable, str(CLI), str(tmp_path / "chapters/ch_04.md")],
+                       capture_output=True, text=True, cwd=tmp_path / "sub")
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "cooler" not in r.stdout
+
+
+def test_cli_warns_when_there_is_no_before_text_and_errors_on_missing_chapter(tmp_path):
+    (tmp_path / "chapters").mkdir()
+    (tmp_path / "chapters/ch_04.md").write_text(AFTER)
+    r = subprocess.run([sys.executable, str(CLI), "chapters/ch_04.md",
+                        "--before-dir", "nowhere"],
+                       capture_output=True, text=True, cwd=tmp_path)
+    assert "WARNING: no pre-cut text for chapters/ch_04.md" in r.stderr
+    r = subprocess.run([sys.executable, str(CLI), "chapters/ch_99.md"],
+                       capture_output=True, text=True, cwd=tmp_path)
+    assert r.returncode == 2
+    assert "Traceback" not in r.stderr
+    assert "not found" in r.stderr

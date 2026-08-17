@@ -16,14 +16,20 @@ not this pass's damage and would drown the signal — and exits 1 if it
 found anything.
 
 The checks, each named in the output so a repair can be logged by kind:
-  ends-on-comma            paragraph ends in , or ;
-  no-terminal-punctuation  paragraph ends without . ! ? … a closing quote,
-                           a closing bracket, or an em-dash
+  ends-on-comma            paragraph ends in , or ; — optionally followed
+                           by a closing quote, which is what a cut
+                           dialogue tag leaves: `"Yes,"`
+  no-terminal-punctuation  paragraph ends without . ! ? … : a closing
+                           quote, a closing bracket, or a dash
   double-space             two spaces inside a paragraph
   doubled-comma            ", ," with any whitespace between
   empty-quotes             "" or " " — an emptied speech
   space-before-punct       whitespace before , . ; : ! ?
-  doubled-word             "the the", case-insensitive
+  no-space-after-quote     `,"` or `."` run straight into a letter —
+                           `"Yes,"looking away.` — the other half of a
+                           cut dialogue tag
+  doubled-word             "the the", case-insensitive; pairs already in
+                           the before-text ("had had") are allowed
   glued-sentence           [,;] then space then a capitalised word that did
                            NOT follow a comma or semicolon anywhere in the
                            before-text — proper nouns after commas are
@@ -33,17 +39,28 @@ The checks, each named in the output so a repair can be logged by kind:
   trailing-whitespace      paragraph ends with a space (this one survived
                            a whole cycle by eye)
 
+Two deliberate edges. An unchanged paragraph that already carried
+trailing whitespace in the before-text is re-flagged every run — the
+comparison is on stripped text, and the fix is one keystroke, so it is
+not worth an exemption. And the glued-sentence and doubled-word
+allowlists are learned from the before-text only, so a name that first
+follows a comma in the after-text is flagged once; check it and move on.
+
 Expect one or two false positives from intentional oddities; check them,
 then leave them.
 """
 import argparse
+import os
 import re
 import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-TERMINAL = '.!?…"”’\')*_—–'
+TERMINAL = '.!?…:"”’\')*_—–-'
+# A paragraph that is only punctuation, asterisks or dashes is a scene
+# break, not prose.
+SCENE_BREAK = re.compile(r"^[\s\*\-_—–~#·•.]+$")
 
 
 @dataclass(frozen=True)
@@ -64,22 +81,34 @@ def paragraphs(text):
     return out
 
 
+_CAP_AFTER_COMMA = re.compile(r"[,;]\s+([A-Z][\w'’-]*)")
+_DOUBLED_WORD = re.compile(r"\b(\w+)\s+\1\b", re.IGNORECASE)
+
+
 def _capitalised_after_comma(text):
     """Words that legitimately follow , or ; in the before-text — proper
     nouns, 'I', dialogue tags with names — so they are not glued sentences."""
-    return {m.group(1) for m in re.finditer(r"[,;]\s+([A-Z][\w'’-]*)", text)}
+    return {m.group(1) for m in _CAP_AFTER_COMMA.finditer(text)}
 
 
-def audit_paragraph(idx, raw, allow):
+def _doubled_words(text):
+    """Doubled pairs already in the before-text ("had had", "that that"),
+    lower-cased, so the author's own repetitions are not this pass's damage."""
+    return {m.group(1).lower() for m in _DOUBLED_WORD.finditer(text)}
+
+
+def audit_paragraph(idx, raw, allow, allow_doubled=frozenset()):
     findings = []
     stripped = raw.strip()
     add = lambda kind: findings.append(Finding(kind, idx, stripped[:80]))  # noqa: E731
 
+    if SCENE_BREAK.match(stripped):
+        return findings
     if raw != raw.lstrip(" \t"):
         add("leading-whitespace")
     if raw != raw.rstrip(" \t"):
         add("trailing-whitespace")
-    if stripped.endswith((",", ";")):
+    if re.search(r'[,;]["”’\']?$', stripped):
         add("ends-on-comma")
     elif stripped and stripped[-1] not in TERMINAL:
         add("no-terminal-punctuation")
@@ -91,9 +120,13 @@ def audit_paragraph(idx, raw, allow):
         add("empty-quotes")
     if re.search(r"\s[,.;:!?]", stripped):
         add("space-before-punct")
-    if re.search(r"\b(\w+)\s+\1\b", stripped, re.IGNORECASE):
-        add("doubled-word")
-    for m in re.finditer(r"[,;]\s+([A-Z][\w'’-]*)", stripped):
+    if re.search(r'[,.!?]["”][A-Za-z]', stripped):
+        add("no-space-after-quote")
+    for m in _DOUBLED_WORD.finditer(stripped):
+        if m.group(1).lower() not in allow_doubled:
+            add("doubled-word")
+            break
+    for m in _CAP_AFTER_COMMA.finditer(stripped):
         if m.group(1) not in allow and m.group(1) != "I":
             add("glued-sentence")
             break
@@ -104,11 +137,12 @@ def audit(before, after):
     """Findings in paragraphs of `after` that do not appear verbatim in `before`."""
     before_paras = {raw.strip() for _, raw in paragraphs(before)}
     allow = _capitalised_after_comma(before)
+    allow_doubled = _doubled_words(before)
     findings = []
     for idx, raw in paragraphs(after):
         if raw.strip() in before_paras and raw == raw.strip():
             continue
-        findings.extend(audit_paragraph(idx, raw, allow))
+        findings.extend(audit_paragraph(idx, raw, allow, allow_doubled))
     return findings
 
 
@@ -116,7 +150,11 @@ def before_text(path, before_dir, ref):
     if before_dir is not None:
         p = Path(before_dir) / Path(path).name
         return p.read_text(encoding="utf-8") if p.exists() else ""
-    r = subprocess.run(["git", "show", f"{ref}:{path}"],
+    # `git show REF:path` takes the path relative to the repo root, not the
+    # CWD, unless it starts with ./ — and an absolute path never resolves.
+    # Relativise to the CWD and prefix ./ so both cases resolve.
+    rel = os.path.relpath(path)
+    r = subprocess.run(["git", "show", f"{ref}:./{rel}"],
                        capture_output=True, text=True)
     return r.stdout if r.returncode == 0 else ""
 
@@ -132,8 +170,15 @@ def main(argv=None):
 
     total = 0
     for ch in args.chapters:
+        if not Path(ch).is_file():
+            print(f"ERROR: {ch} not found", file=sys.stderr)
+            return 2
         after = Path(ch).read_text(encoding="utf-8")
         before = before_text(ch, args.before_dir, args.ref)
+        if before == "":
+            where = args.before_dir if args.before_dir is not None else args.ref
+            print(f"WARNING: no pre-cut text for {ch} at {where} — auditing "
+                  "every paragraph", file=sys.stderr)
         findings = audit(before, after)
         total += len(findings)
         print(f"=== {ch}: {len(findings)} finding(s) ===")

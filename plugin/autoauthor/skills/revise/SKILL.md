@@ -40,9 +40,10 @@ measure (full-novel score). Stop on plateau: full-novel score change
 ## One cycle (N)
 
 **Resume check:** inspect `git log --oneline -20` for this cycle's
-step commits (`cycle N: arc summary`, `cycle N: adversarial cuts
-(…)`, `cycle N: reader panel`). Skip any Diagnose step whose commit
-already exists — NEVER re-run the adversarial-edit + apply-cuts pair
+step commits (`cycle N: arc summary`, `cycle N: protected lines`,
+`cycle N: adversarial cuts (…)`, `cycle N: reader panel`). Skip any
+Diagnose step whose commit already exists — NEVER re-run the
+adversarial-edit + apply-cuts pair
 for a cycle that already applied cuts; cutting twice compounds and
 can gut chapters.
 
@@ -58,17 +59,28 @@ can gut chapters.
    pass may touch, and it comes from two sources that already exist:
    - every entry in `three_strongest_sentences` from every chapter
      verdict in `eval_logs/` (drafting and prior revision cycles);
-   - every line quoted in outline.md's plant/harvest table and every
-     `Plants:`/`Payoffs:` entry that quotes prose.
+   - for each row of outline.md's foreshadowing ledger and each
+     `Plants:`/`Payoffs:` entry, open the chapter it names and quote
+     the sentence that carries the plant or payoff — the ledger's
+     description is not a substring of the prose, so the row itself
+     protects nothing.
    Group them under `#` headings by source; the scripts ignore
    headings and blank lines. Cutting judges see one chapter and have
    no memory: across three cycles on one project five lines were
    protected by hand and two of them were attacked in consecutive
    cycles, including the sentence both cycle-1 judges had named the
-   chapter's strongest. Commit `cycle N: protected lines`.
+   chapter's strongest. Commit `cycle N: protected lines` (with
+   `--allow-empty` if `edit_logs/` is gitignored, which the default
+   template does).
 3. **Adversarial edit.**
-   **Which chapters.** In cycle 1, every chapter. In later cycles, only
-   chapters whose score fell last cycle, or whose last reported
+   **Which chapters.** Before dispatching, archive the previous
+   cycle's verdicts so `apply_cuts.py all` sees only this cycle's:
+   `mkdir -p edit_logs/cycle<N-1> && mv edit_logs/ch*_cuts.json
+   edit_logs/cycle<N-1>/ 2>/dev/null || true`. A stale cuts file
+   re-applies last cycle's cuts to a chapter you chose not to
+   re-dispatch — including any line you restored by hand. Then: in
+   cycle 1, every chapter. In later cycles, only chapters whose score
+   fell last cycle, or whose last reported
    `overall_fat_percentage` was 12% or higher. Judges asked for 10–20
    cuts return 10–20 cuts whatever the fat; on a manuscript at 9–13%
    fat one run's cycle-2 pass removed 269 words, needed four
@@ -135,16 +147,18 @@ can gut chapters.
    `--ref <sha>` for the commit that started this cycle if you have
    made intermediate commits) and names each finding by kind:
    ends-on-comma, no-terminal-punctuation, double-space, doubled-comma,
-   empty-quotes, space-before-punct, doubled-word, glued-sentence,
-   leading-whitespace, trailing-whitespace. Six mechanical cuts in one
+   empty-quotes, space-before-punct, no-space-after-quote, doubled-word,
+   glued-sentence, leading-whitespace, trailing-whitespace. Six mechanical cuts in one
    cycle produced five of these, and two kinds were outside the
    checklist this step used to carry.
 
    Repair each by hand against the pre-cut text: usually promoting a
    comma to a period, restoring a paragraph break, or merging two
-   speeches that lost the beat between them. Re-run until it reports
-   zero. Expect one or two false positives from intentional oddities
-   (an emoticon on a hand-lettered sign) — check them, then leave them.
+   speeches that lost the beat between them. Re-run until only the
+   false positives you have already checked remain (the exit code will
+   still be 1 for those; say so in the commit message). Expect one or
+   two of them from intentional oddities (an emoticon on a
+   hand-lettered sign) — check them, then leave them.
 
    Audit against the tree as it stood at the START of this cycle, and
    re-run after ANY later mechanical pass in the same cycle. A defect

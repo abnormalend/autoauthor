@@ -129,3 +129,87 @@ def test_protect_file_lines_starting_with_hash_or_blank_are_ignored(tmp_path):
     result = run_in(tmp_path, "3", "--protect-file", "edit_logs/protected.md")
     assert result.returncode == 0, result.stdout + result.stderr
     assert "He realized then" not in (tmp_path / "chapters/ch_03.md").read_text()
+
+
+def test_protect_file_partial_overlap_is_a_hit(tmp_path):
+    """A cut whose tail is the head of a protected line (or vice versa) by
+    20+ chars takes the protected line's opening clause with it."""
+    setup_project(tmp_path)
+    # Protected line begins inside the OVER-EXPLAIN quote and runs past its end.
+    (tmp_path / "edit_logs/protected.md").write_text(
+        "what he was only now beginning to understand. \"Late,\" said the chancellor.\n"
+    )
+    result = run_in(tmp_path, "3", "--protect-file", "edit_logs/protected.md")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "PROTECT" in result.stdout
+    assert "He realized then" in (tmp_path / "chapters/ch_03.md").read_text()
+
+
+def test_protect_file_quote_that_is_a_fragment_of_a_protected_line(tmp_path):
+    """A REDUNDANT cut that quotes part of a protected sentence would remove
+    part of it; that is a hit in the q-in-p direction. Curly quotes on
+    either side are normalised."""
+    (tmp_path / "chapters").mkdir()
+    (tmp_path / "edit_logs").mkdir()
+    (tmp_path / "chapters/ch_03.md").write_text(CHAPTER)
+    cuts = {
+        "cuts": [{
+            "quote": "so that he would feel the full weight of his isolation",
+            "type": "REDUNDANT", "reason": "restates", "action": "CUT", "rewrite": None,
+        }],
+        "overall_fat_percentage": 20,
+    }
+    (tmp_path / "edit_logs/ch03_cuts.json").write_text(json.dumps(cuts))
+    (tmp_path / "edit_logs/protected.md").write_text(
+        "He realized then that the meeting had been arranged specifically so "
+        "that he would feel the full weight of his isolation, and that every "
+        "person in the room already knew what he was only now beginning to "
+        "understand.\n"
+    )
+    result = run_in(tmp_path, "3", "--protect-file", "edit_logs/protected.md")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "PROTECT [REDUNDANT]" in result.stdout
+    assert "full weight of his isolation" in (tmp_path / "chapters/ch_03.md").read_text()
+
+
+def test_protect_file_curly_quotes_normalise():
+    sys.path.insert(0, str(SCRIPT.parent))
+    import apply_cuts
+    hit = apply_cuts.protected_by(
+        "“Late,” said the chancellor. He didn’t look up from the ledger.",
+        ['"Late," said the chancellor. He didn\'t look up from the ledger.'],
+    )
+    assert hit is not None
+
+
+def test_protect_file_missing_path_is_a_usage_error_not_a_traceback(tmp_path):
+    setup_project(tmp_path)
+    result = run_in(tmp_path, "3", "--protect-file", "edit_logs/nope.md")
+    assert result.returncode == 2
+    assert "Traceback" not in result.stderr
+    assert "not found" in result.stderr
+    assert "Diagnose step 2" in result.stderr
+
+
+def test_all_warns_when_cuts_files_span_more_than_twelve_hours(tmp_path):
+    import os
+    import time
+    setup_project(tmp_path)
+    (tmp_path / "chapters/ch_04.md").write_text(CHAPTER)
+    stale = tmp_path / "edit_logs/ch04_cuts.json"
+    stale.write_text(json.dumps(CUTS))
+    old = time.time() - 13 * 3600
+    os.utime(stale, (old, old))
+    result = run_in(tmp_path, "all", "--dry-run")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "span more than 12h" in result.stderr
+    assert "Diagnose step 3" in result.stderr
+
+
+def test_all_does_not_warn_when_cuts_files_are_from_one_run(tmp_path):
+    setup_project(tmp_path)
+    (tmp_path / "chapters/ch_04.md").write_text(CHAPTER)
+    (tmp_path / "edit_logs/ch04_cuts.json").write_text(json.dumps(CUTS))
+    result = run_in(tmp_path, "all", "--dry-run")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "span more than" not in result.stderr

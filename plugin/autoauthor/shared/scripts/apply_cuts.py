@@ -25,10 +25,14 @@ VALID_TYPES = {"OVER-EXPLAIN", "REDUNDANT", "FAT", "TELL", "STRUCTURAL", "GENERI
 MIN_QUOTE_LEN = 25
 
 _WS = re.compile(r"\s+")
+_QUOTES = str.maketrans({"’": "'", "‘": "'", "“": '"', "”": '"'})
+OVERLAP = 20  # chars of shared prefix/suffix that count as touching a protected line
 
 
 def _norm(s: str) -> str:
-    return _WS.sub(" ", s).strip()
+    """Whitespace-collapsed, curly quotes straightened — a judge quotes the
+    prose in whichever quote style it happens to emit."""
+    return _WS.sub(" ", s.translate(_QUOTES)).strip()
 
 
 def load_protected(path: Path | None) -> list[str]:
@@ -55,7 +59,10 @@ def protected_by(quote: str, protected: list[str]) -> str | None:
 
     Collides in either direction: the quote contains a protected line
     (the cut would remove it), or a protected line contains the quote (the
-    cut would remove part of it). Both destroy the line.
+    cut would remove part of it). Both destroy the line. A partial overlap
+    — the quote's tail is the protected line's head or vice versa, by at
+    least OVERLAP chars — is a hit too: a cut that starts mid-sentence and
+    runs into a protected one takes its opening clause with it.
     """
     q = _norm(quote)
     if not q:
@@ -63,7 +70,18 @@ def protected_by(quote: str, protected: list[str]) -> str | None:
     for p in protected:
         if p in q or q in p:
             return p
+        if _overlaps(q, p) or _overlaps(p, q):
+            return p
     return None
+
+
+def _overlaps(head: str, tail: str) -> bool:
+    """True if some suffix of `head`, at least OVERLAP chars long, is a
+    prefix of `tail`."""
+    for k in range(min(len(head), len(tail)), OVERLAP - 1, -1):
+        if head[-k:] == tail[:k]:
+            return True
+    return False
 
 
 def load_cuts(chapter_num: int) -> dict | None:
@@ -134,6 +152,26 @@ def discover_chapters() -> list[int]:
     return sorted(nums)
 
 
+STALE_SPAN_HOURS = 12
+
+
+def warn_if_cuts_span_cycles() -> None:
+    """Warn on stderr when the cuts files were not all written together.
+
+    `all` globs every ch*_cuts.json. In a later cycle the skill dispatches
+    judges only for some chapters, so a chapter it skipped still has last
+    cycle's file — and `all` re-applies it, including any line restored by
+    hand since. The skill archives old files first; this is the check for
+    when it did not.
+    """
+    mtimes = [p.stat().st_mtime for p in EDIT_LOGS_DIR.glob("ch*_cuts.json")]
+    if len(mtimes) < 2:
+        return
+    if max(mtimes) - min(mtimes) > STALE_SPAN_HOURS * 3600:
+        print(f"WARNING: cuts files span more than {STALE_SPAN_HOURS}h — some may "
+              "be from a prior cycle; see revise Diagnose step 3", file=sys.stderr)
+
+
 def process_chapter(
     chapter_num: int,
     type_filter: set[str] | None,
@@ -185,7 +223,7 @@ def process_chapter(
         hit = protected_by(quote, protected or [])
         if hit:
             stats["protected"] += 1
-            print(f"  PROTECT [{cut_type}] touches protected line: {hit[:60]}")
+            print(f"  PROTECT [{cut_type}] {quote[:40]!r} touches protected line: {hit[:40]!r}")
             continue
 
         # REWRITE cuts need replacement prose, not deletion — leave them
@@ -288,6 +326,9 @@ def main():
     args = parser.parse_args()
 
     type_filter = set(args.types) if args.types else None
+    if args.protect_file is not None and not args.protect_file.exists():
+        parser.error(f"--protect-file {args.protect_file} not found; build it "
+                     "(revise Diagnose step 2) or omit it")
     protected = load_protected(args.protect_file)
 
     # Determine which chapters to process
@@ -296,6 +337,7 @@ def main():
         if not chapters:
             print("No cuts files found in edit_logs/")
             sys.exit(1)
+        warn_if_cuts_span_cycles()
     else:
         try:
             chapters = [int(args.chapter)]
