@@ -7,7 +7,8 @@ description: Use when a novel project is in the foundation phase, or the user as
 
 Builds the planning layers the work's form calls for and iterates until
 both scores clear that form's gate — `foundation_score > 7.5 AND
-pillar_score > 7.0` for a novel. No prose chapters are written in this
+pillar_score > 7.0` for a novel — and no cap is firing. No prose
+chapters are written in this
 phase. Typical runs take 5–15 iterations.
 
 ## Setup
@@ -116,13 +117,15 @@ chapters untouched).
    whole second half runs on, stated three different ways — and
    `register_plausibility` sat on its cap at 6. Exiting there ships a
    plan that stops a drafter mid-scene. So: if any scored dimension's
-   note says its cap fired, or the eval's contradictions list names a
-   contradiction in a fact table, an outline beat, quoted in-story
-   text, or a character fact, do NOT exit — run at least one more
+   note says its cap fired, or the eval's `contradictions_found` list
+   names a contradiction in a fact table, an outline beat, quoted
+   in-story text, or a character fact, do NOT exit — run at least one more
    iteration targeting that dimension, then re-check. Caps are how the
    packs refuse a book something; the gate does not overrule them.
 3. **Target the weakest dimension.** The eval names `weakest_dimension`
-   and `top_3_improvements`. Revise THAT layer's document. While
+   and `top_3_improvements`. Revise THAT layer's document. If step 2
+   forced this iteration, the capped dimension is the target regardless
+   of `weakest_dimension`. While
    revising, run the cross-layer consistency checks: the outline
    references only lore that exists in world.md; character capabilities
    match the rules the pack's pillar dimensions govern; every genre
@@ -145,37 +148,48 @@ chapters untouched).
    and a title nobody recorded gets asked for at export and answered
    differently than the one the plan used.
 
-4. **Keep/discard.** Compare `overall_score` against the best previous
-   score (or treat the first scored iteration as the best). Three cases:
+4. **Keep/discard.** Compare the computed `overall_score` (the
+   score_verdict.py number, not the judge's self-reported one) against
+   the score of the LAST KEPT state (or treat the first scored iteration
+   as kept). Three cases:
 
    - **Improved by more than 0.15** → `git add -A && git commit -m
      "foundation iter <N>: <weakest_dimension> (<score>)"`.
-   - **Within ±0.15 of the best** → a TIE, which is inside single-judge
-     noise (per-dimension variance on unchanged text was measured at
-     two full points on one run). Keep the state with the higher
-     `pillar_score`; if those tie too, keep the state whose eval lists
-     fewer contradictions in fact tables, outline beats, quoted text, or
-     character facts. Commit if keeping the new state.
+   - **Within ±0.15 of the last kept state** → a TIE, which is inside
+     single-judge noise (per-dimension variance on unchanged text was
+     measured at two full points on one run). Break it in this order:
+     (a) keep the state with the higher `pillar_score`; (b) if those tie
+     too, keep the new state if the dimension you targeted improved and
+     the entries in its `contradictions_found` are NEW ones — surface
+     faults introduced while rewriting, not the fault you set out to
+     fix; (c) otherwise keep the state whose `contradictions_found`
+     lists fewer contradictions in fact tables, outline beats, quoted
+     text, or character facts. Commit if keeping the new state. One
+     run's iteration 3 fixed the transmission-cadence fault two judges
+     had called MAJOR and came in 0.12 under the kept state — inside
+     the band — because it introduced four one-line surface errors;
+     under (c) alone those four would have counted against it, and
+     discarding it would have restored the major fault to recover 0.12.
    - **Regressed by more than 0.15** → before discarding, read the two
      evals side by side. If the dimension you targeted improved and the
      contradictions the new eval lists are NEW ones (surface faults you
      introduced while rewriting), the revision worked and you dropped a
      wrench on the way out: keep it, and target the new faults next
      iteration. Discard only when the targeted dimension did not
-     improve. One run's iteration 3 fixed the transmission-cadence
-     fault two judges had called MAJOR and regressed 0.12 because it
-     introduced four one-line surface errors; discarding would have
-     restored the major fault to recover 0.12.
+     improve.
 
-   After every KEPT iteration, update `foundation_score`, `pillar_score`,
-   and `iteration: <N>` in state.json to the new best values (this is
+   The comparison point for the next iteration is always the score of
+   the last KEPT state — after a tie-keep or a regression-keep, that
+   is the lower number, not a running maximum. After every KEPT
+   iteration, update `foundation_score`, `pillar_score`, and
+   `iteration: <N>` in state.json to the kept state's values (this is
    what makes the run resumable — the router reads `iteration`). A
-   resuming session takes "best previous score" from state.json,
+   resuming session takes the last kept state's score from state.json,
    cross-checking the last `keep` row in results.tsv.
    If the project's genre changed since the last scored iteration (compare
    `genre`/`genre_secondary`/`genre_modifiers` against the most recent
    `genre-change` marker row in results.tsv), do NOT compare against the old
-   best score — the weights differ, so the numbers are not comparable.
+   kept score — the weights differ, so the numbers are not comparable.
    Treat the next scored iteration as the first one.
    Discard means `git reset --hard HEAD` (resets tracked files,
    staged and unstaged, back to the last kept iteration; untracked
@@ -183,8 +197,9 @@ chapters untouched).
    eval record is kept even for discarded iterations). Either way
    append to results.tsv:
    `<ISO timestamp>\tfoundation\t<score>\t0\t<keep|discard|noscore>\t<one line>`.
-5. **Iteration cap.** After 15 iterations without passing the gate,
-   STOP. Report the best score, the stubborn dimension, and options
+5. **Iteration cap.** After 15 iterations without exiting the loop,
+   STOP. Report the best score, the stubborn dimension or the cap that
+   keeps firing, and options
    (accept and move on / keep iterating / revise the seed).
 
    **Compute the score; do not take the judge's word for it.**
@@ -221,6 +236,11 @@ marker — the outline pass must complete first, regardless of scores.
 Do not exit while any loaded pack's `## Genre Contract` is unsatisfiable by
 the outline — the judge reports these under `genre_contract.violations`.
 Fix the outline first.
+
+Do not exit while any scored dimension's note says its cap fired, or
+`contradictions_found` names a contradiction in a fact table, an outline
+beat, quoted in-story text, or a character fact — Iteration loop step 2
+forces another iteration.
 
 Set state.json: `chapters_total: <chapter count from outline.md>`,
 `iteration: 0`, and record the final scores. Set `phase`: if every

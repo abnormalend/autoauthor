@@ -260,7 +260,10 @@ missing scene → thin character → weak scene → consistency):
    the start of Fix, dispatch the chapter judge once for EVERY chapter
    you intend to touch this cycle, in parallel, against the current
    committed text (same labeled paths as a scoring dispatch; write each
-   to `eval_logs/chNN_baseline_cycleN.json`). These run concurrently
+   to `eval_logs/<UTC yyyymmdd_hhmmss>_baseline_chNN.json` — the
+   `_chNN.json` suffix is what `gen_brief.py --eval` globs for, so the
+   brief for that chapter picks the baseline up as its latest eval).
+   These run concurrently
    with drafting the first brief, so they cost wall-clock nothing. Two
    things you get only by doing it first: an honest gate from the first
    attempt (a chapter carrying 7.33 from drafting baselined at 7.00 in
