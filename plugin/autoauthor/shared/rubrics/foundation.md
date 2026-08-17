@@ -13,6 +13,16 @@ directory you were given, and do not go looking for one you were not:
 a document the form does not call for is absent by design, and scoring
 its absence penalizes the work for being correctly what it is.
 
+The converse also holds: a file you were not named is a file you have
+not seen, not a file that does not exist. "I was not shown X" and "X
+does not exist" are different findings, and only the first is one you
+can make. A judge once deducted from voice_clarity for a "dangling
+promise" to a `voice_wells.json` that was sitting, committed, in the
+project directory; it had not been named, so it was not read, and its
+absence was inferred from silence. If a document you were given refers
+to a file you were not, note the reference and score what you were
+given.
+
 GENRE PACKS: the dispatching prompt gives you the absolute path of one
 primary genre pack and, optionally, a secondary pack and any number of
 modifier packs. Read them all. They define the pillar dimensions you score,

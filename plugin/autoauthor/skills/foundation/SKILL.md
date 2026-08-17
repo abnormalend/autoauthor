@@ -84,7 +84,9 @@ chapters untouched).
    dimensions file is `<base_dimensions.path>`; score exactly these keys,
    by category: `<base_dimensions.scored as reported, verbatim>`. The
    project directory is `<absolute project path>`. The input files are:
-   `<the documents form.layers calls for, named>`. Write the JSON object
+   `<the documents form.layers calls for, named>`, and — whenever the
+   `voice` layer is among them — `voice_wells.json` (the vocabulary
+   wells the voice layer is required to emit). Write the JSON object
    the rubric specifies — bare JSON, no fences — to `<absolute project
    path>/eval_logs/<UTC yyyymmdd_hhmmss>_foundation.json` (compute the
    timestamp before dispatching and put the exact path in the prompt),
