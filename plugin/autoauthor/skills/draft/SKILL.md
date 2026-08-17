@@ -160,16 +160,19 @@ a 6.0 ships; revision is Phase 3's job.
    attempts. After 5 failed attempts, keep the best-scoring attempt:
    `cp eval_logs/ch_NN_attempt_<best>.md chapters/ch_NN.md`, then
    commit, and log `keep (best-of-5)`.
-   During the retry loop, append each attempt's row to the untracked
-   `eval_logs/attempts.tsv` (same columns as results.tsv). At commit
+   Append EVERY attempt's row to the untracked `eval_logs/attempts.tsv`
+   (same columns as results.tsv) — including the first, whether or not
+   it passes; a chapter that clears on attempt 1 has one row there and
+   one in results.tsv. At commit
    time (keep or best-of-5), append ALL of this chapter's attempt rows
    from eval_logs/attempts.tsv into results.tsv, then
    `git add -A && git commit` — the full experiment log lands
    atomically with the kept chapter. Row format:
    `<ISO timestamp>\tdrafting\t<final score>\t<chapter word count>\t<keep|discard|noscore>\tch NN attempt <k>`
 7. **Canon.** Append the judge's `new_canon_entries` to canon.md
-   (created in Setup step 6 if the form did not build one), each tagged `(ch_NN)`. If writing revealed a lore gap or
-   contradiction, log a debt in state.json:
+   (created in Setup step 6 if the form did not build one), each
+   tagged `(ch_NN)`. If writing revealed a lore gap or contradiction,
+   log a debt in state.json:
    `{"trigger": "ch_NN: <gap>", "affected": ["<files>"], "status": "pending"}`.
 
 ## Post-draft cleanup (after the last chapter)
@@ -191,7 +194,10 @@ a 6.0 ships; revision is Phase 3's job.
    sentence loses nothing it was ornament — and cut those first. The count
    is the fault; swapping one simile for another leaves it where it was.
 
-   Commit `post-draft slop pass`.
+   Commit `post-draft slop pass`. If the pass made no edits (zero hits,
+   clean tree), report the clean result and skip the commit — `git
+   commit` with nothing staged exits non-zero, and a literal reading
+   ended one run's phase on a failed command.
 2. Set state.json `phase: "revision"`. Commit.
 3. Pushover notification (pushover skill): title "autoauthor: drafting",
    message with chapters drafted, mean/min final scores, total words,
