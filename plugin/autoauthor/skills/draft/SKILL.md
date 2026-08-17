@@ -6,7 +6,7 @@ description: Use when a novel project is in the drafting phase, or the user asks
 # Novel Draft — Phase 2
 
 Writes chapters in outline order. Keep at score > 6.0 (after slop
-penalty), max 5 attempts per chapter. Forward progress over perfection:
+penalty) and canon clean, max 5 attempts per chapter. Forward progress over perfection:
 a 6.0 ships; revision is Phase 3's job.
 
 ## Setup
@@ -114,7 +114,10 @@ a 6.0 ships; revision is Phase 3's job.
    It lists every clock time and number the chapter states and whether
    any fact-bearing document (outline, canon, world, characters —
    whichever exist) states it too. Read the NOT FOUND list against the
-   outline's fact table before dispatching the judge. Most entries will
+   outline's fact table before dispatching the judge. FOUND means the
+   value occurs somewhere in a fact document, not that it is the right
+   value here — the NOT FOUND list is where to look first, not the only
+   place. Most entries will
    be harmless inventions; the ones that are not are the cheapest
    defects you will ever fix — six of eight canon violations on one run
    were single-word edits, and every one of them survived into a later
@@ -175,7 +178,8 @@ a 6.0 ships; revision is Phase 3's job.
    independent mechanical adjustment.
 6. **Gate.** Keep requires BOTH: final score > 6.0 AND the judge's
    `canon_compliance.violations` list is empty (or `canon_compliance`
-   scored 7 or higher). A canon violation is unlike a weak sentence: it
+   scored 7 or higher) — if kept with violations listed, log each as a
+   debt (step 7). A canon violation is unlike a weak sentence: it
    is cheap now, it compounds (a wrong line in ch1 forced ch2 to write
    around it on one run, and the judge discounted ch2's version as a
    repeat), and it is invisible to revision, whose instruments cut and
@@ -196,8 +200,11 @@ a 6.0 ships; revision is Phase 3's job.
    Otherwise discard with `git reset --hard HEAD` (untracked eval logs
    survive) and retry with a DIFFERENT approach informed by the
    judge's three_weakest_sentences and top_3_revisions — up to 5
-   attempts. After 5 failed attempts, keep the best-scoring attempt:
-   `cp eval_logs/ch_NN_attempt_<best>.md chapters/ch_NN.md`, then
+   attempts. After 5 failed attempts, keep the best-scoring canon-clean
+   attempt; if none is clean, keep the best score and log each listed
+   violation as a state.json debt (step 7 format) — the `correct`
+   branch is unavailable once the budget is spent. Then
+   `cp eval_logs/ch_NN_attempt_<best>.md chapters/ch_NN.md`,
    commit, and log `keep (best-of-5)`.
    Append EVERY attempt's row to the untracked `eval_logs/attempts.tsv`
    (same columns as results.tsv) — including the first, whether or not

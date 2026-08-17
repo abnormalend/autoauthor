@@ -203,8 +203,8 @@ CONSTRAINTS:
   planning move was writing the central letter out at exactly the
   byte budget the plan allowed; two evals then caught it contradicting
   its own frame, which is only possible because the text existed.
-- The document opens with a `## Facts the story must not contradict`
-  section: the clock, the fact table, every number a chapter may need
+- The document carries a `## Facts the story must not contradict`
+  section (after Themes in the template): the clock, the fact table, every number a chapter may need
   to state. This is what `continuity_check.py` reads during drafting.
 - The Stability Trap: bad things must stay bad. Not everything
   resolves cleanly.

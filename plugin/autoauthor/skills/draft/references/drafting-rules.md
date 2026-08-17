@@ -49,8 +49,8 @@ ahead.
 
 Before running the slop score, list every clock time and every bare
 number you wrote in this chapter — ages, counts, dates, distances,
-durations — and check each against the outline's facts and clock
-sections. A number you cannot trace to that section is a defect until
+durations — and check each against the outline's `## Facts the story
+must not contradict` section. A number you cannot trace to that section is a defect until
 you have decided otherwise, not a detail. `continuity_check.py` prints
 the list; the deciding is yours. If you do not need the number, do not
 write one.

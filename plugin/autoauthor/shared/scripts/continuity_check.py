@@ -52,10 +52,17 @@ NUMBER_WORDS = set(UNITS) | set(TENS) | set(SCALES)
 
 CLOCK_RE = re.compile(r"\b(\d{1,2}:\d{2})\b")
 DIGITS_RE = re.compile(r"(?<![\d:])(\d+(?:[.,]\d+)*)(?![\d:])")
+_WORD_ALT = "(?:" + "|".join(sorted(NUMBER_WORDS, key=len, reverse=True)) + ")"
+_AFTER_SCALE = "(?:" + "|".join(f"(?<={w})" for w in SCALES) + ")"
+# "and" joins only after a scale word: "one hundred and twenty" is one
+# number, "eight and eighty" is two.
 WORDS_RE = re.compile(
-    r"\b((?:" + "|".join(sorted(NUMBER_WORDS, key=len, reverse=True)) +
-    r")(?:[-\s](?:" + "|".join(sorted(NUMBER_WORDS, key=len, reverse=True)) +
-    r"))*)\b", re.IGNORECASE)
+    r"\b(" + _WORD_ALT +
+    r"(?:[-\s]" + _WORD_ALT + r"|" + _AFTER_SCALE + r"\s+and\s+" + _WORD_ALT +
+    r")*)\b", re.IGNORECASE)
+# Chapter and scene headers carry ordinals, not facts; a heading that is
+# itself a clock ("### 14:02") is a fact the chapter states.
+SKIP_HEADING_RE = re.compile(r"^#+\s*(?:chapter|ch\.?|scene)\b|^#\s", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -66,13 +73,26 @@ class Number:
 
 
 def words_to_int(phrase):
-    """'twenty-six' -> 26, 'two hundred' -> 200. Returns None if unparsable."""
+    """'twenty-six' -> 26, 'two hundred' -> 200, 'one hundred and twenty' -> 120.
+
+    Returns None if unparsable, including joins English does not make:
+    a units or tens word directly after another units or tens word
+    ("nineteen eighty", "twenty ten") — the one exception being a unit
+    below ten after a tens word ("twenty-six") — or "and" anywhere but
+    after a scale word. Refusing is safer than a wrong key — "nineteen
+    eighty" once came out as 103.
+    """
     total, current = 0, 0
+    prev = None
     for w in re.split(r"[-\s]+", phrase.lower()):
-        if w in UNITS:
-            current += UNITS[w]
-        elif w in TENS:
-            current += TENS[w]
+        if w == "and":
+            if prev not in SCALES:
+                return None
+        elif w in UNITS or w in TENS:
+            joins_number = prev in UNITS or prev in TENS
+            if joins_number and not (prev in TENS and w in UNITS and UNITS[w] < 10):
+                return None
+            current += UNITS.get(w) or TENS.get(w) or 0
         elif w in SCALES:
             current = max(current, 1) * SCALES[w]
             if SCALES[w] >= 1000:
@@ -80,7 +100,14 @@ def words_to_int(phrase):
                 current = 0
         else:
             return None
+        prev = w
     return total + current
+
+
+def _clock_key(text):
+    """'4:02' and '04:02' are the same time."""
+    h, mm = text.split(":")
+    return f"{int(h):02d}:{mm}"
 
 
 def _digit_key(text):
@@ -95,10 +122,11 @@ def numbers_in(text, min_word_value=MIN_WORD_VALUE):
     """Every number the text states, deduplicated by (key, text)."""
     found = {}
     for lineno, line in enumerate(text.splitlines(), 1):
-        if line.lstrip().startswith("#"):
+        if SKIP_HEADING_RE.match(line.lstrip()):
             continue  # "# Chapter 4" is not a fact the chapter states
         for m in CLOCK_RE.finditer(line):
-            found.setdefault((m.group(1), m.group(1)), Number(m.group(1), m.group(1), lineno))
+            key = _clock_key(m.group(1))
+            found.setdefault((key, m.group(1)), Number(key, m.group(1), lineno))
         stripped = CLOCK_RE.sub(" ", line)
         for m in DIGITS_RE.finditer(stripped):
             key = _digit_key(m.group(1))
@@ -112,7 +140,7 @@ def numbers_in(text, min_word_value=MIN_WORD_VALUE):
     return list(found.values())
 
 
-def fact_keys(paths, min_word_value=MIN_WORD_VALUE):
+def fact_keys(paths):
     keys = set()
     for p in paths:
         if p.exists():
@@ -143,6 +171,11 @@ def main(argv=None):
     if not present:
         print("ERROR: no fact-bearing files found "
               f"(looked for {', '.join(str(p) for p in fact_paths)})", file=sys.stderr)
+        return 2
+
+    absent = [ch for ch in args.chapters if not Path(ch).exists()]
+    if absent:
+        print(f"ERROR: chapter file not found: {', '.join(absent)}", file=sys.stderr)
         return 2
 
     any_missing = False

@@ -253,6 +253,11 @@ something safer.
 Do not exit while outline.md still contains a `TO BE OUTLINED`
 marker — the outline pass must complete first, regardless of scores.
 
+Do not exit while outline.md's `## Facts the story must not contradict`
+section is still the template comment — even a story with no arithmetic
+has a clock and a cast, and drafting's continuity check reads that
+section.
+
 Do not exit while any loaded pack's `## Genre Contract` is unsatisfiable by
 the outline — the judge reports these under `genre_contract.violations`.
 Fix the outline first.
