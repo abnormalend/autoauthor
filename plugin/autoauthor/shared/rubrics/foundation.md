@@ -226,7 +226,7 @@ decimal places — never rounded to an integer.)
   },
   "genre_contract": {"violations": ["list any promises the plan would breach"], "note": "..."},
   "slop_in_planning_docs": {"found": ["list any AI slop patterns found in exemplar dialogue, voice examples, or character descriptions, or prose addressed to the evaluator rather than a writer"], "note": "..."},
-  "contradictions_found": ["every contradiction found in binding text — fact table, outline beat, quoted in-story text, character fact — each naming the documents, marked MAJOR where the plot depends on it; commentary-only disagreements go in internal_consistency's note"],
+  "contradictions_found": ["every contradiction found in binding text — fact table, outline beat, quoted in-story text, character fact, author-facing rule — each naming the documents, marked MAJOR where the plot depends on it; commentary-only disagreements go in internal_consistency's note"],
   "overall_score": N.NN,
   "pillar_score": N.NN,
   "weakest_dimension": "...",

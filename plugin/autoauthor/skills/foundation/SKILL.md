@@ -140,7 +140,7 @@ chapters untouched).
    plan that stops a drafter mid-scene. So: if any scored dimension's
    note says its cap fired, or the eval's `contradictions_found` list
    names a contradiction in a fact table, an outline beat, quoted
-   in-story text, or a character fact, do NOT exit — run at least one more
+   in-story text, a character fact, or an author-facing rule, do NOT exit — run at least one more
    iteration targeting that dimension, then re-check. Caps are how the
    packs refuse a book something; the gate does not overrule them.
 3. **Target the weakest dimension.** The eval names `weakest_dimension`
@@ -185,7 +185,7 @@ chapters untouched).
      faults introduced while rewriting, not the fault you set out to
      fix; (c) otherwise keep the state whose `contradictions_found`
      lists fewer contradictions in fact tables, outline beats, quoted
-     text, or character facts. Commit if keeping the new state. One
+     text, character facts, or author-facing rules. Commit if keeping the new state. One
      run's iteration 3 fixed the transmission-cadence fault two judges
      had called MAJOR and came in 0.12 under the kept state — inside
      the band — because it introduced four one-line surface errors;
@@ -269,7 +269,8 @@ Fix the outline first.
 
 Do not exit while any scored dimension's note says its cap fired, or
 `contradictions_found` names a contradiction in a fact table, an outline
-beat, quoted in-story text, or a character fact — Iteration loop step 2
+beat, quoted in-story text, a character fact, or an author-facing rule —
+Iteration loop step 2
 forces another iteration.
 
 Set state.json: `chapters_total: <chapter count from outline.md>`,
