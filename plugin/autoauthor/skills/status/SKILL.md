@@ -23,8 +23,10 @@ anything else.
      review_round, debts
    - last 15 lines of `results.tsv`
    - `git log --oneline -10` and `git status --porcelain`
-   - **and reconcile them:** if `git log` shows `draft: ch`, `cycle N
-     complete` or `revision complete` commits but `state.json` says
+   - **and reconcile them:** search the full log (`git log --oneline |
+     grep -E 'draft: ch|cycle [0-9]+ complete|revision complete'`) for
+     the markers; if it shows `draft: ch`, `cycle N complete` or
+     `revision complete` commits but `state.json` says
      `chapters_drafted: 0` or `chapters/` is empty, report that as the
      headline — the state file and the repository disagree, and the
      next skill will otherwise redo work that already exists in

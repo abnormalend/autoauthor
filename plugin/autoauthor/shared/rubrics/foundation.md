@@ -40,8 +40,11 @@ novel scale by default. If no base dimension list was given, return exactly
 {"error": "no base dimensions supplied — the invoking skill must resolve a form"}
 and nothing else.
 
-OUTPUT: Return ONLY a single JSON object matching the schema at the end
-of this rubric. No markdown fences, no preamble, no commentary.
+OUTPUT: a single JSON object matching the schema at the end of this
+rubric — no fences, no preamble, no commentary. Write it to the path
+the dispatching prompt names and return only what that prompt asks for
+(normally the path and the aggregate score); if the prompt named no
+path, return the object itself.
 
 ---
 

@@ -88,22 +88,26 @@ chapters untouched).
    `voice` layer is among them — `voice_wells.json` (the vocabulary
    wells the voice layer is required to emit). Write the JSON object
    the rubric specifies — bare JSON, no fences — to `<absolute project
-   path>/eval_logs/<UTC yyyymmdd_hhmmss>_foundation.json` (compute the
-   timestamp before dispatching and put the exact path in the prompt),
-   and return only that path and the `overall_score` and `pillar_score`
-   values."
+   path>/eval_logs/<UTC yyyymmdd_hhmmss>_foundation.json` and return
+   only that path and the `overall_score` and `pillar_score` values."
 
-   Every angle-bracketed value comes from the resolver output kept in
-   Setup step 2. Pass `base_dimensions.scored` through verbatim — do not
-   summarize it, and do not substitute the eight you remember, which is
-   the whole failure this parameterization exists to prevent.
+   Compute the UTC timestamp yourself before dispatching; the path in
+   the prompt is literal, and it is the path you will hand to
+   score_verdict.py. Every angle-bracketed value comes from the
+   resolver output kept in Setup step 2. Pass `base_dimensions.scored`
+   through verbatim — do not summarize it, and do not substitute the
+   eight you remember, which is the whole failure this parameterization
+   exists to prevent.
    The judge writes the file; do not transcribe it (`score_verdict.py`
    must certify the judge's artifact, not your copy of it). If it fenced
    the JSON anyway, strip the fences in place — a formatting
    technicality, not a malformed response. If the file is missing or
    genuinely not valid JSON, re-dispatch once with a stricter
    reminder; if still invalid, log the iteration as unscored in
-   results.tsv (`keep_discard=noscore`) and continue.
+   results.tsv (`keep_discard=noscore`) and continue. Rename an
+   unparseable judge file to `<name>.bad` before retrying —
+   gen_brief.py reads the newest eval file with a bare json.loads and a
+   garbage file there breaks a later brief.
    The results.tsv score column takes `overall_score`; put
    `pillar_score` in the description (e.g. `iter N: <dimension> (pillar
    <pillar_score>)`).
@@ -212,7 +216,7 @@ chapters untouched).
 
    ```bash
    python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/score_verdict.py" \
-       eval_logs/<the file you just saved> \
+       eval_logs/<the path the judge returned> \
        --weights '<the primary pack's weights object>'
    ```
 

@@ -202,8 +202,10 @@ missing scene → thin character → weak scene → consistency):
    (2,400 → 1,320). The guardrail wins; override the number by hand.
 3. Rewrite the chapter in-session following the brief plus the
    playbook's Rewrite rules, with the drafting context recipe
-   (voice.md, world.md, characters.md in full; the old chapter as raw
-   material — keep what works; previous chapter's last ~1000 words;
+   (every layer file the form builds — voice.md and characters.md
+   always; world.md and MYSTERY.md where the form built them — in full;
+   the old chapter as raw material — keep what works; previous
+   chapter's last ~1000 words;
    next chapter's opening ~1500 chars). Before cutting any element,
    grep the rest of the manuscript for it: a compression brief that
    removes a plant (an object, a card, a named regular) silently breaks
@@ -235,9 +237,11 @@ missing scene → thin character → weak scene → consistency):
    contract, and the genre pack(s) at `<resolved pack paths, primary
    first, each labeled with its role>`), final score = judge minus slop
    penalty. The judge writes its own verdict file
-   (`eval_logs/<UTC yyyymmdd_hhmmss>_chNN.json`, exact path in the
-   prompt) and returns the path and score, exactly as draft does. Keep
-   if the final score beats the chapter's baseline (see below); else discard
+   (`eval_logs/<UTC yyyymmdd_hhmmss>_chNN.json`) and returns the path
+   and score. Compute the UTC timestamp yourself before dispatching; the
+   path in the prompt is literal, and it is the path you will hand to
+   score_verdict.py. Keep if the final score beats the chapter's
+   baseline (see below); else discard
    (`git reset --hard HEAD`), max 3 attempts per chapter per cycle.
    After 3 failed attempts, leave the chapter as-is this cycle and
    record the item in `edit_logs/skipped.md`. Attempt rows go to
@@ -326,18 +330,19 @@ missing scene → thin character → weak scene → consistency):
    `<absolute plugin path>/shared/rubrics/full-novel.md` and the genre
    pack(s) at `<resolved pack paths, primary first, each labeled with its
    role>`, and follow the rubric exactly. The project directory is
-   `<absolute project path>`. The
-   input files are voice.md, world.md, characters.md, outline.md,
-   arc_summary.md. Write the JSON the rubric specifies — bare JSON, no
-   fences — to `<absolute project path>/eval_logs/<UTC
-   yyyymmdd_hhmmss>_full.json` (exact path in the prompt) and return
-   only that path and `work_score`." Log to results.tsv:
+   `<absolute project path>`. The input files are `<the layer files the
+   resolved form builds, named>` and arc_summary.md. Write the JSON the
+   rubric specifies — bare JSON, no fences — to `<absolute project
+   path>/eval_logs/<UTC yyyymmdd_hhmmss>_full.json` and return only
+   that path and `work_score`." Compute the UTC timestamp yourself
+   before dispatching; the path in the prompt is literal, and it is the
+   path you will hand to score_verdict.py. Log to results.tsv:
 
    **Compute the score; do not take the judge's word for it.**
 
    ```bash
    python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/score_verdict.py" \
-       eval_logs/<the file you just saved>
+       eval_logs/<the path the judge returned>
    ```
 
    It averages the dimension scores and compares that to the aggregate

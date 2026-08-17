@@ -10,9 +10,15 @@ paths of the target chapter file and (when it exists) the previous
 chapter file, labeled as such. If the labels are ever missing, treat
 the highest-numbered chapter file you were given as the target.
 
+Read the input files the dispatching prompt names, from the project
+directory it gives. A layer file it does not name is one the work's
+form does not build — do not go looking for it, and do not score its
+absence.
+
 INPUT FILES (read all of them from the project directory you were given):
 - voice.md
-- world.md (you may skim; prioritize rules over lore detail)
+- world.md, where the form builds one (you may skim; prioritize rules
+  over lore detail)
 - characters.md
 - canon.md
 - outline.md (extract the target chapter's entry)
@@ -36,8 +42,11 @@ closed-door. Where two loaded packs declare the same axis at
 different levels, the MORE RESTRICTIVE one governs — you read the
 packs directly, so apply that clamp yourself before judging.
 
-OUTPUT: Return ONLY a single JSON object matching the schema at the end
-of this rubric. No markdown fences, no preamble, no commentary.
+OUTPUT: a single JSON object matching the schema at the end of this
+rubric — no fences, no preamble, no commentary. Write it to the path
+the dispatching prompt names and return only what that prompt asks for
+(normally the path and the aggregate score); if the prompt named no
+path, return the object itself.
 
 The invoking skill runs a separate mechanical slop scan; do not attempt
 to compensate for it -- score the prose on its merits.
@@ -72,8 +81,8 @@ VOICE DEFINITION:
 Read voice.md from the project directory.
 
 WORLD BIBLE (summary):
-Read world.md from the project directory (you may skim; prioritize
-rules over lore detail).
+Read world.md from the project directory, if the form built one (you
+may skim; prioritize rules over lore detail).
 
 CHARACTER REGISTRY:
 Read characters.md from the project directory.

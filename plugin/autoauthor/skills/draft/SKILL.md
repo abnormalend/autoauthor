@@ -37,16 +37,18 @@ a 6.0 ships; revision is Phase 3's job.
    - every genre pack path reported by
      `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/resolve_genre.py"`
 4. Resume point: next chapter = highest N among existing
-   `chapters/ch_NN.md` + 1. First chapter of a fresh project is 1.
+   `chapters/ch_NN.md` + 1. First chapter of a fresh project is 1 —
+   subject to the reconciliation in step 7, which overrides it.
 5. **Build the input-file list from the form.** The resolver's
    `form.layers` names which planning documents exist. Map them through
    `LAYER_FILES` in `form_pack.py` (`voice` → voice.md, `world` →
    world.md, `characters` → characters.md, `mystery` → MYSTERY.md,
    `outline`/`foreshadowing` → outline.md, `canon` → canon.md). That
    list, plus canon.md, is what every judge dispatch below names as
-   "the other input files" and what step 1 loads. Do not name the
-   novel's five files by habit: at `short-story` there is no world.md,
-   and a judge told to read one spends its tool calls hunting for it.
+   "the other input files" and what the per-chapter loop's step 1
+   loads. Do not name the novel's five files by habit: at `short-story`
+   there is no world.md, and a judge told to read one spends its tool
+   calls hunting for it.
 6. **Ensure `canon.md` exists.** Compressed forms do not build a canon
    layer in foundation, but drafting establishes facts on the page that
    the chapter judge checks later chapters against. If `canon.md` is
@@ -69,7 +71,9 @@ a 6.0 ships; revision is Phase 3's job.
 1. **Load context — exactly this, fresh each chapter:**
    - every layer file the form builds (Setup step 5), in full, except
      outline.md — voice.md and characters.md always; world.md and
-     MYSTERY.md where the form built them
+     MYSTERY.md where the form built them; canon.md is read for the
+     facts already established, not in full — grep it for the names
+     and objects this chapter touches
    - from outline.md: THIS chapter's entry (including its Plants list)
      AND every section that precedes the first chapter entry — the
      structure, the fact table, the clock, the register contract, the
@@ -116,21 +120,24 @@ a 6.0 ships; revision is Phase 3's job.
    named — see Setup step 5>` and canon.md in the project directory.
    Write the JSON object the rubric specifies — bare JSON, no fences —
    to `<absolute project path>/eval_logs/<UTC yyyymmdd_hhmmss>_chNN.json`
-   (compute the timestamp yourself before dispatching and put the exact
-   path in the prompt), and return only that path and the
-   `overall_score` value."
+   and return only that path and the `overall_score` value."
 
-   The judge writes the file; you do not transcribe it. A run that
-   re-typed four ~1,500-word verdicts by hand put a lossy step between
-   the measurement and the artifact `score_verdict.py` certifies — the
-   check was validating the orchestrator's copy, not the judge's. If
-   the file is missing or is not valid JSON, that is a malformed
-   response: one strict retry, then `noscore`.
+   Compute the UTC timestamp yourself before dispatching; the path in
+   the prompt is literal, and it is the path you will hand to
+   score_verdict.py. The judge writes the file; you do not transcribe
+   it. A run that re-typed four ~1,500-word verdicts by hand put a
+   lossy step between the measurement and the artifact
+   `score_verdict.py` certifies — the check was validating the
+   orchestrator's copy, not the judge's. If the file is missing or is
+   not valid JSON, that is a malformed response: one strict retry, then
+   `noscore`. Rename an unparseable judge file to `<name>.bad` before
+   retrying — gen_brief.py reads the newest eval file with a bare
+   json.loads and a garbage file there breaks a later brief.
    **Compute the score; do not take the judge's word for it.**
 
    ```bash
    python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/score_verdict.py" \
-       eval_logs/<the file you just saved>
+       eval_logs/<the path the judge returned>
    ```
 
    It averages the dimension scores and compares that to the
@@ -144,10 +151,8 @@ a 6.0 ships; revision is Phase 3's job.
    The filename is `<UTC yyyymmdd_hhmmss>_chNN.json` with NN zero-padded
    — gen_brief.py globs this pattern. If the judge fenced the JSON
    anyway, strip the fences in place; that is a formatting technicality,
-   not a malformed response. Malformed or missing → one strict retry →
-   else record `noscore` and move on. A `noscore`
-   attempt counts as a failed attempt: discard and retry, same as a
-   below-gate score.
+   not a malformed response. A `noscore` attempt counts as a failed
+   attempt: discard and retry, same as a below-gate score.
 5. **Final score** = judge `overall_score` minus the script's
    `slop_penalty` (floor 0). This mirrors the original pipeline's
    independent mechanical adjustment.

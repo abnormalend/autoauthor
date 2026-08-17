@@ -5,9 +5,14 @@ precision. You were given ONLY this rubric and the files listed below —
 you have no other context, no stake in the scores, and no memory of how
 the text was produced. Judge what is on the page.
 
+Read the input files the dispatching prompt names, from the project
+directory it gives. A layer file it does not name is one the work's
+form does not build — do not go looking for it, and do not score its
+absence.
+
 INPUT FILES (read all of them from the project directory you were given):
 - voice.md
-- world.md
+- world.md, where the form builds one
 - characters.md
 - outline.md
 - arc_summary.md (chapter-by-chapter summaries maintained by the invoking skill)
@@ -27,8 +32,11 @@ closed-door. Where two loaded packs declare the same axis at
 different levels, the MORE RESTRICTIVE one governs — you read the
 packs directly, so apply that clamp yourself before judging.
 
-OUTPUT: Return ONLY a single JSON object matching the schema at the end
-of this rubric. No markdown fences, no preamble, no commentary.
+OUTPUT: a single JSON object matching the schema at the end of this
+rubric — no fences, no preamble, no commentary. Write it to the path
+the dispatching prompt names and return only what that prompt asks for
+(normally the path and the aggregate score); if the prompt named no
+path, return the object itself.
 
 ---
 
@@ -39,7 +47,7 @@ VOICE DEFINITION:
 Read voice.md from the project directory.
 
 WORLD BIBLE:
-Read world.md from the project directory.
+Read world.md from the project directory, if the form built one.
 
 CHARACTER REGISTRY:
 Read characters.md from the project directory.
