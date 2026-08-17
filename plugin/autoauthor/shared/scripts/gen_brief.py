@@ -640,10 +640,11 @@ def build_cuts_brief(ch: int) -> str:
 
     # Word count target, clamped to the floor like the panel brief's.
     target_wc, target_note = clamped_target(wc, wc - total_cuttable,
-                                            f"cut ~{total_cuttable}")
-    target_note += (
-        f" Tighten {fat_pct}% fat without losing the chapter's strongest beats."
-    )
+                                            f"cut up to ~{total_cuttable}")
+    if wc > chapter_floor():
+        target_note += (
+            f" Tighten {fat_pct}% fat without losing the chapter's strongest beats."
+        )
 
     brief = f"# Revision Brief: Chapter {ch} — {title} ({brief_type})\n\n"
     brief += "## PROBLEM\n"
