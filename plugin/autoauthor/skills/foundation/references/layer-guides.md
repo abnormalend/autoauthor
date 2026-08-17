@@ -5,6 +5,24 @@ filling or revising that layer. Every requirement below is a hard
 requirement, not a suggestion — the foundation rubric scores against
 exactly these expectations.
 
+Two things govern how to read the numbers here. First, the form pack's
+`## Foundation Guidance` says which layers exist at this length and what
+each means; a layer the form does not name is not a gap. Second, every
+count and length below is written for a novel and scales by the resolved
+`shape` — where a line says "per N chapters" or "per N words", compute it
+from `shape.chapters` and `shape.target_words` and use that number. A
+5,000-word story does not owe fifteen tracked threads or three quiet
+chapters; it owes the ratio.
+
+These documents address the drafting agent, not the evaluator. Do not
+write arguments about why a choice satisfies a rubric, a contract, or
+this guide into a planning document. If a choice needs defending, the
+defence belongs in the commit message. On one run a judge found "a
+substantial fraction" of two documents was parenthetical self-defence
+addressed to it — and the one genuine hole in the climax survived four
+iterations because the surrounding prose was busy defending choices that
+were already fine.
+
 ---
 
 ## Genre packs
@@ -135,7 +153,8 @@ IMPORTANT:
   something specific in the backstory, not be decorative.
 - The antagonist should be as fully realized as the protagonist — a
   worthy opposition.
-- Target ~3000-4000 words. Dense character work, not padding.
+- Target roughly 4% of `shape.target_words` (3000–4000 for a novel).
+  Dense character work, not padding.
 
 ---
 
@@ -209,9 +228,12 @@ CONSTRAINTS:
 - The Stability Trap: bad things must stay bad. Not everything
   resolves cleanly.
 - Any character established as "absent but plot-critical" must appear
-  in person at some point, not only in memory or secondhand report.
-- At least 3 chapters should be "quiet" — character-focused, low-
-  action, emotionally rich.
+  in person at some point, not only in memory or secondhand report —
+  unless the impossibility of their appearing IS the story's subject,
+  in which case the outline states that once, plainly, and moves on.
+- About one unit in four should be "quiet" — character-focused,
+  low-action, emotionally rich (at least 3 for a novel; a four-scene
+  story owes one).
 - Vary the try-fail types: 60%+ should be "yes-but" or "no-and."
 - The foreshadowing ledger (part 2) must have plant-to-payoff
   distances of at least 3 chapters.
@@ -230,8 +252,10 @@ A table tracking every planted thread:
 | # | Thread | Planted (Ch) | Reinforced (Ch) | Payoff (Ch) | Type |
 |---|--------|--------------|------------------|-------------|------|
 
-Include at LEAST 15 threads. Types: object, dialogue, action,
-symbolic, structural.
+Include at least one tracked thread per 5,000 words of
+`shape.target_words` (15 for an 80,000-word novel; a short story owes
+one or two, and the form may drop the ledger entirely). Types: object,
+dialogue, action, symbolic, structural.
 
 RULES:
 - Every plant needs a planned payoff chapter — the ledger must
@@ -261,8 +285,11 @@ During foundation, the agent must DISCOVER the voice for this novel:
 2. Write 5 trial passages in different registers (mythic, spare,
    warm, cold, whimsical, etc.)
 3. Evaluate which register best serves THIS story's world and tone
-4. Select the best, refine it, write exemplar and anti-exemplar
-   passages
+4. Select the best, refine it, write exemplar passages — and keep the
+   four rejected trials AS the anti-exemplars, each with one line on
+   why it lost. Two judges on one run independently called that
+   section the strongest element in any of the planning documents; a
+   discarded trial is a boundary the drafter can see.
 5. Fill in voice.md Part 2 with the discovered voice
 
 The voice should feel like it BELONGS in the world (Le Guin's insight:
@@ -330,9 +357,9 @@ RULES:
 - One fact per bullet point. Short. Specific. Checkable.
 - Include the source (world.md, characters.md, outline.md) in
   parentheses after each fact.
-- Aim for 80-120 entries on the first pass; grow the canon toward
-  400+ entries before exiting foundation (facts accumulate every
-  iteration).
+- Aim for one entry per 800 words of `shape.target_words` on the first
+  pass (80–120 for a novel); grow the canon toward five times that
+  before exiting foundation (facts accumulate every iteration).
 - If two documents give slightly different details, note the
   discrepancy instead of silently picking one — that's a contradiction
   for the next iteration to resolve.
