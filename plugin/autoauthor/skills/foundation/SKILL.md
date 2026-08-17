@@ -48,8 +48,9 @@ phase. Typical runs take 5–15 iterations at novel length; the form's
    seed states quantities the premise depends on — dates, ages,
    distances, rates, budgets, intervals — verify them against each
    other now, and write the resolved set into outline.md's `## Facts
-   the story must not contradict` section as the single source. A
-   seed's numbers are an input, not an authority: one seed conflated a
+   the story must not contradict` section as the single source.
+   canon.md, where the form builds it, cites that section for numbers
+   rather than restating them. A seed's numbers are an input, not an authority: one seed conflated a
    per-year allowance with an annual window in a way that could not
    both be true, and it took two scored iterations to surface because
    nothing asked Setup to check. Foundation inherits a seed's errors
@@ -122,6 +123,23 @@ chapters untouched).
    The results.tsv score column takes `overall_score`; put
    `pillar_score` in the description (e.g. `iter N: <dimension> (pillar
    <pillar_score>)`).
+
+   **Compute the score; do not take the judge's word for it.**
+
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/score_verdict.py" \
+       <the path the judge returned> \
+       --weights '<the primary pack's weights object>'
+   ```
+
+   It averages the dimension scores and compares that to the aggregate
+   the judge reported. **Record the computed number.** A judge is
+   qualified to score a dimension and has no particular claim to
+   averaging seven of them: a live cycle returned dimensions averaging
+   7.43 alongside `work_score: 7`, against a phase that stops when that
+   number moves by less than 0.5. Exit 1 means they disagreed; the
+   message names the value to use.
+
 2. **Gate check.** `overall_score > form.gate.overall` AND `pillar_score >
    form.gate.pillar` → exit the loop. Both numbers come from the resolver's
    `form` block, never from memory; for the `novel` form they are 7.5 and
@@ -226,23 +244,6 @@ chapters untouched).
    the form's for the same reason the gate is: six evals at 119k tokens
    each to plan 5,000 words was the cost on one run, and the last two
    moved the mean 0.10.
-
-   **Compute the score; do not take the judge's word for it.**
-
-   ```bash
-   python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/score_verdict.py" \
-       eval_logs/<the path the judge returned> \
-       --weights '<the primary pack's weights object>'
-   ```
-
-   It averages the dimension scores and compares that to the aggregate
-   the judge reported. **Record the computed number.** A judge is
-   qualified to score a dimension and has no particular claim to
-   averaging seven of them: a live cycle returned dimensions averaging
-   7.43 alongside `work_score: 7`, against a phase that stops when that
-   number moves by less than 0.5. Exit 1 means they disagreed; the
-   message names the value to use.
-
 
 ## Fight the Stability Trap (hard rules, from the original program)
 

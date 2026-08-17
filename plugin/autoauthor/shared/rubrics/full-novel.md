@@ -36,7 +36,7 @@ BAND: the dispatching prompt names the work's form and band. The seven
 dimensions below are the ones you score, at any length. But when scoring
 `pillar_consistency`, the systems to check are those governed by the
 pillar dimensions the primary pack's section for this band keeps
-(`## At Compressed Length`, `## At Intermediate Length`); a system the
+(`## At Compressed Length`, `## At Intermediate Length`); where the pack carries no section for this band, its full pillar list applies; a system the
 band section drops — `consequence_cascade` and `rule_integrity` at
 compressed science fiction, for instance — is absent by the form's
 decision, not a contradiction to hunt. Every full-novel judge on one

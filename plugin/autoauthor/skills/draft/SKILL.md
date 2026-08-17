@@ -76,8 +76,8 @@ a 6.0 ships; revision is Phase 3's job.
      and objects this chapter touches
    - from outline.md: THIS chapter's entry (including its Plants list)
      AND every section that precedes the first chapter entry — the
-     structure, the fact table, the clock, the register contract, the
-     foreshadowing table. Those sections are what prevent the arithmetic
+     structure, the fact table, the clock, the register contract — and
+     the foreshadowing ledger at the end of the file. Those sections are what prevent the arithmetic
      and clock errors that were the dominant defect class on one run
      (eight of them across four chapters, every one derivable from the
      outline's fact table). At `form.band == "compressed"` load
@@ -157,7 +157,7 @@ a 6.0 ships; revision is Phase 3's job.
 
    ```bash
    python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/score_verdict.py" \
-       eval_logs/<the path the judge returned>
+       <the path the judge returned>
    ```
 
    It averages the dimension scores and compares that to the
@@ -185,8 +185,9 @@ a 6.0 ships; revision is Phase 3's job.
    repeat), and it is invisible to revision, whose instruments cut and
    compress and read a wrong number as perfectly good prose.
 
-   **If the chapter fails ONLY on canon** — score clears, violations
-   listed — do not discard. Take the surgical-correction branch: apply
+   **If the chapter fails ONLY on canon** — final score clears 6.0,
+   `canon_compliance` is below 7 and its `violations` list is non-empty
+   — do not discard. Take the surgical-correction branch: apply
    edits that address the named violations and nothing else, re-run
    step 3, re-dispatch the judge, and log the attempt row as `correct`
    rather than `keep`/`discard`. A correction counts against the

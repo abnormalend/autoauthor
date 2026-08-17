@@ -112,7 +112,7 @@ can gut chapters.
    filename — apply_cuts.py globs it). Dispatch in parallel batches
    of 4–6 (malformed responses: see Setup's shared policy).
 4. **Apply mechanical cuts:**
-   `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/apply_cuts.py" all --types OVER-EXPLAIN REDUNDANT --min-fat 15 --protect-file edit_logs/protected.md`
+   `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/apply_cuts.py" all --types OVER-EXPLAIN REDUNDANT --min-fat 0 --protect-file edit_logs/protected.md`
    Review its FAIL lines; apply any high-value failed cuts by hand.
    **Also handle its SKIP [REWRITE] lines** — do not filter the
    script's output down to FAIL/SAVED and move on, or you will silently
@@ -141,12 +141,10 @@ can gut chapters.
      even for REWRITE cuts, because the by-hand pass would otherwise
      be the first place protection applied — and on one run it was,
      one step too late.
-   **If the run reports `Applied: 0` because every chapter fell under
-   `--min-fat 15`,** re-run with `--min-fat 0`, which keeps the type
-   filter and drops only the gate, and say so in the commit message.
-   This is the usual case, not the exception: a draft that had a
-   post-draft slop pass typically comes back at 7–13% fat, and on one
-   run the 15% gate excluded three of four chapters on the first pass.
+   **Do not raise `--min-fat`.** The 15% gate this command once carried
+   excluded three of four chapters on one run's first pass; a draft
+   that had a post-draft slop pass typically comes back at 7–13% fat,
+   and step 3 already decided which chapters get cut this cycle.
    **Then audit for splice damage — REQUIRED, and not optional because
    the word counts look fine.** The script deletes quoted spans
    mid-paragraph, and neither the word-count check nor the slop scorer
@@ -298,13 +296,21 @@ missing scene → thin character → weak scene → consistency):
      continuity bugs.
    - *Arithmetic you introduce.* Any new interval, count or date
      ("nineteen months", "six Saturdays deep") will be checked against
-     the Story Clock. If you do not need the number, do not write one.
+     outline.md's `## Facts the story must not contradict` section (the
+     Story Clock lives there). If you do not need the number, do not
+     write one.
 4. Score it exactly as draft does: scratch copy to
-   `eval_logs/ch_NN_attempt_<k>.md`, slop score, chapter-judge
+   `eval_logs/ch_NN_attempt_<k>.md`, slop score, continuity check
+   (`python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/continuity_check.py" chapters/ch_NN.md`
+   — read its NOT FOUND list against outline.md's `## Facts the story
+   must not contradict` before dispatching), chapter-judge
    dispatch (labeled target/previous paths, per chapter.md's
    contract, and the genre pack(s) at `<resolved pack paths, primary
-   first, each labeled with its role>`), final score = judge minus slop
-   penalty. The judge writes its own verdict file
+   first, each labeled with its role>`, and the other input files named
+   as draft step 4 names them — `<the layer files the resolved form
+   builds, named>` and canon.md; a judge told nothing about world.md
+   cannot tell whether the form built one), final score = judge minus
+   slop penalty. The judge writes its own verdict file
    (`eval_logs/<UTC yyyymmdd_hhmmss>_chNN.json`) and returns the path
    and score. Compute the UTC timestamp yourself before dispatching; the
    path in the prompt is literal, and it is the path you will hand to
@@ -333,7 +339,8 @@ missing scene → thin character → weak scene → consistency):
    So: **baseline before you rewrite, not after a rewrite fails.** At
    the start of Fix, dispatch the chapter judge once for EVERY chapter
    you intend to touch this cycle, in parallel, against the current
-   committed text (same labeled paths as a scoring dispatch; write each
+   committed text (same labeled paths and input-file list as a scoring
+   dispatch; write each
    to `eval_logs/<UTC yyyymmdd_hhmmss>_baseline_chNN.json` — the
    `_chNN.json` suffix is what `gen_brief.py --eval` globs for, so the
    brief for that chapter picks the baseline up as its latest eval).
@@ -417,7 +424,7 @@ missing scene → thin character → weak scene → consistency):
 
    ```bash
    python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/score_verdict.py" \
-       eval_logs/<the path the judge returned>
+       <the path the judge returned>
    ```
 
    It averages the dimension scores and compares that to the aggregate
