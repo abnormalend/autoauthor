@@ -78,9 +78,20 @@ a 6.0 ships; revision is Phase 3's job.
    path>`. The target chapter is chapter <N>; its file is
    `<absolute path to chapters/ch_NN.md>`. The previous chapter file is
    `<absolute path to ch_(N-1)>` (omit this line for chapter 1). The
-   other input files are voice.md, world.md, characters.md, canon.md,
-   outline.md in the project directory. Return ONLY the JSON object the
-   rubric specifies."
+   other input files are `<the layer files the resolved form builds,
+   named — see Setup step 5>` and canon.md in the project directory.
+   Write the JSON object the rubric specifies — bare JSON, no fences —
+   to `<absolute project path>/eval_logs/<UTC yyyymmdd_hhmmss>_chNN.json`
+   (compute the timestamp yourself before dispatching and put the exact
+   path in the prompt), and return only that path and the
+   `overall_score` value."
+
+   The judge writes the file; you do not transcribe it. A run that
+   re-typed four ~1,500-word verdicts by hand put a lossy step between
+   the measurement and the artifact `score_verdict.py` certifies — the
+   check was validating the orchestrator's copy, not the judge's. If
+   the file is missing or is not valid JSON, that is a malformed
+   response: one strict retry, then `noscore`.
    **Compute the score; do not take the judge's word for it.**
 
    ```bash
@@ -96,10 +107,11 @@ a 6.0 ships; revision is Phase 3's job.
    reported as 7.0. Exit 1 means they disagreed; the message names the
    value to use.
 
-   Save the JSON to `eval_logs/<UTC yyyymmdd_hhmmss>_chNN.json` (NN
-   zero-padded — gen_brief.py globs this pattern). Fence-wrapped but
-   otherwise valid JSON is VALID — strip the fences. Malformed JSON →
-   one strict retry → else record `noscore` and move on. A `noscore`
+   The filename is `<UTC yyyymmdd_hhmmss>_chNN.json` with NN zero-padded
+   — gen_brief.py globs this pattern. If the judge fenced the JSON
+   anyway, strip the fences in place; that is a formatting technicality,
+   not a malformed response. Malformed or missing → one strict retry →
+   else record `noscore` and move on. A `noscore`
    attempt counts as a failed attempt: discard and retry, same as a
    below-gate score.
 5. **Final score** = judge `overall_score` minus the script's

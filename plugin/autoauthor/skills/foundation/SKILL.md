@@ -84,18 +84,22 @@ chapters untouched).
    dimensions file is `<base_dimensions.path>`; score exactly these keys,
    by category: `<base_dimensions.scored as reported, verbatim>`. The
    project directory is `<absolute project path>`. The input files are:
-   `<the documents form.layers calls for, named>`. Return ONLY the JSON
-   object the rubric specifies."
+   `<the documents form.layers calls for, named>`. Write the JSON object
+   the rubric specifies — bare JSON, no fences — to `<absolute project
+   path>/eval_logs/<UTC yyyymmdd_hhmmss>_foundation.json` (compute the
+   timestamp before dispatching and put the exact path in the prompt),
+   and return only that path and the `overall_score` and `pillar_score`
+   values."
 
    Every angle-bracketed value comes from the resolver output kept in
    Setup step 2. Pass `base_dimensions.scored` through verbatim — do not
    summarize it, and do not substitute the eight you remember, which is
    the whole failure this parameterization exists to prevent.
-   Save the returned JSON verbatim to
-   `eval_logs/<UTC yyyymmdd_hhmmss>_foundation.json`.
-   Fence-wrapped but otherwise valid JSON is VALID — strip the fences,
-   don't waste the retry on a formatting technicality. If the response
-   genuinely is not valid JSON, re-dispatch once with a stricter
+   The judge writes the file; do not transcribe it (`score_verdict.py`
+   must certify the judge's artifact, not your copy of it). If it fenced
+   the JSON anyway, strip the fences in place — a formatting
+   technicality, not a malformed response. If the file is missing or
+   genuinely not valid JSON, re-dispatch once with a stricter
    reminder; if still invalid, log the iteration as unscored in
    results.tsv (`keep_discard=noscore`) and continue.
    The results.tsv score column takes `overall_score`; put

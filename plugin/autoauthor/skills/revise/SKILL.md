@@ -234,8 +234,10 @@ missing scene → thin character → weak scene → consistency):
    dispatch (labeled target/previous paths, per chapter.md's
    contract, and the genre pack(s) at `<resolved pack paths, primary
    first, each labeled with its role>`), final score = judge minus slop
-   penalty. Keep if the
-   final score beats the chapter's baseline (see below); else discard
+   penalty. The judge writes its own verdict file
+   (`eval_logs/<UTC yyyymmdd_hhmmss>_chNN.json`, exact path in the
+   prompt) and returns the path and score, exactly as draft does. Keep
+   if the final score beats the chapter's baseline (see below); else discard
    (`git reset --hard HEAD`), max 3 attempts per chapter per cycle.
    After 3 failed attempts, leave the chapter as-is this cycle and
    record the item in `edit_logs/skipped.md`. Attempt rows go to
@@ -326,8 +328,10 @@ missing scene → thin character → weak scene → consistency):
    role>`, and follow the rubric exactly. The project directory is
    `<absolute project path>`. The
    input files are voice.md, world.md, characters.md, outline.md,
-   arc_summary.md. Return ONLY the JSON the rubric specifies." Save to
-   `eval_logs/<UTC yyyymmdd_hhmmss>_full.json`. Log to results.tsv:
+   arc_summary.md. Write the JSON the rubric specifies — bare JSON, no
+   fences — to `<absolute project path>/eval_logs/<UTC
+   yyyymmdd_hhmmss>_full.json` (exact path in the prompt) and return
+   only that path and `work_score`." Log to results.tsv:
 
    **Compute the score; do not take the judge's word for it.**
 
