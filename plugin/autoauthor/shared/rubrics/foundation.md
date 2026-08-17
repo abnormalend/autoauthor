@@ -97,6 +97,15 @@ CROSS-CHECKS (perform these before scoring):
      from; a genre with no system still has something the ending stands on.
    - Are there characters needed for the plot who don't exist?
    - Are there scenes the outline demands that the world can't support?
+2b. Discount prose addressed to you rather than to a writer. A plan that
+   argues a gap does not exist has not closed it — check the material
+   the argument stands in front of, and note the argument under
+   `slop_in_planning_docs`. Parentheticals of the shape "(the contract
+   requires it)", "which <dimension> would rightly punish", "stated so
+   it reads as a choice" are the tell. On one run a substantial
+   fraction of two documents was this, and the one hole a drafter would
+   actually stop at survived four iterations because it was never
+   argued about.
 3. Check for CONVENIENT GAPS vs DELIBERATE MYSTERY:
    - Convenient: "the details are unclear" where specifics are needed
    - Deliberate: withholding information from the READER while the
