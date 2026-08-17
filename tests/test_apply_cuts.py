@@ -104,3 +104,28 @@ def test_rewrite_cut_is_skipped_not_deleted(tmp_path):
     text = (tmp_path / "chapters/ch_03.md").read_text()
     assert "He realized then" in text
     assert "SKIP [REWRITE]" in result.stdout
+
+
+def test_protect_file_skips_cuts_that_touch_a_protected_line(tmp_path):
+    """A protected substring anywhere in a cut's quote — or a quote that is a
+    fragment of a protected line — is skipped and reported, not applied.
+    Whitespace is normalised on both sides."""
+    setup_project(tmp_path)
+    (tmp_path / "edit_logs/protected.md").write_text(
+        "# protected\n"
+        "\n"
+        "every person in the room   already knew\n"   # ws-normalised match
+    )
+    result = run_in(tmp_path, "3", "--protect-file", "edit_logs/protected.md")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "PROTECT" in result.stdout
+    text = (tmp_path / "chapters/ch_03.md").read_text()
+    assert "He realized then" in text  # the OVER-EXPLAIN cut was NOT applied
+
+
+def test_protect_file_lines_starting_with_hash_or_blank_are_ignored(tmp_path):
+    setup_project(tmp_path)
+    (tmp_path / "edit_logs/protected.md").write_text("# nothing here\n\n")
+    result = run_in(tmp_path, "3", "--protect-file", "edit_logs/protected.md")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "He realized then" not in (tmp_path / "chapters/ch_03.md").read_text()

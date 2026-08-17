@@ -7,6 +7,8 @@ Usage:
   python apply_cuts.py all --types OVER-EXPLAIN REDUNDANT  # filter by type
   python apply_cuts.py all --min-fat 17                    # only chapters with >=17% fat
   python apply_cuts.py all --dry-run                       # show what would be cut
+  python apply_cuts.py all --protect-file edit_logs/protected.md
+                                                           # never cut a line listed there
 """
 
 import argparse
@@ -21,6 +23,47 @@ EDIT_LOGS_DIR = BASE / "edit_logs"
 
 VALID_TYPES = {"OVER-EXPLAIN", "REDUNDANT", "FAT", "TELL", "STRUCTURAL", "GENERIC"}
 MIN_QUOTE_LEN = 25
+
+_WS = re.compile(r"\s+")
+
+
+def _norm(s: str) -> str:
+    return _WS.sub(" ", s).strip()
+
+
+def load_protected(path: Path | None) -> list[str]:
+    """Newline-delimited substrings that must never be cut.
+
+    Blank lines and lines starting with '#' are ignored, so the skill can
+    keep the file as readable markdown with a heading per source (chapter
+    judges' three_strongest_sentences, the outline's plant/harvest quotes).
+    Whitespace-normalised, because the file is hand-maintained.
+    """
+    if path is None:
+        return []
+    lines = []
+    for raw in path.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        lines.append(_norm(line))
+    return lines
+
+
+def protected_by(quote: str, protected: list[str]) -> str | None:
+    """The protected line a quote collides with, or None.
+
+    Collides in either direction: the quote contains a protected line
+    (the cut would remove it), or a protected line contains the quote (the
+    cut would remove part of it). Both destroy the line.
+    """
+    q = _norm(quote)
+    if not q:
+        return None
+    for p in protected:
+        if p in q or q in p:
+            return p
+    return None
 
 
 def load_cuts(chapter_num: int) -> dict | None:
@@ -96,9 +139,11 @@ def process_chapter(
     type_filter: set[str] | None,
     min_fat: int,
     dry_run: bool,
+    protected: list[str] | None = None,
 ) -> dict:
     """Process cuts for one chapter. Returns stats dict."""
-    stats = {"applied": 0, "failed": 0, "skipped": 0, "words_removed": 0, "error": None}
+    stats = {"applied": 0, "failed": 0, "skipped": 0, "protected": 0,
+             "words_removed": 0, "error": None}
     label = f"ch{chapter_num:02d}"
 
     # Load cuts
@@ -135,6 +180,12 @@ def process_chapter(
         # Filter by type
         if type_filter and cut_type not in type_filter:
             stats["skipped"] += 1
+            continue
+
+        hit = protected_by(quote, protected or [])
+        if hit:
+            stats["protected"] += 1
+            print(f"  PROTECT [{cut_type}] touches protected line: {hit[:60]}")
             continue
 
         # REWRITE cuts need replacement prose, not deletion — leave them
@@ -226,9 +277,18 @@ def main():
         action="store_true",
         help="Show what would be cut without modifying files.",
     )
+    parser.add_argument(
+        "--protect-file",
+        type=Path,
+        metavar="PATH",
+        help="Newline-delimited substrings that must never be cut; a cut "
+             "whose quote contains one (or is contained by one) is skipped "
+             "and reported as PROTECT.",
+    )
     args = parser.parse_args()
 
     type_filter = set(args.types) if args.types else None
+    protected = load_protected(args.protect_file)
 
     # Determine which chapters to process
     if args.chapter.lower() == "all":
@@ -249,12 +309,12 @@ def main():
     print(f"=== apply_cuts [{mode}] chapters={len(chapters)}{type_info}{fat_info} ===\n")
 
     # Aggregate stats
-    totals = {"applied": 0, "failed": 0, "skipped": 0, "words_removed": 0}
+    totals = {"applied": 0, "failed": 0, "skipped": 0, "protected": 0, "words_removed": 0}
 
     for ch_num in chapters:
         label = f"ch{ch_num:02d}"
         print(f"--- {label} ---")
-        stats = process_chapter(ch_num, type_filter, args.min_fat, args.dry_run)
+        stats = process_chapter(ch_num, type_filter, args.min_fat, args.dry_run, protected)
         if stats["error"]:
             print(f"  {stats['error']}")
         for k in totals:
@@ -263,7 +323,8 @@ def main():
 
     # Summary
     print("=" * 50)
-    print(f"Applied: {totals['applied']}  |  Failed: {totals['failed']}  |  Skipped: {totals['skipped']}")
+    print(f"Applied: {totals['applied']}  |  Failed: {totals['failed']}  |  "
+          f"Skipped: {totals['skipped']}  |  Protected: {totals['protected']}")
     print(f"Words removed: ~{totals['words_removed']}")
     if args.dry_run:
         print("(dry run — no files were modified)")
