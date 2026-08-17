@@ -107,6 +107,20 @@ chapters untouched).
    this high on the reasoning that a weak plan costs the drafting loop far
    more than it costs to plan again, and that reasoning does not survive a
    translation to five thousand words.
+
+   **A fired cap overrides a cleared gate.** The gate is a floor on a
+   weighted mean, and a mean lets a capped dimension through whenever
+   the other categories are strong. One run cleared 6.5/6.0 on its first
+   scored iteration at 7.45/7.00 while `internal_consistency` sat on its
+   cap at 4 with five listed contradictions — including the clock the
+   whole second half runs on, stated three different ways — and
+   `register_plausibility` sat on its cap at 6. Exiting there ships a
+   plan that stops a drafter mid-scene. So: if any scored dimension's
+   note says its cap fired, or the eval's contradictions list names a
+   contradiction in a fact table, an outline beat, quoted in-story
+   text, or a character fact, do NOT exit — run at least one more
+   iteration targeting that dimension, then re-check. Caps are how the
+   packs refuse a book something; the gate does not overrule them.
 3. **Target the weakest dimension.** The eval names `weakest_dimension`
    and `top_3_improvements`. Revise THAT layer's document. While
    revising, run the cross-layer consistency checks: the outline
