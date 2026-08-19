@@ -289,6 +289,12 @@ missing scene → thin character → weak scene → consistency):
    and TIGHTEN targets to the unit floor; without it the floor is the
    novel's 1800. If the brief's TARGET is at the floor, the chapter has
    no compression left in it and the item wants a different fix.
+   Name the targeted dimension before dispatching — the brief's weakest
+   dimension for `--eval`, or the chapter-rubric dimension the item maps
+   to (missing scene → `beat_coverage`, thin character →
+   `character_voice`, cut candidate → `prose_quality` or `engagement`,
+   consistency → `continuity` or `canon_compliance`) — and record it in
+   the attempt row's description; step 4's tie rule reads it.
 3. Rewrite the chapter in-session following the brief plus the
    playbook's Rewrite rules, with the drafting context recipe
    (every layer file the form builds — voice.md and characters.md

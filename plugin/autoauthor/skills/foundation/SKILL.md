@@ -8,7 +8,8 @@ model: claude-fable-5
 
 Builds the planning layers the work's form calls for and iterates until
 both scores clear that form's gate — `foundation_score > 7.5 AND
-pillar_score > 7.0` for a novel — and no cap is firing. No prose
+pillar_score > 7.0` for a novel — and no cap is firing or MAJOR
+contradiction standing. No prose
 chapters are written in this
 phase. Typical runs take 5–15 iterations at novel length; the form's
 `iteration_cap` bounds it.
@@ -209,11 +210,12 @@ chapters untouched).
      measured at two full points on one run). Break it in this order:
      (a) keep the state with the higher `pillar_score`; (b) if those tie
      too, keep the new state if the dimension you targeted improved and
-     the entries in its `contradictions_found` are NEW ones — surface
-     faults introduced while rewriting, not the fault you set out to
-     fix; (c) otherwise keep the state whose `contradictions_found`
-     lists fewer contradictions in fact tables, outline beats, quoted
-     text, character facts, or author-facing rules. Commit if keeping the new state. One
+     the entries in its `contradictions_found` are surface faults
+     introduced while rewriting, not the fault you set out to fix, OR
+     also exist in the kept state's text (discovery — see the
+     regression case below); (c) otherwise keep the state whose
+     `contradictions_found` lists fewer MAJOR contradictions, then
+     fewer overall. Commit if keeping the new state. One
      run's iteration 3 fixed the transmission-cadence fault two judges
      had called MAJOR and came in 0.12 under the kept state — inside
      the band — because it introduced four one-line surface errors;
@@ -225,7 +227,8 @@ chapters untouched).
      introduced while rewriting), the revision worked and you dropped a
      wrench on the way out: keep it, and target the new faults next
      iteration. Discard only when the targeted dimension did not
-     improve. One more case: if the contradictions the new eval lists
+     improve AND the listed contradictions are genuinely new to this
+     tree. One more case: if the contradictions the new eval lists
      ALSO exist in the kept state — the judge found a fault that was
      already there — the regression is discovery, not damage. Keep, and
      target it next iteration; discarding would restore the faults you
@@ -235,6 +238,9 @@ chapters untouched).
      second judge on the same tree: single-judge variance has moved a
      score 0.72 on a handful of changed lines and 0.00 on a rewrite, and
      one extra dispatch is cheaper than throwing away an iteration.
+     Use the mean of the two computed `overall_score`s as this
+     iteration's score, re-run the three cases on it, and put both
+     numbers in the results.tsv description.
 
    The comparison point for the next iteration is always the score of
    the last KEPT state — after a tie-keep or a regression-keep, that
@@ -257,11 +263,13 @@ chapters untouched).
    `<ISO timestamp>\tfoundation\t<score>\t0\t<keep|discard|noscore>\t<one line>`.
 5. **Iteration cap.** After `form.iteration_cap` iterations (from the
    resolver's `form` block — 15 for a novel, 8 for a novella, 4 for a
-   short story) without exiting the loop, STOP. Report the best score,
+   short story) without exiting the loop, STOP. Report the last kept
+   score,
    the stubborn dimension or the cap that keeps firing, and options
    (accept and move on / keep iterating / revise the seed). If at the
-   cap both scores clear the gate and no MAJOR contradiction or fired
-   cap remains, that is a normal exit, not a stop — go to Exit. If you
+   cap the last KEPT state's scores clear the gate and its eval lists
+   no MAJOR contradiction or fired cap, that is a normal exit, not a
+   stop — go to Exit. If you
    do stop: leave `foundation_score` and `pillar_score` at the last KEPT
    state's values (not the best ever seen), set `chapters_total` from
    the outline so a user who accepts can draft without a second pass

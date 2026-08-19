@@ -7,7 +7,8 @@ model: claude-fable-5
 # Novel Draft — Phase 2
 
 Writes chapters in outline order. Keep at score > 6.0 (after slop
-penalty) and canon clean, max 5 attempts per chapter. Forward progress over perfection:
+penalty) and no canon violation, missing plant, or fact fix named
+(step 6), max 5 attempts per chapter. Forward progress over perfection:
 a 6.0 ships; revision is Phase 3's job.
 
 ## Setup
@@ -185,27 +186,27 @@ a 6.0 ships; revision is Phase 3's job.
 5. **Final score** = judge `overall_score` minus the script's
    `slop_penalty` (floor 0). This mirrors the original pipeline's
    independent mechanical adjustment.
-6. **Gate.** Keep requires BOTH: final score > 6.0 AND the judge's
-   `canon_compliance.violations` list is empty (or `canon_compliance`
-   scored 7 or higher) — if kept with violations listed, log each as a
-   debt (step 7). A canon violation is unlike a weak sentence: it
-   is cheap now, it compounds (a wrong line in ch1 forced ch2 to write
-   around it on one run, and the judge discounted ch2's version as a
-   repeat), and it is invisible to revision, whose instruments cut and
-   compress and read a wrong number as perfectly good prose.
+6. **Gate.** Keep requires final score > 6.0 and no branch-(a)/(b)/(c)
+   item named (below).
 
    **The surgical-correction branch.** If the final score clears 6.0
    and the judge names any of: (a) `canon_compliance` below 7 with a
    non-empty `violations` list; (b) a plant from this chapter's outline
    `Plants:` list that is not on the page; (c) a one-word or one-number
    fact fix (a count, an age, a clock time) — do not discard and do not
-   commit as-is. Apply edits addressing only the named items, re-run
-   step 3, re-dispatch the judge, and log the attempt row as `correct`.
-   A correction counts against the 5-attempt budget so it cannot loop.
-   A canon violation or a missing plant is unlike a weak sentence: it is
-   cheap now, it compounds (a wrong line in ch1 forced ch2 to write
-   around it; a plant missing from ch1 has no payoff in ch6), and it is
-   invisible to revision, whose instruments cut and compress. Post-judge
+   commit as-is. (b) and (c) are read from `plants_seeded`'s
+   `weakest_moment`/`fix`/`note`, `beat_coverage`'s `fix`,
+   `continuity`'s `note`, `canon_compliance.violations`, and
+   `top_3_revisions`; a structured `violations` list is not the only
+   place a judge names a defect. Apply edits addressing only the named
+   items, re-run step 3, re-dispatch the judge, and log the attempt row
+   as `correct`. A correction counts against the 5-attempt budget so it
+   cannot loop. A canon violation or a missing plant is unlike a weak
+   sentence: it is cheap now, it compounds (a wrong line in ch1 forced
+   ch2 to write around it on one run, and the judge discounted ch2's
+   version as a repeat; a plant missing from ch1 has no payoff in ch6),
+   and it is invisible to revision, whose instruments cut and compress
+   and read a wrong number as perfectly good prose. Post-judge
    edits outside this branch are forbidden — they decouple the committed
    text from the committed score; one run improvised both re-judging and
    un-judged touch-ups for the same class of defect, which is the
@@ -218,9 +219,10 @@ a 6.0 ships; revision is Phase 3's job.
    Otherwise discard with `git reset --hard HEAD` (untracked eval logs
    survive) and retry with a DIFFERENT approach informed by the
    judge's three_weakest_sentences and top_3_revisions — up to 5
-   attempts. After 5 failed attempts, keep the best-scoring canon-clean
-   attempt; if none is clean, keep the best score and log each listed
-   violation as a state.json debt (step 7 format) — the `correct`
+   attempts. After 5 failed attempts, keep the best-scoring attempt
+   with no (a)/(b)/(c) item named; if none, keep the best score and log
+   each named item (violation, missing plant, fact fix) as a state.json
+   debt (step 7 format) — the `correct`
    branch is unavailable once the budget is spent. Then
    `cp eval_logs/ch_NN_attempt_<best>.md chapters/ch_NN.md`,
    commit, and log `keep (best-of-5)`.
