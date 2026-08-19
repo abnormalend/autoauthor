@@ -88,7 +88,12 @@ CHARACTER REGISTRY:
 Read characters.md from the project directory.
 
 CANON (established hard facts -- violations are bugs):
-Read canon.md from the project directory.
+Read canon.md from the project directory. An entry sourced to the target
+chapter itself (`(ch_NN)` where NN is the chapter you are judging)
+describes that chapter's committed text; if the chapter no longer states
+it, report it under `new_canon_entries` as an amendment ("supersedes: …"),
+not under `violations` — unless another chapter's entry depends on it, in
+which case it is a violation of that other entry.
 
 CHAPTER OUTLINE ENTRY:
 Extract the target chapter's entry from outline.md. Also read the
@@ -182,7 +187,9 @@ Score these dimensions:
   continuity as well as plot continuity. Does the character's state of
   mind track?
 
-- canon_compliance: Check ALL facts against canon. List violations.
+- canon_compliance: Check ALL facts against canon. List violations (an
+  entry the target chapter itself established and has now changed is an
+  amendment, see CANON above).
   One major violation caps score at 6. Check: character names, locations,
   the pillar system's rules, timeline, established events, physical
   descriptions.

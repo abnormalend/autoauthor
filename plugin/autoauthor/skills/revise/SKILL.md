@@ -44,7 +44,10 @@ measure (full-novel score). Stop on plateau: full-novel score change
    the project's voice.md, `references/revision-playbook.md` (this
    skill's directory), and every genre pack path the resolver reported.
 4. Resume: state.json `revision_cycle` is the last COMPLETED cycle;
-   this session runs cycle N = revision_cycle + 1.
+   this session runs cycle N = revision_cycle + 1. Run cycles
+   in-session until the plateau rule or the maximum stops you; each
+   cycle's `cycle N complete` commit is a resume point, so a session
+   that ends mid-run loses at most the cycle in progress.
 5. **Malformed judge responses (applies everywhere in this skill):**
    fence-wrapped but otherwise valid JSON is VALID — strip the fences;
    for genuinely malformed output, one strict retry, then skip that
@@ -66,7 +69,11 @@ can gut chapters.
 
 ### Diagnose
 
-1. **arc_summary.md** — regenerate it fresh: first line
+1. **arc_summary.md** — on cycle 1, or if the file is missing, build
+   it fresh; on later cycles run the Measure resync procedure over it
+   instead and regenerate only if a quoted passage fails verification
+   (regenerating a file that was resynced verbatim-by-construction can
+   only add drift). Fresh build: first line
    `Novel: <total words> words across <count> chapters.`, then per
    chapter: a 4–6 sentence event summary, the opening and closing
    ~100-word passages, and 1–2 key dialogue exchanges. Commit
@@ -102,14 +109,22 @@ can gut chapters.
    edit_logs/cycle<N-1>/ 2>/dev/null || true`. A stale cuts file
    re-applies last cycle's cuts to a chapter you chose not to
    re-dispatch — including any line you restored by hand. Then: in
-   cycle 1, every chapter. In later cycles, only chapters whose score
-   fell last cycle, or whose last reported
-   `overall_fat_percentage` was 12% or higher. Judges asked for 10–20
+   cycle 1, every chapter. In later cycles, only chapters whose KEPT
+   score fell last cycle — compare the chapter's kept score at the end
+   of cycle N−1 with its kept score at the end of cycle N−2; a baseline
+   is not a kept score, and baselines reliably come in under the prior
+   kept number. Do not key on the last reported fat percentage: it was
+   measured BEFORE that cycle's cuts, so it re-dispatches by
+   construction the chapter it just cut. Judges asked for 10–20
    cuts return 10–20 cuts whatever the fat; on a manuscript at 9–13%
    fat one run's cycle-2 pass removed 269 words, needed four
    protections and one restore, left five splice defects, and moved
    the full-novel score 7.86 → 7.86 with `overall_engagement` down a
    point. Record any chapter you skip, and why, in `edit_logs/skipped.md`.
+   If no chapter qualifies, still make the step commit — `cycle N:
+   adversarial cuts (0 words — no chapter qualified)`, `--allow-empty`
+   — and skip apply_cuts and the splice audit; the resume check greps
+   for that commit.
 
    For EACH chapter, dispatch an `autoauthor:editor` subagent (the
    plugin's `agents/editor.md` — cheaper tier; its output is gated by
@@ -237,7 +252,11 @@ can gut chapters.
    the exact shape gen_brief.py consumes: `{"question": "<question
    key>", "chapter": <integer N>, "flagged_by": ["<personas>"],
    "not_flagged": ["<personas>"]}` — `chapter` MUST be a JSON integer,
-   not a string, because gen_brief.py matches on int equality. Commit
+   not a string, because gen_brief.py matches on int equality. A
+   character-level item (a `thinnest_character` consensus) has no
+   chapter: write `{"question": "thinnest_character", "chapter": null,
+   "character": "<name>", …}`; gen_brief prints these under CHARACTER
+   NOTES rather than as a chapter instruction. Commit
    `cycle N: reader panel`.
 
    **What the panel is and isn't evidence of.** All four readers see
@@ -312,7 +331,11 @@ missing scene → thin character → weak scene → consistency):
    removes a plant (an object, a card, a named regular) silently breaks
    its payoff chapters later. Check the old chapter's lines against
    `edit_logs/protected.md` too: a rewrite may reword a protected line,
-   but it may not lose it.
+   but it may not lose it. If a kept rewrite removes or changes a fact
+   that canon.md records under an in-story entry sourced to this
+   chapter, amend that entry in the same commit — the chapter is the
+   record and canon describes it; a stale entry turns the next judge's
+   reading of an eval-requested cut into a "canon drift" violation.
 
    **Three canon pre-flight checks before you write a line.** These are
    the errors that actually recur, and each one costs an attempt:
@@ -478,7 +501,7 @@ missing scene → thin character → weak scene → consistency):
    path>/eval_logs/<UTC yyyymmdd_hhmmss>_full.json` and return only
    that path and `work_score`. Set `"judge_model"` in that JSON to `<the model pinned in agents/judge.md>`." Compute the UTC timestamp yourself
    before dispatching; the path in the prompt is literal, and it is the
-   path you will hand to score_verdict.py. Log to results.tsv:
+   path you will hand to score_verdict.py.
 
    **Compute the score; do not take the judge's word for it.**
 
@@ -495,16 +518,18 @@ missing scene → thin character → weak scene → consistency):
    number moves by less than 0.5. Exit 1 means they disagreed; the
    message names the value to use.
 
-   `<ISO timestamp>\trevision\t<work_score>\t<total words>\tkeep\tfull-eval cycle N judge=<model>`
-   (the `full-eval` description prefix is a contract — the router's
-   plateau check greps for it).
+   **One `full-eval` row per cycle.** The results.tsv row
 
-   **If you measure more than once in a cycle** — legitimate when a
-   measurement comes back down and you repair the cause and re-measure
-   — only the FINAL measurement may carry the `full-eval cycle N`
-   prefix. Log the intermediate one with a plain description and no
-   `full-eval` prefix, or the plateau check will read one cycle as two
-   and can stop revision early on a number you already fixed.
+   `<ISO timestamp>\trevision\t<work_score>\t<total words>\tkeep\tfull-eval cycle N judge=<model>`
+
+   is written ONCE, at the end of Measure, after any step-2
+   fix-and-re-measure (the `full-eval` description prefix is a
+   contract — the router's plateau check greps for it). An intermediate
+   measurement — legitimate when a number comes back down and you
+   repair the cause and re-measure — is logged at the time with a plain
+   description and no `full-eval` prefix, or the plateau check will
+   read one cycle as two and can stop revision early on a number you
+   already fixed.
 
    **Read the dimension scores, not just the total.** A total that
    moves 0.2 looks like noise; the dimensions underneath show whether
@@ -525,7 +550,9 @@ missing scene → thin character → weak scene → consistency):
 
 Set state.json `phase: "review"`. Run
 `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/voice_fingerprint.py"`
-for the record. Commit `revision complete: <cycles> cycles
+for the record. It writes to `edit_logs/`, which is gitignored; paste
+its summary table into the `revision complete` commit message so the
+record is tracked. Commit `revision complete: <cycles> cycles
 (<final score>)`. Pushover notification (pushover skill): title
 "autoauthor: revision", message with cycles run, score trajectory, next
 step `/autoauthor:review`. Report the same to the user.
