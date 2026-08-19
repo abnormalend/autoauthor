@@ -259,8 +259,10 @@ def process_chapter(
             stats["skipped"] += 1
             if not dry_run:
                 rewrite = cut.get("rewrite") or ""
+                shown = (repr(rewrite[:80]) if rewrite else
+                         "(no rewrite supplied — the cuts JSON is malformed for a REWRITE)")
                 print(f"  SKIP [REWRITE] REWRITE cuts are applied by hand — "
-                      f"rewrite: {rewrite[:80]!r}  (quote: {quote[:40]!r})")
+                      f"rewrite: {shown}  (quote: {quote[:40]!r})")
             continue
 
         # Skip short quotes
@@ -368,6 +370,8 @@ def main():
     if args.verify_protected is not None:
         if not args.verify_protected.exists():
             parser.error(f"--verify-protected {args.verify_protected} not found")
+        if not CHAPTERS_DIR.is_dir():
+            parser.error("no chapters/ directory here — run from the project directory")
         found, not_found = verify_protected(load_protected(args.verify_protected))
         print(f"=== verify-protected {args.verify_protected}: "
               f"{len(found)} found, {len(not_found)} not found ===\n")

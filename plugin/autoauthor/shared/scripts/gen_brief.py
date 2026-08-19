@@ -183,7 +183,7 @@ def load_cuts(ch: int) -> dict | None:
 # zero-padded "Chapter 03" a persona writes (it has just read ch_03.md) does
 # match chapter 3. On one run every verdict from the persona that padded was
 # silently dropped from every brief.
-ANY_CH_RE = re.compile(r"\b(?:Chapter|Ch\.?)\s*0*(\d+)\b", re.I)
+ANY_CH_RE = re.compile(r"\b(?:Chapters?|Ch\.?)\s*0*(\d+)\b", re.I)
 
 
 def primary_chapter(text: str) -> int | None:
@@ -539,7 +539,7 @@ def build_eval_brief(ch: int) -> str:
         # Pacing curve note if it mentions this chapter
         pacing = full_eval.get("pacing_curve", {})
         pacing_note = pacing.get("note", "")
-        ch_re = re.compile(rf"\b(?:Chapter|Ch\.?)\s*{ch}\b", re.I)
+        ch_re = re.compile(rf"\b(?:Chapters?|Ch\.?)\s*0*{ch}\b", re.I)
         if ch_re.search(pacing_note):
             problem_parts.append(f"**Pacing note (full eval):** {pacing_note}")
 
@@ -744,7 +744,7 @@ def build_auto_brief() -> tuple[int, str]:
         "foreshadowing_resolution", "pillar_consistency", "voice_consistency",
         "overall_engagement",
     ]
-    ch_re = re.compile(rf"\b(?:Chapters?|Ch\.?)\s*{ch}\b", re.I)
+    ch_re = re.compile(rf"\b(?:Chapters?|Ch\.?)\s*0*{ch}\b", re.I)
     for dk in dim_keys:
         dim = full_eval.get(dk, {})
         note = dim.get("note", "")

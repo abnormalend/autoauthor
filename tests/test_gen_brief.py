@@ -219,6 +219,21 @@ def test_character_level_items_go_under_their_own_heading_not_into_changes(tmp_p
     assert "CHARACTER NOTES" in out and "Ikaika" in out
 
 
+def test_character_item_naming_a_chapter_still_goes_under_character_notes(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    _panel_project(tmp_path, {"writer": {"thinnest_character": "Ikaika in Chapter 4 is thinnest."}})
+    out = _brief(tmp_path, 4)
+    assert "Deepen character" not in out
+    assert "CHARACTER NOTES" in out and "Ikaika" in out
+
+
+def test_plural_chapters_mention_is_attributed_to_the_first_only(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    _panel_project(tmp_path, {"editor": {"momentum_loss": "Chapters 2 and 3 both drag."}})
+    assert "TIGHTEN" in _brief(tmp_path, 2)
+    assert "TIGHTEN" not in _brief(tmp_path, 3)
+
+
 def test_compress_target_is_labelled_an_upper_bound(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     _panel_project(tmp_path, {"editor": {"cut_candidate": "Chapter 2 could go."}}, wc=1762)

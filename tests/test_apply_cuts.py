@@ -245,3 +245,22 @@ def test_rewrite_skip_message_prints_the_rewrite(tmp_path):
     result = run_in(tmp_path, "3")
     assert "REWRITE cuts are applied by hand" in result.stdout
     assert "He realized the meeting had been arranged." in result.stdout
+
+
+def test_verify_protected_outside_a_project_is_a_usage_error(tmp_path):
+    (tmp_path / "protected.md").write_text("A line.\n")
+    result = run_in(tmp_path, "--verify-protected", "protected.md")
+    assert result.returncode == 2
+    assert "no chapters/ directory" in result.stderr
+
+
+def test_rewrite_skip_with_no_rewrite_says_the_json_is_malformed(tmp_path):
+    import json
+    setup_project(tmp_path)
+    cuts = json.loads((tmp_path / "edit_logs/ch03_cuts.json").read_text())
+    cuts["cuts"][0]["action"] = "REWRITE"
+    cuts["cuts"][0]["rewrite"] = None
+    (tmp_path / "edit_logs/ch03_cuts.json").write_text(json.dumps(cuts))
+    result = run_in(tmp_path, "3")
+    assert "no rewrite supplied" in result.stdout
+    assert "rewrite: ''" not in result.stdout
