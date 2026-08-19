@@ -14,7 +14,14 @@ a 6.0 ships; revision is Phase 3's job.
 
 1. Verify the project (state.json + voice.md in the current directory),
    clean tree (`git status --porcelain` empty — if dirty, STOP and ask),
-   and `state.json` phase `drafting`. Anchor the session in the
+   and `state.json` phase `drafting`. One exception: phase `foundation`
+   with `iteration` equal to `form.iteration_cap` and both
+   `foundation_score` and `pillar_score` above the form gate means
+   foundation stopped at its cap with the gate cleared and left the
+   decision to the user — invoking this skill is that decision. Set
+   `phase: drafting` and `chapters_total` if unset, commit
+   `foundation complete: <overall>/<pillar> (at cap)`, and proceed. Any
+   other non-`drafting` phase: STOP and ask. Anchor the session in the
    verified project directory; use absolute paths whenever there is
    any doubt about the current directory.
 2. **Resolve the genre.** Run from the project directory:
@@ -187,18 +194,26 @@ a 6.0 ships; revision is Phase 3's job.
    repeat), and it is invisible to revision, whose instruments cut and
    compress and read a wrong number as perfectly good prose.
 
-   **If the chapter fails ONLY on canon** — final score clears 6.0,
-   `canon_compliance` is below 7 and its `violations` list is non-empty
-   — do not discard. Take the surgical-correction branch: apply
-   edits that address the named violations and nothing else, re-run
-   step 3, re-dispatch the judge, and log the attempt row as `correct`
-   rather than `keep`/`discard`. A correction counts against the
-   5-attempt budget so it cannot loop. Cost is one edit pass and one
-   dispatch, against a debt that otherwise waits for a phase that will
-   not see it.
+   **The surgical-correction branch.** If the final score clears 6.0
+   and the judge names any of: (a) `canon_compliance` below 7 with a
+   non-empty `violations` list; (b) a plant from this chapter's outline
+   `Plants:` list that is not on the page; (c) a one-word or one-number
+   fact fix (a count, an age, a clock time) — do not discard and do not
+   commit as-is. Apply edits addressing only the named items, re-run
+   step 3, re-dispatch the judge, and log the attempt row as `correct`.
+   A correction counts against the 5-attempt budget so it cannot loop.
+   A canon violation or a missing plant is unlike a weak sentence: it is
+   cheap now, it compounds (a wrong line in ch1 forced ch2 to write
+   around it; a plant missing from ch1 has no payoff in ch6), and it is
+   invisible to revision, whose instruments cut and compress. Post-judge
+   edits outside this branch are forbidden — they decouple the committed
+   text from the committed score; one run improvised both re-judging and
+   un-judged touch-ups for the same class of defect, which is the
+   inconsistency this branch exists to remove.
 
-   Score clears and canon clean → keep: update state.json
-   `chapters_drafted`, fold in the attempt rows (fix 2), then
+   Score clears, and no branch-(a)/(b)/(c) item is named → keep:
+   update state.json `chapters_drafted`, fold in the attempt rows
+   (fix 2), then
    `git add -A && git commit -m "draft: ch NN (<final score>)"`.
    Otherwise discard with `git reset --hard HEAD` (untracked eval logs
    survive) and retry with a DIFFERENT approach informed by the
