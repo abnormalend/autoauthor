@@ -92,7 +92,11 @@ professor of fiction. Fix the top items; repeat. Maximum 4 rounds.
    the three. The raw rating goes in the description, where it carries
    its own units and cannot be misread.
 4. **STOPPING CONDITIONS — stop revising when ANY holds:**
-   - zero major unqualified items
+   - zero major unqualified items AND at most 2 moderate unqualified
+     items — a round-1 review that names several cheap, concrete,
+     unqualified moderate fixes and no major one should still run Fix
+     once; on one run the only major was a pipeline artifact and four
+     one-to-three-line moderate fixes were never attempted
    - qualified items > 50% of total items
    - total items <= 2
    - R >= 4
@@ -113,7 +117,7 @@ professor of fiction. Fix the top items; repeat. Maximum 4 rounds.
    nature and go straight to the grep-and-fix path; items tagged
    `structural` skip mapping too.
    - type `compression` or `revision` → generate a brief
-     (`python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/gen_brief.py" --eval <ch>`
+     (`python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/gen_brief.py" --eval <ch> --chapter-words <shape.chapter_words>`
      when a chapter eval exists, else hand-write the brief into
      `briefs/chNN_review.md` from the item text), then rewrite the
      chapter in-session exactly as revise's Fix stage does
@@ -136,7 +140,7 @@ professor of fiction. Fix the top items; repeat. Maximum 4 rounds.
 ## Exit
 
 Set state.json `phase: "export"`. Commit:
-`git add -A && git commit -m "review complete: <R> rounds, <stars> stars"`.
+`git add -A && git commit -m "review complete: <R> round(s), <stars> stars"`.
 Pushover notification (pushover skill): title
 "autoauthor: review", message with rounds, final star rating, stop
 reason, next step `/autoauthor:export`. Report the same to the
