@@ -39,14 +39,15 @@ def test_agent_frontmatter_pins_a_model_and_a_tool_set(path):
     assert meta.get("tools", "").strip()
 
 
-def test_only_the_judge_may_write():
+def test_every_agent_writes_its_own_artifact():
+    """Judges write verdicts, the editor writes chNN_cuts.json, readers write
+    panel_raw/<persona>.json. The orchestrator transcribing any of them is
+    the lossy step 0.18.0 removed for judges; 0.19.0 left the other two
+    inline and a run with no tool-completion signal had nothing to wait on."""
     for path in AGENTS:
         meta, _ = frontmatter(path)
         tools = {t.strip() for t in meta["tools"].split(",")}
-        if path.stem == "judge":
-            assert "Write" in tools, "judges write their own verdict files"
-        else:
-            assert "Write" not in tools, f"{path.stem} has no verdict file to write"
+        assert "Write" in tools, f"{path.stem} must be able to write its artifact"
 
 
 @pytest.mark.parametrize("path", SKILLS, ids=lambda p: p.parent.name)

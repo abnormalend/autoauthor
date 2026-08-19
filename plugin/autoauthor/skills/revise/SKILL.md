@@ -110,10 +110,12 @@ can gut chapters.
    genre pack(s) at `<resolved pack paths, primary first, each labeled
    with its role>`, and follow the rubric exactly. The project directory
    is `<absolute project path>`. The target chapter file is `<absolute path to
-   chapters/ch_NN.md>`. Return ONLY the JSON the rubric specifies."
-   Save each response verbatim to `edit_logs/chNN_cuts.json` (exact
-   filename — apply_cuts.py globs it). Dispatch in parallel batches
-   of 4–6 (malformed responses: see Setup's shared policy).
+   chapters/ch_NN.md>`. Write the JSON the rubric specifies — bare
+   JSON, no fences — to `<absolute project path>/edit_logs/chNN_cuts.json`
+   (exact filename, NN zero-padded — apply_cuts.py globs it) and return
+   only that path."
+   The editor writes the file; you do not transcribe it. Dispatch in
+   parallel batches of 4–6 (malformed responses: see Setup's shared policy).
 4. **Apply mechanical cuts:**
    `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/apply_cuts.py" all --types OVER-EXPLAIN REDUNDANT --min-fat 0 --protect-file edit_logs/protected.md`
    Review its FAIL lines; apply any high-value failed cuts by hand.
@@ -201,8 +203,15 @@ can gut chapters.
    project directory is `<absolute project path>`; the input files are
    arc_summary.md and, if outline.md carries one, its `## Author-facing
    only (never on the page)` section — nothing else from outline.md.
-   Return ONLY the JSON the rubric specifies."
-   Assemble `edit_logs/reader_panel.json` as:
+   Write the JSON the rubric specifies — bare JSON, no fences — to
+   `<absolute project path>/edit_logs/panel_raw/<persona>.json` and
+   return only that path."
+   **Wait on the four files, not on the tool's return.** Poll
+   `edit_logs/panel_raw/` until all four exist (`until ls …; do sleep
+   10; done`); on one run no Agent-tool completion arrived for any of
+   eleven dispatches in a cycle, and the verdict files were the only
+   wake signal. Then assemble `edit_logs/reader_panel.json` from the
+   four files as:
    `{"readers": {"editor": {...}, "genre_reader": {...}, "writer":
    {...}, "first_reader": {...}}, "consensus": [...],
    "disagreements": [...]}` — consensus = any chapter, character, or
@@ -317,7 +326,8 @@ missing scene → thin character → weak scene → consistency):
    cannot tell whether the form built one), final score = judge minus
    slop penalty. The judge writes its own verdict file
    (`eval_logs/<UTC yyyymmdd_hhmmss>_chNN.json`) and returns the path
-   and score. Compute the UTC timestamp yourself before dispatching; the
+   and score. Wait on the file's existence, not on the tool's
+   completion notice. Compute the UTC timestamp yourself before dispatching; the
    path in the prompt is literal, and it is the path you will hand to
    score_verdict.py. Keep if the final score beats the chapter's
    baseline (see below); else discard
