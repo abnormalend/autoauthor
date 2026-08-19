@@ -9,6 +9,9 @@ Usage:
   python apply_cuts.py all --dry-run                       # show what would be cut
   python apply_cuts.py all --protect-file edit_logs/protected.md
                                                            # never cut a line listed there
+  python apply_cuts.py --verify-protected edit_logs/protected.md
+                                                           # which protected lines the
+                                                           # manuscript no longer contains
 """
 
 import argparse
@@ -52,6 +55,30 @@ def load_protected(path: Path | None) -> list[str]:
             continue
         lines.append(_norm(line))
     return lines
+
+
+def verify_protected(protected: list[str]) -> tuple[list[str], list[str]]:
+    """Split the protected lines into (found, not_found) against every
+    `chapters/ch_*.md`, whitespace/quote-normalised on both sides.
+
+    A protected line that is not in the manuscript protects nothing. Two
+    ways it happens: a kept rewrite reworded it (cycle 1 protected a line,
+    cycle 1's REWRITE changed it, and cycle 2's file still quoted the old
+    wording), or it was sourced from the verdict of a superseded drafting
+    attempt and was never in the manuscript at all. Either way a cut that
+    removes the current wording sails through `protected_by`. The skill
+    runs this at the start of each cycle and re-quotes every NOT FOUND
+    line from the current manuscript; on one run two cycle-1 lines
+    protected nothing in cycle 2 until a hand diff found them.
+    """
+    corpus = " ".join(
+        _norm(p.read_text(encoding="utf-8"))
+        for p in sorted(CHAPTERS_DIR.glob("ch_*.md"))
+    )
+    found, not_found = [], []
+    for line in protected:
+        (found if line in corpus else not_found).append(line)
+    return found, not_found
 
 
 def protected_by(quote: str, protected: list[str]) -> str | None:
@@ -231,7 +258,9 @@ def process_chapter(
         if cut.get("action") == "REWRITE":
             stats["skipped"] += 1
             if not dry_run:
-                print(f"  SKIP [REWRITE] needs replacement text, apply by hand: {quote[:60]}")
+                rewrite = cut.get("rewrite") or ""
+                print(f"  SKIP [REWRITE] REWRITE cuts are applied by hand — "
+                      f"rewrite: {rewrite[:80]!r}  (quote: {quote[:40]!r})")
             continue
 
         # Skip short quotes
@@ -290,11 +319,14 @@ def main():
             "  python apply_cuts.py all --types OVER-EXPLAIN REDUNDANT\n"
             "  python apply_cuts.py all --min-fat 17\n"
             "  python apply_cuts.py all --dry-run\n"
+            "  python apply_cuts.py --verify-protected edit_logs/protected.md\n"
         ),
     )
     parser.add_argument(
         "chapter",
-        help="Chapter number (e.g. 12) or 'all' to process every chapter.",
+        nargs="?",
+        help="Chapter number (e.g. 12) or 'all' to process every chapter. "
+             "Omitted only with --verify-protected.",
     )
     parser.add_argument(
         "--types",
@@ -323,7 +355,33 @@ def main():
              "whose quote contains one (or is contained by one) is skipped "
              "and reported as PROTECT.",
     )
+    parser.add_argument(
+        "--verify-protected",
+        type=Path,
+        metavar="PATH",
+        help="Report which lines in this protect file the manuscript still "
+             "contains (FOUND) and which it does not (NOT FOUND); exit 1 if "
+             "any NOT FOUND. Applies nothing; the chapter argument is ignored.",
+    )
     args = parser.parse_args()
+
+    if args.verify_protected is not None:
+        if not args.verify_protected.exists():
+            parser.error(f"--verify-protected {args.verify_protected} not found")
+        found, not_found = verify_protected(load_protected(args.verify_protected))
+        print(f"=== verify-protected {args.verify_protected}: "
+              f"{len(found)} found, {len(not_found)} not found ===\n")
+        print(f"FOUND ({len(found)}):")
+        for line in found:
+            print(f"  {line}")
+        print(f"\nNOT FOUND ({len(not_found)}) — re-quote from the current manuscript:")
+        for line in not_found:
+            print(f"  {line}")
+        sys.exit(1 if not_found else 0)
+
+    if args.chapter is None:
+        parser.error("a chapter number or 'all' is required "
+                     "(only --verify-protected runs without one)")
 
     type_filter = set(args.types) if args.types else None
     if args.protect_file is not None and not args.protect_file.exists():

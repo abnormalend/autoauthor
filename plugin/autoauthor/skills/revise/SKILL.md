@@ -74,8 +74,10 @@ can gut chapters.
 2. **Build `edit_logs/protected.md`** (create on cycle 1, append every
    cycle after). It is a newline-delimited list of lines no cutting
    pass may touch, and it comes from two sources that already exist:
-   - every entry in `three_strongest_sentences` from every chapter
-     verdict in `eval_logs/` (drafting and prior revision cycles);
+   - every entry in `three_strongest_sentences` from the verdicts of
+     KEPT attempts in `eval_logs/` (drafting and prior revision
+     cycles) — a superseded attempt's strongest sentence may never
+     have been in the manuscript;
    - for each row of outline.md's foreshadowing ledger and each
      `Plants:`/`Payoffs:` entry, open the chapter it names and quote
      the sentence that carries the plant or payoff — the ledger's
@@ -86,9 +88,13 @@ can gut chapters.
    no memory: across three cycles on one project five lines were
    protected by hand and two of them were attacked in consecutive
    cycles, including the sentence both cycle-1 judges had named the
-   chapter's strongest. Commit `cycle N: protected lines` (with
-   `--allow-empty` if `edit_logs/` is gitignored, which the default
-   template does).
+   chapter's strongest. Then run
+   `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/apply_cuts.py" --verify-protected edit_logs/protected.md`
+   and re-quote every NOT FOUND line from the current manuscript (a
+   kept rewrite may have reworded it; two cycle-1 lines protected
+   nothing in cycle 2 on one run until a hand diff found them).
+   Commit `cycle N: protected lines` (with `--allow-empty` if
+   `edit_logs/` is gitignored, which the default template does).
 3. **Adversarial edit.**
    **Which chapters.** Before dispatching, archive the previous
    cycle's verdicts so `apply_cuts.py all` sees only this cycle's:

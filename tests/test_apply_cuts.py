@@ -213,3 +213,35 @@ def test_all_does_not_warn_when_cuts_files_are_from_one_run(tmp_path):
     result = run_in(tmp_path, "all", "--dry-run")
     assert result.returncode == 0, result.stdout + result.stderr
     assert "span more than" not in result.stderr
+
+
+def test_verify_protected_reports_lines_no_longer_in_any_chapter(tmp_path):
+    setup_project(tmp_path)
+    (tmp_path / "edit_logs/protected.md").write_text(
+        "# ch03\nThe council chamber smelled of tallow and wet wool.\n"
+        "This sentence was reworded out of existence.\n")
+    result = run_in(tmp_path, "--verify-protected", "edit_logs/protected.md")
+    assert result.returncode == 1, result.stdout + result.stderr
+    assert "NOT FOUND" in result.stdout
+    assert "reworded out of existence" in result.stdout
+    assert "tallow and wet wool" not in result.stdout.split("NOT FOUND", 1)[1]
+
+
+def test_verify_protected_exits_zero_when_every_line_is_present(tmp_path):
+    setup_project(tmp_path)
+    (tmp_path / "edit_logs/protected.md").write_text(
+        "The council chamber smelled of tallow and wet wool.\n")
+    result = run_in(tmp_path, "--verify-protected", "edit_logs/protected.md")
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_rewrite_skip_message_prints_the_rewrite(tmp_path):
+    import json
+    setup_project(tmp_path)
+    cuts = json.loads((tmp_path / "edit_logs/ch03_cuts.json").read_text())
+    cuts["cuts"][0]["action"] = "REWRITE"
+    cuts["cuts"][0]["rewrite"] = "He realized the meeting had been arranged."
+    (tmp_path / "edit_logs/ch03_cuts.json").write_text(json.dumps(cuts))
+    result = run_in(tmp_path, "3")
+    assert "REWRITE cuts are applied by hand" in result.stdout
+    assert "He realized the meeting had been arranged." in result.stdout
