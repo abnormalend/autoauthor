@@ -95,6 +95,17 @@ pass `base_dimensions.scored` through **verbatim** — not summarised, and not
 replaced with the ones you remember. That substitution is the entire failure
 the parameterisation exists to prevent.
 
+**The judge model is part of the instrument.** Every scored dispatch goes to
+`agents/judge.md`, which pins one model; the cheaper `editor` and `reader`
+agents carry only work that is verified or gated downstream (cuts run through
+the protection list and splice audit, panel verdicts are checked against the
+prose before anything is briefed). Each skill pins its own orchestrator model
+in `SKILL.md` frontmatter. Do not dispatch a judge as `general-purpose`, and
+do not change the judge's pinned model without noting it — a project's
+`results.tsv` is only comparable with itself if one instrument produced it,
+which is why every verdict JSON and results row now carries `judge_model`.
+`test_agents.py` guards the shape.
+
 **Dimension keys are a compatibility surface.** A key appears in the
 `eval_logs/` and `results.tsv` of every project ever run against it. Renaming
 one makes a user's score history incomparable with itself, silently. 0.16.0
@@ -140,7 +151,7 @@ strict.
 uv run pytest tests/ -q
 ```
 
-520 tests, about 7 seconds. CI runs exactly that, then validates every genre
+547 tests, about 7 seconds. CI runs exactly that, then validates every genre
 pack, every form pack, and runs `gate_solver.py` across all packs — so a cap
 that makes a gate unreachable fails the build rather than a user's book.
 

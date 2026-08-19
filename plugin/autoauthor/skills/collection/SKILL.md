@@ -1,6 +1,7 @@
 ---
 name: collection
 description: Use when every work in a collection is drafted and revised, or the user asks to check a collection for repetition and variety, set the running order, or run the cross-work pass before export.
+model: opus
 ---
 
 # Collection Pass
@@ -77,8 +78,9 @@ catch.
 
 ## Step 2 — The judge
 
-Dispatch a fresh judge subagent (general-purpose, no drafting context)
-with exactly this prompt shape:
+Dispatch an `autoauthor:judge` subagent (the plugin's `agents/judge.md` —
+pinned model, clean-room, no drafting context) with exactly this prompt
+shape:
 
   "Read the rubric at `<plugin>/shared/rubrics/collection-pass.md` and the
   genre pack(s) at `<resolved pack paths, primary first, each labeled with
@@ -87,7 +89,7 @@ with exactly this prompt shape:
   the declared running order, are `<structure.works>`; each work's prose is
   in `works/<name>/chapters/`. Read everything in `bible/` — `binding.md` first,
   and `edit_logs/convergence.json` if it exists. Return ONLY the JSON
-  object the rubric specifies."
+  object the rubric specifies. Set `"judge_model"` in that JSON to `<the model pinned in agents/judge.md>`."
 
 Save the returned JSON verbatim to
 `eval_logs/<UTC yyyymmdd_hhmmss>_collection.json`. Fence-wrapped but

@@ -1,6 +1,7 @@
 ---
 name: seed
 description: Use when the user wants to start a new novel, generate story seeds or premises, riff on a story idea, or set up a new autoauthor project directory.
+model: opus
 ---
 
 # Novel Seed — Start a New Novel Project

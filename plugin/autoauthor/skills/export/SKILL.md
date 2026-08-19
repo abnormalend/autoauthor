@@ -1,6 +1,7 @@
 ---
 name: export
 description: Use when a novel project reaches the export phase, or the user asks to typeset the book, build the PDF or ePub, or produce the final print-ready files.
+model: sonnet
 ---
 
 # Novel Export — Phase 4

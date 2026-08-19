@@ -313,6 +313,15 @@ and the text — no drafting context, no memory of how the text was produced,
 no stake in the outcome. It returns structured JSON with a score, the biggest
 gap, and a specific fix for every dimension.
 
+Judges run as the plugin's own `judge` agent, pinned to one model (Opus) so
+that every score in a project's history came from the same instrument; the
+model is recorded in each verdict. The adversarial cutting editor and the
+four panel readers run on a cheaper tier, because their output is verified
+or mechanically gated before it touches the manuscript. Each skill also pins
+its own model — drafting and foundation on the strongest available, status
+and export on the cheapest — in its `SKILL.md` frontmatter, where you can
+change it.
+
 The revision phase adds a **four-persona reader panel** — a senior editor, a
 genre reader who finishes 40 books a year, a working novelist, and an ordinary
 reader who knows what they felt but not why. They answer the same ten

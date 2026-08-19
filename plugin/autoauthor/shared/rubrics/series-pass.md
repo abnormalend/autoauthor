@@ -101,6 +101,7 @@ decimal places — never rounded to an integer.)
   "convergence_used": true/false,
   "volumes_judged": ["..."],
   "volumes_missing": ["..."],
+  "judge_model": "<exactly the value the dispatching prompt gave you>",
   "series_score": N.NN,
   "weakest_dimension": "...",
   "top_3_improvements": ["ranked, each naming the volume involved"]

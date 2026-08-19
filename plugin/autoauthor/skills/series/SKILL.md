@@ -1,6 +1,7 @@
 ---
 name: series
 description: Use when volumes of a series are drafted and you need the continuity and arc pass — checking that nothing in a later volume contradicts an earlier one and that each volume both advances the series and closes itself.
+model: opus
 ---
 
 # Series Pass
@@ -54,7 +55,8 @@ reading it tells you which, and the judge is asked to say.
 
 ## Step 2 — The judge
 
-Dispatch a fresh judge subagent (general-purpose, no drafting context):
+Dispatch an `autoauthor:judge` subagent (the plugin's `agents/judge.md` —
+pinned model, clean-room, no drafting context):
 
   "Read the rubric at `<plugin>/shared/rubrics/series-pass.md` and the
   genre pack(s) at `<resolved pack paths, primary first, each labeled with
@@ -64,7 +66,7 @@ Dispatch a fresh judge subagent (general-purpose, no drafting context):
   `works/<name>/chapters/` and its local canon in `works/<name>/canon.md`.
   Read `bible/canon.md` and `bible/arc.md` first — they are the spine.
   Read `edit_logs/convergence.json` if it exists. Return ONLY the JSON
-  object the rubric specifies."
+  object the rubric specifies. Set `"judge_model"` in that JSON to `<the model pinned in agents/judge.md>`."
 
 Save the JSON verbatim to `eval_logs/<UTC yyyymmdd_hhmmss>_series.json`.
 Fenced but valid JSON is valid — strip the fences. One strict retry on

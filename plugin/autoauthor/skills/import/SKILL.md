@@ -1,6 +1,7 @@
 ---
 name: import
 description: Use when the user wants to import an existing story, manuscript, or draft written elsewhere into the autoauthor pipeline — to revise it, continue it, or salvage its foundation for a re-draft.
+model: opus
 ---
 
 # Novel Import — Existing Story → Pipeline Project

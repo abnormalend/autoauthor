@@ -96,6 +96,7 @@ decimal places — never rounded to an integer.)
   "convergence_used": true/false,
   "works_judged": ["..."],
   "works_missing": ["..."],
+  "judge_model": "<exactly the value the dispatching prompt gave you>",
   "collection_score": N.NN,
   "weakest_dimension": "...",
   "top_3_improvements": ["ranked, and each must name the works involved"]

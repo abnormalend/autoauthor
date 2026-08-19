@@ -1,6 +1,7 @@
 ---
 name: foundation
 description: Use when a novel project is in the foundation phase, or the user asks to build or improve the novel's world bible, characters, outline, voice, mystery, or canon before drafting begins.
+model: claude-fable-5
 ---
 
 # Novel Foundation — Phase 1
@@ -87,8 +88,9 @@ chapters untouched).
 
 ## Iteration loop
 
-1. **Evaluate.** Dispatch a fresh judge subagent (general-purpose,
-   no drafting context) with exactly this prompt shape:
+1. **Evaluate.** Dispatch an `autoauthor:judge` subagent (the plugin's
+   `agents/judge.md` — pinned model, clean-room, no drafting context)
+   with exactly this prompt shape:
    "Read the rubric at `<absolute plugin path>/shared/rubrics/foundation.md`
    and the genre pack(s) at `<resolved pack paths, primary first, each
    labeled with its role>`, and follow the rubric exactly. The form is
@@ -101,7 +103,8 @@ chapters untouched).
    wells the voice layer is required to emit). Write the JSON object
    the rubric specifies — bare JSON, no fences — to `<absolute project
    path>/eval_logs/<UTC yyyymmdd_hhmmss>_foundation.json` and return
-   only that path and the `overall_score` and `pillar_score` values."
+   only that path and the `overall_score` and `pillar_score` values.
+   Set `"judge_model"` in that JSON to `<the model pinned in agents/judge.md>`."
 
    Compute the UTC timestamp yourself before dispatching; the path in
    the prompt is literal, and it is the path you will hand to
@@ -121,8 +124,10 @@ chapters untouched).
    gen_brief.py reads the newest eval file with a bare json.loads and a
    garbage file there breaks a later brief.
    The results.tsv score column takes `overall_score`; put
-   `pillar_score` in the description (e.g. `iter N: <dimension> (pillar
-   <pillar_score>)`).
+   `pillar_score` in the description, and the judge model last (e.g.
+   `iter N: <dimension> (pillar <pillar_score>) judge=<model>` — the model
+   pinned in `agents/judge.md`; a score history that spans a model change
+   has to say so).
 
    **Compute the score; do not take the judge's word for it.**
 

@@ -212,6 +212,7 @@ decimal places — never rounded to an integer.)
   "three_weakest_sentences": ["quote 1", "quote 2", "quote 3"],
   "three_strongest_sentences": ["quote 1", "quote 2", "quote 3"],
   "ai_patterns_detected": ["list any AI writing patterns found"],
+  "judge_model": "<exactly the value the dispatching prompt gave you>",
   "overall_score": N.NN,
   "weakest_dimension": "...",
   "top_3_revisions": ["specific, actionable revision 1", "revision 2", "revision 3"],

@@ -1,6 +1,7 @@
 ---
 name: draft
 description: Use when a novel project is in the drafting phase, or the user asks to draft chapters, write the first draft, or continue writing the novel's prose.
+model: claude-fable-5
 ---
 
 # Novel Draft — Phase 2
@@ -127,8 +128,9 @@ a 6.0 ships; revision is Phase 3's job.
    Note the `slop_penalty`. Copy the attempt to an untracked scratch
    file before judging: `cp chapters/ch_NN.md eval_logs/ch_NN_attempt_<k>.md`
    — eval_logs/ is untracked, so attempts survive discards.
-4. **Judge.** Dispatch a fresh judge subagent (general-purpose, no
-   drafting context) with exactly this prompt shape:
+4. **Judge.** Dispatch an `autoauthor:judge` subagent (the plugin's
+   `agents/judge.md` — pinned model, clean-room, no drafting context)
+   with exactly this prompt shape:
    "Read the rubric at `<absolute plugin path>/shared/rubrics/chapter.md`
    and the genre pack(s) at `<resolved pack paths, primary first, each
    labeled with its role>`, and follow the rubric exactly. The project
@@ -140,7 +142,7 @@ a 6.0 ships; revision is Phase 3's job.
    named — see Setup step 5>` and canon.md in the project directory.
    Write the JSON object the rubric specifies — bare JSON, no fences —
    to `<absolute project path>/eval_logs/<UTC yyyymmdd_hhmmss>_chNN.json`
-   and return only that path and the `overall_score` value."
+   and return only that path and the `overall_score` value. Set `"judge_model"` in that JSON to `<the model pinned in agents/judge.md>`."
 
    Compute the UTC timestamp yourself before dispatching; the path in
    the prompt is literal, and it is the path you will hand to
@@ -215,7 +217,9 @@ a 6.0 ships; revision is Phase 3's job.
    from eval_logs/attempts.tsv into results.tsv, then
    `git add -A && git commit` — the full experiment log lands
    atomically with the kept chapter. Row format:
-   `<ISO timestamp>\tdrafting\t<final score>\t<chapter word count>\t<keep|discard|correct|noscore>\tch NN attempt <k>`
+   `<ISO timestamp>\tdrafting\t<final score>\t<chapter word count>\t<keep|discard|correct|noscore>\tch NN attempt <k> judge=<model>`
+   (`judge=` is the model pinned in `agents/judge.md`; a score history
+   that spans a model change has to say so.)
 7. **Canon.** Append the judge's `new_canon_entries` to canon.md
    (created in Setup step 6 if the form did not build one), each
    tagged `(ch_NN)`. If writing revealed a lore gap or contradiction,

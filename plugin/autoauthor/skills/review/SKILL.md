@@ -1,6 +1,7 @@
 ---
 name: review
 description: Use when a novel project is in the review phase, or the user asks for a full manuscript review, a dual-persona literary critique, or the final quality pass before export.
+model: opus
 ---
 
 # Novel Review — Phase 3b
@@ -50,15 +51,16 @@ professor of fiction. Fix the top items; repeat. Maximum 4 rounds.
    numerical order, separated by `\n\n---\n\n`, into `manuscript.md`.
    Add `manuscript.md` to `.gitignore` if not already there (it is
    derived, never source).
-2. **Review.** Dispatch a fresh judge subagent (general-purpose, no
-   other context) with exactly: "Read the rubric at `<absolute plugin
+2. **Review.** Dispatch an `autoauthor:judge` subagent (the plugin's
+   `agents/judge.md` — pinned model, clean-room, no other context)
+   with exactly: "Read the rubric at `<absolute plugin
    path>/shared/rubrics/manuscript-review.md` and the genre pack(s) at
    `<resolved pack paths, primary first, each labeled with its role>`,
    and follow the rubric exactly.
    The project directory is `<absolute project path>`. Return ONLY the
-   output the rubric specifies." Request the strongest available model
-   for this dispatch if the Agent tool exposes a model choice —
-   literary judgment is the one place model quality dominates.
+   output the rubric specifies." The judge agent pins the model; literary judgment is the one place
+   model quality dominates, and the pin is what keeps one project's
+   reviews comparable with each other.
    Save the returned markdown verbatim to
    `edit_logs/<UTC yyyymmdd_hhmmss>_review.md`.
 3. **Parse the tags.** From the Professor section count: total items,

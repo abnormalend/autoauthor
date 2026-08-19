@@ -111,6 +111,7 @@ decimal places — never rounded to an integer.)
   "voice_consistency": {"score": N, "note": "..."},
   "overall_engagement": {"score": N, "note": "..."},
   "genre_contract": {"violations": ["..."], "note": "..."},
+  "judge_model": "<exactly the value the dispatching prompt gave you>",
   "work_score": N.NN,
   "weakest_dimension": "...",
   "weakest_chapter": N (the chapter number as used in the chapter filenames),

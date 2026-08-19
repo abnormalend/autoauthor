@@ -10,6 +10,40 @@ the reason a thing was *not* changed is worth the same record as a change.
 
 ---
 
+## 0.19.0 — 2026-08-19
+
+Models are chosen per step instead of inherited from whatever the session
+happens to be on.
+
+**Three plugin agents** under `plugin/autoauthor/agents/`: `judge` (Opus;
+Read, Glob, Grep, Write) for every scored rubric — foundation, chapter,
+full-novel, manuscript-review, collection, series; `editor` (Sonnet) for
+adversarial cuts and the chapter tournament; `reader` (Sonnet) for the four
+panel personas. The cheaper two carry only work the pipeline already
+verifies or gates: cuts pass through `--protect-file`, the dialogue filter
+and `splice_audit.py`; panel verdicts are checked against the prose in Fix
+step 1. Every dispatch in the skills names one of the three; none says
+`general-purpose` any more, and `test_agents.py` keeps it that way.
+
+**Every skill pins its orchestrator model** in `SKILL.md` frontmatter:
+`foundation` and `draft` on `claude-fable-5` (the plan that gates the run
+and the prose that ships), `seed`, `revise`, `review`, `import`,
+`collection`, `series` on `opus`, `export` on `sonnet`, `status` on `haiku`
+with `effort: low`. If the named model is not available to the session the
+session keeps its own — the frontmatter is a preference, not a hard failure.
+
+**The judge model is recorded.** Every scored dispatch tells the judge to
+write `judge_model` into its JSON (the rubric schemas carry the field), and
+the draft, foundation and full-eval rows in `results.tsv` end in
+`judge=<model>`. A score history that spans a model change now says so; the
+pin is what makes the history comparable, and the field is what lets you
+see when it was not.
+
+The `review` skill's "request the strongest model if the Agent tool exposes
+a choice" is gone — the agent definition is the choice. 520 → 547 tests.
+
+---
+
 ## 2026-08-19 — the README's attribution was wrong, and is corrected
 
 Nothing under `plugin/autoauthor/` changed. The 0.12.0 entry below said

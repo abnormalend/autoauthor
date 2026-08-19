@@ -1,6 +1,8 @@
 ---
 name: status
 description: Use when the user asks where their book stands, wants to resume work, says "continue the novel" or "continue the story", asks what pipeline phase is next, or wants a status report on an autoauthor project.
+model: haiku
+effort: low
 ---
 
 # Status — Pipeline Status and Router

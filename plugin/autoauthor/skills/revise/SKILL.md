@@ -1,6 +1,7 @@
 ---
 name: revise
 description: Use when a novel project is in the revision phase, or the user asks to revise the draft, tighten chapters, run the reader panel, or apply adversarial edits.
+model: opus
 ---
 
 # Novel Revise — Phase 3a
@@ -101,8 +102,10 @@ can gut chapters.
    the full-novel score 7.86 → 7.86 with `overall_engagement` down a
    point. Record any chapter you skip, and why, in `edit_logs/skipped.md`.
 
-   For EACH chapter, dispatch a fresh judge
-   subagent: "Read the rubric at
+   For EACH chapter, dispatch an `autoauthor:editor` subagent (the
+   plugin's `agents/editor.md` — cheaper tier; its output is gated by
+   the protection list, the dialogue filter and the splice audit): "Read
+   the rubric at
    `<absolute plugin path>/shared/rubrics/adversarial-edit.md` and the
    genre pack(s) at `<resolved pack paths, primary first, each labeled
    with its role>`, and follow the rubric exactly. The project directory
@@ -188,8 +191,9 @@ can gut chapters.
    book — the reader panel in step 5 and the full-novel judge in
    Measure both read it. Commit `cycle N: adversarial cuts (<words
    removed> words)`.
-5. **Reader panel** — dispatch FOUR judge subagents in parallel, one
-   per persona: "Read the rubric at `<absolute plugin
+5. **Reader panel** — dispatch FOUR `autoauthor:reader` subagents in
+   parallel, one per persona (the plugin's `agents/reader.md` — cheaper
+   tier; every verdict is verified against the prose in Fix step 1): "Read the rubric at `<absolute plugin
    path>/shared/rubrics/reader-panel.md` and the genre pack(s) at
    `<resolved pack paths, primary first, each labeled with its role>`,
    and follow the rubric exactly. Your
@@ -304,8 +308,9 @@ missing scene → thin character → weak scene → consistency):
    (`python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/continuity_check.py" chapters/ch_NN.md`
    — read its NOT FOUND list against outline.md's `## Facts the story
    must not contradict` before dispatching), chapter-judge
-   dispatch (labeled target/previous paths, per chapter.md's
-   contract, and the genre pack(s) at `<resolved pack paths, primary
+   dispatch (an `autoauthor:judge` subagent — the same agent, and so
+   the same pinned model, as draft's; labeled target/previous paths,
+   per chapter.md's contract, and the genre pack(s) at `<resolved pack paths, primary
    first, each labeled with its role>`, and the other input files named
    as draft step 4 names them — `<the layer files the resolved form
    builds, named>` and canon.md; a judge told nothing about world.md
@@ -406,7 +411,8 @@ missing scene → thin character → weak scene → consistency):
    - Repeat until zero quoted passages fail the check. Do not hand a
      summary containing invented or deleted prose to a judge.
 
-   Dispatch the full-novel judge: "Read the rubric at
+   Dispatch the full-novel judge as an `autoauthor:judge` subagent:
+   "Read the rubric at
    `<absolute plugin path>/shared/rubrics/full-novel.md` and the genre
    pack(s) at `<resolved pack paths, primary first, each labeled with its
    role>`, and follow the rubric exactly. The form is `<form.name>` and
@@ -416,7 +422,7 @@ missing scene → thin character → weak scene → consistency):
    arc_summary.md. Write the JSON the
    rubric specifies — bare JSON, no fences — to `<absolute project
    path>/eval_logs/<UTC yyyymmdd_hhmmss>_full.json` and return only
-   that path and `work_score`." Compute the UTC timestamp yourself
+   that path and `work_score`. Set `"judge_model"` in that JSON to `<the model pinned in agents/judge.md>`." Compute the UTC timestamp yourself
    before dispatching; the path in the prompt is literal, and it is the
    path you will hand to score_verdict.py. Log to results.tsv:
 
@@ -435,7 +441,7 @@ missing scene → thin character → weak scene → consistency):
    number moves by less than 0.5. Exit 1 means they disagreed; the
    message names the value to use.
 
-   `<ISO timestamp>\trevision\t<work_score>\t<total words>\tkeep\tfull-eval cycle N`
+   `<ISO timestamp>\trevision\t<work_score>\t<total words>\tkeep\tfull-eval cycle N judge=<model>`
    (the `full-eval` description prefix is a contract — the router's
    plateau check greps for it).
 
@@ -501,7 +507,7 @@ would otherwise rest on an older number.
 ## Optional cycle-1 diagnostic: chapter tournament
 
 If the user asks for deeper diagnosis (or cuts and panel disagree about
-the weakest chapters), run head-to-head comparisons: dispatch judge
+the weakest chapters), run head-to-head comparisons: dispatch `autoauthor:editor`
 subagents given two chapter files each, asked only "Read both chapters.
 Which is the stronger chapter and why — one paragraph, then a final
 line WINNER: <NN>." Seed pairings from adjacent per-chapter scores.
