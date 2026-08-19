@@ -71,9 +71,10 @@ can gut chapters.
 
 1. **arc_summary.md** — on cycle 1, or if the file is missing, build
    it fresh; on later cycles run the Measure resync procedure over it
-   instead and regenerate only if a quoted passage fails verification
-   (regenerating a file that was resynced verbatim-by-construction can
-   only add drift). Fresh build: first line
+   instead and regenerate only when the resync cannot repair it (a
+   chapter rewritten end-to-end with no surviving prefix); regenerating
+   a file that was resynced verbatim-by-construction can only add
+   drift. Fresh build: first line
    `Novel: <total words> words across <count> chapters.`, then per
    chapter: a 4–6 sentence event summary, the opening and closing
    ~100-word passages, and 1–2 key dialogue exchanges. Commit
@@ -113,7 +114,12 @@ can gut chapters.
    score fell last cycle — compare the chapter's kept score at the end
    of cycle N−1 with its kept score at the end of cycle N−2; a baseline
    is not a kept score, and baselines reliably come in under the prior
-   kept number. Do not key on the last reported fat percentage: it was
+   kept number. A drafting-phase number is not comparable (Fix step 4 —
+   drafting judges run high), so in cycle 2 there is no earlier kept
+   revision score to compare against: run cycle-2 cuts only on chapters
+   the cycle-1 full eval named weakest, or whose kept score fell within
+   cycle 1 as measured by the same judge. Do not key on the last
+   reported fat percentage: it was
    measured BEFORE that cycle's cuts, so it re-dispatches by
    construction the chapter it just cut. Judges asked for 10–20
    cuts return 10–20 cuts whatever the fat; on a manuscript at 9–13%
@@ -255,9 +261,10 @@ can gut chapters.
    not a string, because gen_brief.py matches on int equality. A
    character-level item (a `thinnest_character` consensus) has no
    chapter: write `{"question": "thinnest_character", "chapter": null,
-   "character": "<name>", …}`; gen_brief prints these under CHARACTER
-   NOTES rather than as a chapter instruction. Commit
-   `cycle N: reader panel`.
+   "character": "<name>", …}`; gen_brief ignores a null chapter (it
+   matches on the integer), which is right — the readers' own
+   thinnest_character answers already reach every brief under CHARACTER
+   NOTES. Commit `cycle N: reader panel`.
 
    **What the panel is and isn't evidence of.** All four readers see
    arc_summary.md and never the prose. Their verdicts are therefore
@@ -538,7 +545,9 @@ missing scene → thin character → weak scene → consistency):
    per-dimension row against the previous cycle's usually names it.
 2. Address the eval's `top_suggestion` if actionable this cycle (the
    playbook's eval-callout patterns have the recipes); at most 2 such
-   fixes per cycle, scored and gated like any rewrite.
+   fixes per cycle, scored and gated like any rewrite. After a kept
+   fix, re-dispatch the full-novel judge; that number, not the pre-fix
+   one, is the cycle's `full-eval` row (step 1).
 3. Update state.json: `revision_cycle: N`, `work_score`. Commit
    `cycle N complete (<score>)`.
 4. **Plateau check.** If N >= 3 and the last three `full-eval` scores

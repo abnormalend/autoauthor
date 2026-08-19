@@ -273,8 +273,10 @@ chapters untouched).
    do stop: leave `foundation_score` and `pillar_score` at the last KEPT
    state's values (not the best ever seen), set `chapters_total` from
    the outline so a user who accepts can draft without a second pass
-   here, and write the results.tsv row with `awaiting user decision` in
-   the description. The cap is
+   here, write the results.tsv row with `awaiting user decision` in
+   the description, and set `iteration: <form.iteration_cap>` in
+   state.json even if the final iteration was discarded — draft's Setup
+   reads that value to recognise a cap stop. The cap is
    the form's for the same reason the gate is: six evals at 119k tokens
    each to plan 5,000 words was the cost on one run, and the last two
    moved the mean 0.10.
