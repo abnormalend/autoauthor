@@ -10,6 +10,48 @@ the reason a thing was *not* changed is worth the same record as a change.
 
 ---
 
+## 0.20.0 — 2026-08-19
+
+The findings from re-running 0.18.0 on redshift, filed under
+`docs/superpowers/specs/2026-08-19-*` — one spec each for foundation, draft,
+revise and review. Mostly seams between steps that each read correctly on
+their own.
+
+**The judge knows what it is reading.** The manuscript-review dispatch
+now states form, shape and title; one run reviewed a short story as a
+failed novel. Editor and reader agents write their own files and the skill
+waits on the files, not the tool return — a correction to 0.19.0, which had
+left them read-only and the orchestrator transcribing.
+
+**Baselines.** Nothing is written to `chapters/` until the verdict files
+exist; adjacent-chapter attempts are serialised; a dispatch that returns no
+file is retried once.
+
+**Gates.** Foundation forces an iteration on MAJOR contradictions only,
+keeps a regression that is discovery, averages a second judge on a
+regression greater than 0.5, and exits normally at the cap when the gate is
+cleared. Draft's `correct` branch now covers a missing plant and a one-word
+fact fix, and its Setup accepts a cap-cleared foundation. Revise ties keep
+when the targeted dimension rose, and that dimension is named before the
+dispatch, not after the number comes back.
+
+**Briefs and cuts.** `gen_brief.py` matches "Chapters" and zero-padded
+mentions, attributes an answer to the first chapter it names, puts
+character-level items under CHARACTER NOTES, and labels COMPRESS an upper
+bound. `apply_cuts.py` gains `--verify-protected`. Cut selection keys on
+kept scores, not the fat percentage measured before the last cuts. One
+`full-eval` row per cycle, measured after any kept fix.
+
+**Fact-bearing documents.** A canon entry is amended in the same commit as
+the rewrite that changes it; the form governs the ledger and the cast
+guidance; the facts table outranks beat prose; YA absorbs the telling
+penalty.
+
+Not done: revise finding 17 asked that `0.98` be read as ninety-eight. It
+is not, and the check is correct as written. 547 → 558 tests.
+
+---
+
 ## 0.19.0 — 2026-08-19
 
 Models are chosen per step instead of inherited from whatever the session
