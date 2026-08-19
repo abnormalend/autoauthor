@@ -179,8 +179,39 @@ def load_cuts(ch: int) -> dict | None:
 # panel feedback extraction
 # ---------------------------------------------------------------------------
 
+# Word boundary so "Chapter 2" does not match "Chapter 21"; `0*` so the
+# zero-padded "Chapter 03" a persona writes (it has just read ch_03.md) does
+# match chapter 3. On one run every verdict from the persona that padded was
+# silently dropped from every brief.
+ANY_CH_RE = re.compile(r"\b(?:Chapter|Ch\.?)\s*0*(\d+)\b", re.I)
+
+
+def primary_chapter(text: str) -> int | None:
+    """The first chapter number an answer names, or None if it names none.
+
+    An answer that names several chapters belongs to the first one it
+    names: "Chapter 2's roster scene is weak; chapter 3 then has to carry
+    it" is a chapter-2 item. Attributing it to every chapter it mentions
+    briefed chapter 2's worst scene to chapter 3 as well ("near this
+    chapter"), and the chapter-3 revision went looking for a scene that
+    was not in it."""
+    m = ANY_CH_RE.search(text)
+    return int(m.group(1)) if m else None
+
+
 def panel_mentions_for_chapter(panel: dict, ch: int) -> dict:
-    """Extract all reader comments that mention this chapter."""
+    """Extract the reader answers whose primary chapter is this one.
+
+    An answer counts for `ch` only if `primary_chapter(text) == ch` — the
+    first chapter it names — not merely if `ch` appears somewhere in it.
+
+    `thinnest_character` is a whole-book question, so its answers come back
+    separately as `character_items` regardless of chapter: the ones naming
+    no chapter, plus the ones whose primary chapter is this one. They are
+    never revision instructions for a chapter; on one run a chapter-less
+    "Ikaika is thinnest" became "Deepen character in this chapter" in
+    every brief that mentioned the chapter.
+    """
     readers = panel.get("readers", {})
     disagreements = panel.get("disagreements", [])
 
@@ -193,17 +224,18 @@ def panel_mentions_for_chapter(panel: dict, ch: int) -> dict:
         "missing_scene": [],
         "earned_ending": [],
     }
-
-    # Use word-boundary regex so "Chapter 2" doesn't match "Chapter 21"
-    ch_re = re.compile(
-        rf"\b(?:Chapter|Ch\.?)\s*{ch}\b", re.I
-    )
+    character_items: list[str] = []
 
     for reader_name, reader_data in readers.items():
         for key in mentions:
             text = reader_data.get(key, "")
-            if ch_re.search(text):
+            if not text:
+                continue
+            primary = primary_chapter(text)
+            if primary == ch:
                 mentions[key].append(f"[{reader_name}] {text}")
+            if key == "thinnest_character" and primary in (None, ch):
+                character_items.append(f"[{reader_name}] {text}")
 
     # Also check disagreements for this chapter
     flagged_issues: list[str] = []
@@ -219,6 +251,7 @@ def panel_mentions_for_chapter(panel: dict, ch: int) -> dict:
     return {
         "mentions": mentions,
         "flagged_issues": flagged_issues,
+        "character_items": character_items,
     }
 
 
@@ -345,18 +378,13 @@ def build_panel_brief(ch: int) -> str:
         change_num += 1
         break
 
-    # From thinnest_character
-    if mentions["thinnest_character"]:
-        change_parts.append(
-            f"{change_num}. **Deepen character**: Panel flags thin characterization in this chapter. "
-            "Add interiority, physical specificity, or a complicating moment."
-        )
-        change_num += 1
+    # thinnest_character is deliberately absent here: it is a whole-book
+    # answer and goes under CHARACTER NOTES below, never into the changes.
 
     # From missing_scene
     if mentions["missing_scene"]:
         change_parts.append(
-            f"{change_num}. **Add missing beat**: Panel identifies a scene gap near this chapter."
+            f"{change_num}. **Add missing beat**: Panel identifies a scene gap in this chapter."
         )
         for m in mentions["missing_scene"]:
             snippet = m[:300] + "..." if len(m) > 300 else m
@@ -375,6 +403,13 @@ def build_panel_brief(ch: int) -> str:
     # had to override it by hand.
     if brief_type == "COMPRESS":
         target_wc, target_note = clamped_target(wc, int(wc * 0.55), "compress")
+        # A cuts brief has measured fat behind its number; a panel brief has
+        # one reader's verdict, which is about repetition, not length.
+        target_note += (
+            " — an upper bound, not a goal: a cut_candidate verdict is a "
+            "hypothesis about repetition, not length (revision-playbook); "
+            "find what repeats and break it, and let the length follow."
+        )
     elif brief_type == "DRAMATIZE":
         target_wc = wc  # restructure, not expand
         target_note = f"~{target_wc} words (restructure, roughly same length)"
@@ -391,6 +426,12 @@ def build_panel_brief(ch: int) -> str:
     brief += "\n".join(keep_parts) + "\n\n"
     brief += "## WHAT TO CHANGE\n"
     brief += "\n".join(change_parts) + "\n\n"
+    if info["character_items"]:
+        brief += "## CHARACTER NOTES (whole-book, not this chapter's instruction)\n"
+        brief += "\n".join(
+            f"- {m[:500] + '...' if len(m) > 500 else m}"
+            for m in info["character_items"]
+        ) + "\n\n"
     brief += "## VOICE RULES\n"
     brief += "\n".join(f"- {r}" for r in voice_rules) + "\n\n"
     brief += "## TARGET\n"

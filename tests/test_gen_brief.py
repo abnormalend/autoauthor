@@ -173,3 +173,55 @@ def test_a_chapter_under_the_floor_is_told_not_to_compress(tmp_path, monkeypatch
     assert "words (already at or under the floor 600" in r.stdout
     assert "do not compress" in r.stdout
     assert "~600 words" not in r.stdout      # not clamped UP to the floor
+
+
+def _panel_project(tmp_path, readers, wc=1500):
+    import json
+    (tmp_path / "chapters").mkdir()
+    (tmp_path / "edit_logs").mkdir()
+    (tmp_path / "voice.md").write_text("# Voice\n")
+    for n in (2, 3, 4):
+        (tmp_path / f"chapters/ch_0{n}.md").write_text(
+            f"# Chapter {n}: T\n\n" + ("word " * wc).strip() + "\n")
+    (tmp_path / "edit_logs/reader_panel.json").write_text(json.dumps(
+        {"readers": readers, "consensus": [], "disagreements": []}))
+
+
+def _brief(tmp_path, ch):
+    r = subprocess.run([sys.executable, str(SCRIPT), "--panel", str(ch),
+                        "--chapter-words", "1200", "--dry-run"],
+                       capture_output=True, text=True, cwd=tmp_path)
+    assert r.returncode == 0, r.stdout + r.stderr
+    return r.stdout
+
+
+def test_zero_padded_chapter_mentions_match(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    _panel_project(tmp_path, {"editor": {"cut_candidate": "Chapter 03 repeats the lookup device."}})
+    assert "COMPRESS" in _brief(tmp_path, 3)
+
+
+def test_an_item_is_attributed_to_the_first_chapter_it_names(tmp_path, monkeypatch):
+    """'Chapter 2's roster scene is weak; chapter 3 then has to carry it' is a
+    chapter-2 item. It must not appear in chapter 3's brief."""
+    monkeypatch.chdir(tmp_path)
+    _panel_project(tmp_path, {"genre_reader": {
+        "worst_scene": "Chapter 2's roster scene is weak; chapter 3 then has to carry it. Fix: break it."}})
+    assert "Dramatize" in _brief(tmp_path, 2)
+    assert "Dramatize" not in _brief(tmp_path, 3)
+
+
+def test_character_level_items_go_under_their_own_heading_not_into_changes(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    _panel_project(tmp_path, {"writer": {"thinnest_character": "Ikaika is thinnest; I never learn what he wants."}})
+    out = _brief(tmp_path, 4)
+    assert "Deepen character" not in out
+    assert "CHARACTER NOTES" in out and "Ikaika" in out
+
+
+def test_compress_target_is_labelled_an_upper_bound(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    _panel_project(tmp_path, {"editor": {"cut_candidate": "Chapter 2 could go."}}, wc=1762)
+    out = _brief(tmp_path, 2)
+    assert "upper bound" in out
+    assert "repetition" in out.lower()
