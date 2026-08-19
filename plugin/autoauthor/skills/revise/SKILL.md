@@ -49,7 +49,10 @@ measure (full-novel score). Stop on plateau: full-novel score change
    fence-wrapped but otherwise valid JSON is VALID — strip the fences;
    for genuinely malformed output, one strict retry, then skip that
    dispatch and record it in
-   `edit_logs/skipped.md` with the cycle, step, and chapter.
+   `edit_logs/skipped.md` with the cycle, step, and chapter. A dispatch
+   that returns no file at all (an API error mid-run) is retried once
+   with the same prompt, then recorded in `edit_logs/skipped.md` like a
+   malformed one.
 
 ## One cycle (N)
 
@@ -359,8 +362,18 @@ missing scene → thin character → weak scene → consistency):
    to `eval_logs/<UTC yyyymmdd_hhmmss>_baseline_chNN.json` — the
    `_chNN.json` suffix is what `gen_brief.py --eval` globs for, so the
    brief for that chapter picks the baseline up as its latest eval).
-   These run concurrently
-   with drafting the first brief, so they cost wall-clock nothing. Two
+   These run concurrently with reading briefs and planning the first
+   rewrite, so they cost wall-clock nothing — **but nothing is written
+   to `chapters/` until every baseline verdict file exists.** Judges
+   read `chapters/ch_NN.md` one to three minutes into their run, not at
+   dispatch: on one cycle four patches written 2.5 minutes after
+   dispatching four baselines produced two "baselines" that quoted the
+   patched text, and would have gated two rewrites against scores of
+   themselves. Draft in `eval_logs/ch_NN_attempt_<k>.md`; copy into
+   `chapters/` only when the baselines are on disk and you are scoring.
+   The same hazard holds for the previous-chapter read: do not run
+   attempts on adjacent chapters concurrently — ch_04's judge scores
+   continuity against whatever ch_03 is on disk, committed or not. Two
    things you get only by doing it first: an honest gate from the first
    attempt (a chapter carrying 7.33 from drafting baselined at 7.00 in
    revision — the rewrite's real gain was +0.78, not +0.45), and a
