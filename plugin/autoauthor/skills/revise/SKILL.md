@@ -343,7 +343,8 @@ missing scene → thin character → weak scene → consistency):
    completion notice. Compute the UTC timestamp yourself before dispatching; the
    path in the prompt is literal, and it is the path you will hand to
    score_verdict.py. Keep if the final score beats the chapter's
-   baseline (see below); else discard
+   baseline, or ties it with the targeted dimension up (see below);
+   else discard
    (`git reset --hard HEAD`), max 3 attempts per chapter per cycle.
    After 3 failed attempts, leave the chapter as-is this cycle and
    record the item in `edit_logs/skipped.md`. Attempt rows go to
@@ -411,10 +412,18 @@ missing scene → thin character → weak scene → consistency):
      single measurement is noisy. Do not spend a second and third
      attempt chasing a 0.5 gap before you have re-baselined; the gap
      may not exist.
-   - A rewrite that TIES a true same-cycle baseline is not an
-     improvement and should still be discarded — but a rewrite that
-     ties the *recorded* number may in fact be beating the true one.
-     Re-baseline before concluding either way.
+   - A rewrite within ±0.15 of a true same-cycle baseline is a TIE, and
+     nine integer dimensions give 0.11 granularity, so ties are common.
+     A tie KEEPS when the dimension the brief targeted rose and no other
+     dimension fell by more than one point — that is a judge-requested
+     edit landing and the mean not moving, not "no change". A tie where
+     the targeted dimension did not rise is discarded. One cycle
+     discarded four of eight judged attempts on exact ties, most of
+     them edits a judge had asked for, where the targeted dimension rose
+     a point and an unrelated one fell; three dispatches were spent to
+     not-keep fixes the judges asked for. A rewrite that ties the
+     *recorded* (prior-cycle) number may be beating the true one —
+     re-baseline before concluding either way.
 
 ### Measure
 
