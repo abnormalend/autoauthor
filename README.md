@@ -366,27 +366,51 @@ novel-writing pipeline. The scoring loop, the clean-room judge pattern,
 and the phase structure all descend from that work, and the debt is a good
 deal larger than the one owed to any other entry below.
 
-**No upstream content remains here.** The standalone Python tools that
-carried it — art, covers, audiobook, landing page — went in 0.4.1; they
-were never called by the pipeline, never tested, and each hardcoded the
-first book's title, byline or cast as *defaults*, which is upstream issues
-#7 and #9. `PIPELINE.md`, upstream's own technical specification, went in
-0.12.0; it was the last file here that someone else wrote, and it had
-stopped describing this program some releases earlier. Everything that
-ships is original — the skills, the genre and form packs, the rubrics and
-the scripts, all under `plugin/`.
+**Upstream content does remain here, and more of it than an earlier
+version of this section claimed.** The standalone Python tools — art,
+covers, audiobook, landing page — went in 0.4.1, and `PIPELINE.md`,
+upstream's own technical specification, went in 0.12.0. But the files that
+moved into `plugin/` on 2026-08-05 and were revised in place since are still
+substantially upstream's text. Measured by `git blame -C -C -C` against the
+root commit `4f8f880` (2026-08-19), lines identical to upstream out of the
+current file:
 
-What remains of the debt is architectural rather than literal, and it is
-real: the pipeline still implements the shape that specification
-described.
+| file | upstream lines |
+|---|---|
+| `shared/scripts/gen_brief.py` | 525 of 918 |
+| `shared/craft/CRAFT.md` | 260 of 359 |
+| `shared/craft/ANTI-SLOP.md` | 237 of 378 |
+| `shared/scripts/apply_cuts.py` | 199 of 380 |
+| `shared/scripts/slop_score.py` (from `evaluate.py`) | 172 of 469 |
+| `shared/typeset/novel.tex`, `build_tex.py`, `epub_style.css` | 120 of 195, 109 of 158, 50 of 51 |
+| `shared/templates/voice.md` | 120 of 159 |
+| `shared/scripts/voice_fingerprint.py` | 117 of 208 |
+| `shared/craft/ANTI-PATTERNS.md` | 103 of 186 |
+
+Smaller fractions survive in `rubrics/chapter.md`, `foundation.md`,
+`adversarial-edit.md` and `reader-panel.md`, in `genres/fantasy.md`, and in
+the `outline.md`, `canon.md`, `MYSTERY.md` and `characters.md` templates.
+What is original is the architecture around those files: the skills, the
+genre and form packs and their resolver, the base-dimension and cap
+machinery, the gate solver, the structure layer, the tests, and the rubric
+scaffolding the surviving rubric text sits inside.
+
+One other contributor appears in history: erhnysr's `6ae47de` (a two-line
+cleanup to `run_pipeline.py`, merged upstream as PR #2 before this fork).
+That file was removed in 0.4.1 and nothing of the change remains.
+
+The debt is therefore both architectural and literal. The pipeline still
+implements the shape upstream's specification described, and several of its
+working parts are upstream's files, edited.
 
 **The upstream repository carries no licence**, which under default
 copyright means its author retains all rights — see
 [NousResearch/autonovel#26](https://github.com/NousResearch/autonovel/issues/26).
 Nous Research licenses most of their work under MIT or Apache-2.0, so this
 reads as an oversight rather than a decision, but until a licence is applied
-none is granted. The intention here is to adopt whatever licence upstream
-eventually applies. If you are reading this and hold rights to the original,
+none is granted — and that applies with particular force to the files in the
+table above, which are derivative of upstream's in the plain sense. The
+intention here is to adopt whatever licence upstream eventually applies. If you are reading this and hold rights to the original,
 an issue or an email is welcome.
 
 ## Inspiration

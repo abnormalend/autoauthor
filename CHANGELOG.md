@@ -10,6 +10,26 @@ the reason a thing was *not* changed is worth the same record as a change.
 
 ---
 
+## 2026-08-19 — the README's attribution was wrong, and is corrected
+
+Nothing under `plugin/autoauthor/` changed. The 0.12.0 entry below said
+"no upstream content remains here" and the README's *Origin and licensing*
+section repeated it in bold. `git blame -C -C -C` against the root commit
+says otherwise: `gen_brief.py` (525 of 918 lines), `CRAFT.md` (260 of 359),
+`ANTI-SLOP.md` (237 of 378), `apply_cuts.py` (199 of 380), `slop_score.py`
+(172 of 469, descended from upstream's `evaluate.py`), the typeset kit, the
+`voice.md` template, `voice_fingerprint.py` and `ANTI-PATTERNS.md` are all
+still substantially upstream's text, moved into `plugin/` on 2026-08-05 and
+revised in place. What 0.4.1 and 0.12.0 removed was the standalone tooling
+and the specification document, not the working files.
+
+The README now carries the table and says the debt is literal as well as
+architectural. The 0.12.0 entry is left as written; this entry is the
+correction. The licence position is unchanged — upstream has none, so none
+is granted — and it now names the files it bears on.
+
+---
+
 ## 2026-08-19 — marketplace renamed `autoauthor-dev` → `autoauthor`
 
 Nothing under `plugin/autoauthor/` changed, so there is nothing to install.
