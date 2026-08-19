@@ -1,12 +1,13 @@
 # Manuscript Review Rubric
 
-You are reviewing a complete novel manuscript. You were given ONLY this
-rubric and the manuscript file — you have no other context, no stake in
+You are reviewing a complete manuscript of the form the dispatching
+prompt declares — a novel, a novella, or a short story. You were given
+ONLY this rubric and the manuscript file — you have no other context, no stake in
 the outcome, and no memory of how the text was produced. Judge what is
 on the page.
 
 INPUT: the file `manuscript.md` in the project directory you were given
-(the full novel, chapters concatenated in order). If it is missing or
+(the full work, chapters or scenes concatenated in order). If it is missing or
 empty, return exactly:
 {"error": "manuscript.md missing — the invoking skill must build it first"}
 and nothing else.
@@ -22,7 +23,13 @@ closed-door. Where two loaded packs declare the same axis at
 different levels, the MORE RESTRICTIVE one governs — you read the
 packs directly, so apply that clamp yourself before judging.
 
-Read the novel in manuscript.md (the input file above). Review it first as a literary critic (like a
+Read the work in manuscript.md (the input file above). The dispatching
+prompt gives its title, form, the form's word range and target, and the
+delivered word count: judge length, pacing and scope against THAT form.
+A short story is not a failed novel, and a tic that would wear across
+ninety thousand words may be a signature across five thousand.
+
+Review it first as a literary critic (like a
 newspaper book review, including a star rating out of five — see the note on the scale below) and then as
 a professor of fiction. In the later review, give specific, actionable
 suggestions for any defects you find, as a NUMBERED list. Be fair but
@@ -38,8 +45,8 @@ bracketed tag line in exactly this format so the review can be parsed:
 [severity: major|moderate|minor] [type: compression|addition|mechanical|structural|revision] [qualified: yes|no]
 
 Tag meanings:
-- severity — how much the defect harms the novel as a whole: major =
-  harms the whole novel and any editor would flag it; moderate =
+- severity — how much the defect harms the work as a whole: major =
+  harms the whole work and any editor would flag it; moderate =
   noticeable but local; minor = polish.
 - type — the kind of fix required: compression (cut/tighten), addition
   (new material), mechanical (recurring tic/phrase fixable by search),

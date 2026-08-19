@@ -56,11 +56,26 @@ professor of fiction. Fix the top items; repeat. Maximum 4 rounds.
    with exactly: "Read the rubric at `<absolute plugin
    path>/shared/rubrics/manuscript-review.md` and the genre pack(s) at
    `<resolved pack paths, primary first, each labeled with its role>`,
-   and follow the rubric exactly.
+   and follow the rubric exactly. The work's title is `<state.json
+   title>`. Its form is `<form.label>` (`<form.name>`, band
+   `<form.band>`): the resolver's `shape.words` for this band is
+   `<low>–<high>` and `shape.target_words` is `<N>`; the manuscript is
+   `<total words>` words. Judge it as a work of that form and length,
+   not as a novel.
    The project directory is `<absolute project path>`. Return ONLY the
    output the rubric specifies." The judge agent pins the model; literary judgment is the one place
    model quality dominates, and the pin is what keeps one project's
    reviews comparable with each other.
+
+   Every value in angle brackets comes from `state.json` and the resolver
+   output kept in Setup. On one short-story run the judge was told
+   nothing about the form, read the genre pack's novel-band shape, and
+   returned as its ONLY major item "a novelette presented as a novel …
+   against a declared shape of 90–110k" — for a 5,071-word story whose
+   form targets 5,000. Its second item was conditioned on the first. A
+   review whose headline defect is a pipeline artifact can drive a round
+   of fixes toward expanding a finished story.
+
    Save the returned markdown verbatim to
    `edit_logs/<UTC yyyymmdd_hhmmss>_review.md`.
 3. **Parse the tags.** From the Professor section count: total items,
