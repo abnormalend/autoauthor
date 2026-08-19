@@ -82,5 +82,5 @@ records the rating doubled so that `results.tsv` carries one scale in one
 column. The raw figure survives in the row's description.
 
 The stars are also not the gate. This phase stops on item counts — zero
-major unqualified items, or qualified above half — so the rating reports
-rather than decides.
+major and few moderate unqualified items, or qualified above half — so
+the rating reports rather than decides.

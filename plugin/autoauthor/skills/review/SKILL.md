@@ -22,7 +22,9 @@ professor of fiction. Fix the top items; repeat. Maximum 4 rounds.
 
    If it exits non-zero, STOP and report — an unresolvable or conflicting
    genre stack must be fixed before any review work. Keep the reported pack
-   paths; every judge dispatch below needs them. If `state.json` has no
+   paths, and the `form` and `shape` blocks — step 2's dispatch and
+   step 5's `--chapter-words` read them; every judge dispatch below
+   needs the pack paths. If `state.json` has no
    `genre` field at all, or its `genre` is null, STOP and run the migration
    in `novel/SKILL.md` first — a null genre resolves silently to `general`,
    so the resolver exiting 0 is NOT evidence that anyone chose a genre.
@@ -79,11 +81,12 @@ professor of fiction. Fix the top items; repeat. Maximum 4 rounds.
    Save the returned markdown verbatim to
    `edit_logs/<UTC yyyymmdd_hhmmss>_review.md`.
 3. **Parse the tags.** From the Professor section count: total items,
-   major-unqualified items, qualified items; extract the star rating
+   major-unqualified items, moderate-unqualified items, qualified items;
+   extract the star rating
    from the Critic section's final "Rating:" line. Items missing tag
    lines count as unqualified moderate revision items (and note the
    contract violation). Record a summary row in results.tsv:
-   `<ISO timestamp>\treview\t<stars x 2>\t<total manuscript words>\tkeep\treview round R: <stars>/5 stars, <total> items, <major-unqualified> major-unqualified, <qualified> qualified`
+   `<ISO timestamp>\treview\t<stars x 2>\t<total manuscript words>\tkeep\treview round R: <stars>/5 stars, <total> items, <major-unqualified> major-unqualified, <moderate-unqualified> moderate-unqualified, <qualified> qualified`
 
    **Double the star rating for the score column.** Every other phase
    writes a 0-10 score there, and the critic rates out of 5. Writing the

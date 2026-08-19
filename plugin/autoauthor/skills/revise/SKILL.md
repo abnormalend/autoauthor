@@ -119,6 +119,9 @@ can gut chapters.
    only that path."
    The editor writes the file; you do not transcribe it. Dispatch in
    parallel batches of 4–6 (malformed responses: see Setup's shared policy).
+   Poll until every dispatched `chNN_cuts.json` exists (same 15-minute
+   ceiling as the reader panel's poll in step 5) before step 4 —
+   `apply_cuts.py all` on a partial set is a partial cycle.
 4. **Apply mechanical cuts:**
    `python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/apply_cuts.py" all --types OVER-EXPLAIN REDUNDANT --min-fat 0 --protect-file edit_logs/protected.md`
    Review its FAIL lines; apply any high-value failed cuts by hand.
@@ -196,8 +199,12 @@ can gut chapters.
    book — the reader panel in step 5 and the full-novel judge in
    Measure both read it. Commit `cycle N: adversarial cuts (<words
    removed> words)`.
-5. **Reader panel** — dispatch FOUR `autoauthor:reader` subagents in
-   parallel, one per persona (the plugin's `agents/reader.md` — cheaper
+5. **Reader panel** — first `mv edit_logs/panel_raw
+   edit_logs/cycle<N-1>/panel_raw 2>/dev/null; mkdir -p
+   edit_logs/panel_raw`: a stale cycle-N−1 file satisfies the poll
+   below instantly and gets assembled. Then dispatch FOUR
+   `autoauthor:reader` subagents in parallel, one per persona (the
+   plugin's `agents/reader.md` — cheaper
    tier; every verdict is verified against the prose in Fix step 1): "Read the rubric at `<absolute plugin
    path>/shared/rubrics/reader-panel.md` and the genre pack(s) at
    `<resolved pack paths, primary first, each labeled with its role>`,
@@ -213,7 +220,9 @@ can gut chapters.
    `edit_logs/panel_raw/` until all four exist (`until ls …; do sleep
    10; done`); on one run no Agent-tool completion arrived for any of
    eleven dispatches in a cycle, and the verdict files were the only
-   wake signal. Then assemble `edit_logs/reader_panel.json` from the
+   wake signal. After 15 minutes with a file still missing, treat that
+   dispatch as a no-file dispatch and apply Setup step 5 (retry once,
+   then skipped.md). Then assemble `edit_logs/reader_panel.json` from the
    four files as:
    `{"readers": {"editor": {...}, "genre_reader": {...}, "writer":
    {...}, "first_reader": {...}}, "consensus": [...],
@@ -315,8 +324,9 @@ missing scene → thin character → weak scene → consistency):
      outline.md's `## Facts the story must not contradict` section (the
      Story Clock lives there). If you do not need the number, do not
      write one.
-4. Score it exactly as draft does: scratch copy to
-   `eval_logs/ch_NN_attempt_<k>.md`, slop score, continuity check
+4. Score it exactly as draft does: write the attempt in
+   `eval_logs/ch_NN_attempt_<k>.md`, copy it to `chapters/` once the
+   baselines are on disk (below), slop score, continuity check
    (`python3 "${CLAUDE_PLUGIN_ROOT}/shared/scripts/continuity_check.py" chapters/ch_NN.md`
    — read its NOT FOUND list against outline.md's `## Facts the story
    must not contradict` before dispatching), chapter-judge
