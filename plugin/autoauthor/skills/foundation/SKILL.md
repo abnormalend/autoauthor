@@ -162,10 +162,15 @@ chapters untouched).
    `register_plausibility` sat on its cap at 6. Exiting there ships a
    plan that stops a drafter mid-scene. So: if any scored dimension's
    note says its cap fired, or the eval's `contradictions_found` list
-   names a contradiction in a fact table, an outline beat, quoted
-   in-story text, a character fact, or an author-facing rule, do NOT exit — run at least one more
-   iteration targeting that dimension, then re-check. Caps are how the
-   packs refuse a book something; the gate does not overrule them.
+   names a contradiction marked MAJOR (one the plot depends on — the
+   rubric asks for that marking), do NOT exit — run at least one more
+   iteration targeting that dimension, then re-check. A minor
+   contradiction — a clock written two ways, a stray question mark —
+   goes on the next iteration's fix list but does not block exit: on
+   one short-story run every judge listed new minor items while the
+   score sat 7.7–8.2 against a 6.5 gate, and with `iteration_cap: 4`
+   the loop could never exit cleanly. Caps are how the packs refuse a
+   book something; the gate does not overrule them.
 3. **Target the weakest dimension.** The eval names `weakest_dimension`
    and `top_3_improvements`. Revise THAT layer's document. If step 2
    forced this iteration, the capped dimension is the target regardless
@@ -220,7 +225,16 @@ chapters untouched).
      introduced while rewriting), the revision worked and you dropped a
      wrench on the way out: keep it, and target the new faults next
      iteration. Discard only when the targeted dimension did not
-     improve.
+     improve. One more case: if the contradictions the new eval lists
+     ALSO exist in the kept state — the judge found a fault that was
+     already there — the regression is discovery, not damage. Keep, and
+     target it next iteration; discarding would restore the faults you
+     just fixed and keep the one you just found (one run's iteration 4
+     dropped 0.72 on exactly this and the rule's letter said discard).
+     And before discarding any regression larger than 0.5, dispatch a
+     second judge on the same tree: single-judge variance has moved a
+     score 0.72 on a handful of changed lines and 0.00 on a rewrite, and
+     one extra dispatch is cheaper than throwing away an iteration.
 
    The comparison point for the next iteration is always the score of
    the last KEPT state — after a tie-keep or a regression-keep, that
@@ -245,7 +259,14 @@ chapters untouched).
    resolver's `form` block — 15 for a novel, 8 for a novella, 4 for a
    short story) without exiting the loop, STOP. Report the best score,
    the stubborn dimension or the cap that keeps firing, and options
-   (accept and move on / keep iterating / revise the seed). The cap is
+   (accept and move on / keep iterating / revise the seed). If at the
+   cap both scores clear the gate and no MAJOR contradiction or fired
+   cap remains, that is a normal exit, not a stop — go to Exit. If you
+   do stop: leave `foundation_score` and `pillar_score` at the last KEPT
+   state's values (not the best ever seen), set `chapters_total` from
+   the outline so a user who accepts can draft without a second pass
+   here, and write the results.tsv row with `awaiting user decision` in
+   the description. The cap is
    the form's for the same reason the gate is: six evals at 119k tokens
    each to plan 5,000 words was the cost on one run, and the last two
    moved the mean 0.10.
@@ -274,10 +295,8 @@ the outline — the judge reports these under `genre_contract.violations`.
 Fix the outline first.
 
 Do not exit while any scored dimension's note says its cap fired, or
-`contradictions_found` names a contradiction in a fact table, an outline
-beat, quoted in-story text, a character fact, or an author-facing rule —
-Iteration loop step 2
-forces another iteration.
+`contradictions_found` names a contradiction marked MAJOR — Iteration
+loop step 2 forces another iteration.
 
 Set state.json: `chapters_total: <chapter count from outline.md>`,
 `iteration: 0`, and record the final scores. Set `phase`: if every
