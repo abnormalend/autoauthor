@@ -10,6 +10,18 @@ the reason a thing was *not* changed is worth the same record as a change.
 
 ---
 
+## 2026-08-19 — marketplace renamed `autoauthor-dev` → `autoauthor`
+
+Nothing under `plugin/autoauthor/` changed, so there is nothing to install.
+The marketplace's `name` in `.claude-plugin/marketplace.json` drops the
+`-dev` suffix it carried from the prototype; the install command is now
+`/plugin install autoauthor@autoauthor`. The name is the key an installed
+plugin is recorded under, so a machine that added the marketplace as
+`autoauthor-dev` should `/plugin marketplace remove autoauthor-dev`, re-add
+`abnormalend/autoauthor`, and reinstall.
+
+---
+
 ## 0.18.0 — 2026-08-17
 
 The findings from one full foundation → draft → revise run on a

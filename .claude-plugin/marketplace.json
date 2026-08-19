@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "autoauthor-dev",
-  "description": "Development marketplace for the autoauthor novel-writing pipeline plugin",
+  "name": "autoauthor",
+  "description": "Marketplace for the autoauthor novel-writing pipeline plugin",
   "owner": {
     "name": "Brent Rogers"
   },

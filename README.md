@@ -37,7 +37,7 @@ In Claude Code CLI:
 ```
 
 ```bash
-/plugin install autoauthor@autoauthor-dev
+/plugin install autoauthor@autoauthor
 ```
 
 Verify you got it:
@@ -46,14 +46,14 @@ Verify you got it:
 python3 -c "
 import json,os,pathlib
 d=json.loads((pathlib.Path.home()/'.claude/plugins/installed_plugins.json').read_text())
-e=d['plugins']['autoauthor@autoauthor-dev'][0]
+e=d['plugins']['autoauthor@autoauthor'][0]
 g=os.path.join(e['installPath'],'shared','genres')
 print('version:', e['version'])
 print('packs  :', len([f for f in os.listdir(g) if f.endswith('.md')])-1 if os.path.isdir(g) else 'MISSING')
 "
 ```
 
-You want `0.15.0` and `15`. [CHANGELOG.md](CHANGELOG.md) says what each
+You want `0.18.0` and `15`. [CHANGELOG.md](CHANGELOG.md) says what each
 version changed.
 
 ---
@@ -255,7 +255,7 @@ wrong — wrong dash, weights that don't sum to 100, a dimension key that
 collides with a built-in one:
 
 ```bash
-python3 ~/.claude/plugins/cache/autoauthor-dev/autoauthor/*/shared/scripts/validate_genre_pack.py mypack.md
+python3 ~/.claude/plugins/cache/autoauthor/autoauthor/*/shared/scripts/validate_genre_pack.py mypack.md
 ```
 
 Ask Claude Code to validate it for you and it will find the path itself.
