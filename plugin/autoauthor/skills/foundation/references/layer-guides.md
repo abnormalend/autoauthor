@@ -127,7 +127,11 @@ reflect background (a teenager should not sound like an elderly
 merchant).
 
 BUILD THE REGISTRY WITH THE ROLES LISTED IN THE PACK'S
-`## Cast Requirements`, at the depth each entry specifies. Add any further
+`## Cast Requirements`, at the depth each entry specifies. Where the
+form's `## Foundation Guidance` says fewer — a short story builds only
+the characters who appear — the form wins; do not write a paragraph
+explaining why a pack role is absent (that is prose addressed to the
+evaluator, and a judge has flagged exactly that). Add any further
 characters the seed's plot demands.
 
 FOR EACH CHARACTER INCLUDE:
@@ -271,8 +275,11 @@ A table tracking every planted thread:
 |---|--------|--------------|------------------|-------------|------|
 
 Include at least one tracked thread per 5,000 words of
-`shape.target_words` (15 for an 80,000-word novel; a short story owes
-one or two, and the form may drop the ledger entirely). Types: object,
+`shape.target_words` (15 for an 80,000-word novel). Where the form drops
+`foreshadowing_balance` from its base dimensions — `short-story` does, on
+the reasoning that a story which plants and pays within four pages does
+not keep a ledger — the ledger is not owed at all and this section is
+skipped; the form's decision governs this guide. Types: object,
 dialogue, action, symbolic, structural.
 
 RULES:

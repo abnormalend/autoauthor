@@ -108,7 +108,11 @@ CROSS-CHECKS (perform these before scoring):
    argued about. A bare one-line item under `## Author-facing only
    (never on the page)` in outline.md or characters.md is not this — it
    is a deliberate withholding in the sense of check 3, and it is exempt
-   only as a list; an argument there is the tell again.
+   only as a list; an argument there is the tell again. Check the
+   outline's own beat prose against its `## Facts the story must not
+   contradict` section — a beat that says "under five seconds" beside a
+   table that says 35 is an internal contradiction this dimension exists
+   to catch, and one run passed exactly that through four iterations.
 3. Check for CONVENIENT GAPS vs DELIBERATE MYSTERY:
    - Convenient: "the details are unclear" where specifics are needed
    - Deliberate: withholding information from the READER while the

@@ -17,10 +17,19 @@ ahead.
 
 ## Core rules (1–13)
 
+Where the outline's beat prose, a voice.md exemplar, and outline.md's
+`## Facts the story must not contradict` disagree on a number, the facts
+section wins; beat prose and exemplars are illustrations, the table is
+the contract (one chapter copied "under five seconds" from a beat when
+the table said 35).
+
 1. Write the COMPLETE chapter. The default target is the pack's
    `shape.chapter_words`; where THIS chapter's outline entry states its own
    word-count target, that wins — the outline entry is per-chapter and so
-   the more specific of the two. Do not truncate or summarize.
+   the more specific of the two. Do not truncate or summarize. Text the
+   outline requires verbatim on the page (a letter, a transmission)
+   counts toward the target; the target is the chapter's length, not
+   the prose around the quotation.
 2. The POV and tense established in voice.md Part 2, locked to the
    chapter's designated POV character (from the outline).
 3. Hit ALL numbered beats from the outline in order.
@@ -40,7 +49,10 @@ ahead.
     build.
 11. Metaphors from the POV character's experience -- their trade,
     their body, their world. Pull vocabulary from the wells in
-    voice_wells.json.
+    voice_wells.json. Calibrate against voice.md's exemplar passages;
+    do not reproduce them. The judge docks verbatim reuse, and an
+    outline beat that paraphrases an exemplar is a cue to the register,
+    not a sentence to copy.
 12. Trust the reader. Don't explain what scenes mean. Let them land.
 13. Start the chapter in scene, not with exposition. End on a moment,
     not a summary.
