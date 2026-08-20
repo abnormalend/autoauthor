@@ -150,4 +150,5 @@ def test_the_expected_skills_are_all_present():
     """Pins the roster so a lost directory is loud rather than quiet."""
     assert {d.name for d in skill_dirs()} == {
         "status", "seed", "import", "foundation",
-        "draft", "revise", "review", "collection", "series", "export"}
+        "draft", "revise", "review", "collection", "series", "export",
+        "auto"}

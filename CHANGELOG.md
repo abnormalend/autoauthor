@@ -10,6 +10,41 @@ the reason a thing was *not* changed is worth the same record as a change.
 
 ---
 
+## 0.21.0 — 2026-08-19
+
+The pipeline runs itself between the two places judgment lives.
+
+**`shared/scripts/autoauthor_run.sh`** drives a seeded project from its
+current phase to the end: one fresh headless `claude -p
+"/autoauthor:<skill>"` session per invocation. The repo is the memory
+between phases — state.json, git, results.tsv — which is what every
+skill's resume machinery was already built around; a meta skill running
+phases inside one conversation would run the later ones in exactly the
+degraded context the skills warn against. The driver starts AFTER seed,
+deliberately: a premise needs a human iterating on it, and no guard can
+tell a good one from a cheap one. On a collection or series it runs each
+work in the declared order and stops before the cross-work pass, which is
+a container decision. It treats "the session ran and HEAD did not move"
+as "a skill stopped on a question" and exits with the log path instead of
+re-asking headlessly forever; a dirty tree gets the same treatment.
+`--stop-after <skill>` gives supervised checkpoints, `--max-runs` caps
+the spend, and permissions are explicitly the operator's call
+(`AUTOAUTHOR_CLAUDE_FLAGS`).
+
+**`/autoauthor:auto`** is a thin supervisor skill around the script:
+checks the project is seeded, settles the permission question with the
+user rather than choosing, launches the driver in the background, and
+when it stops, surfaces the question the phase stopped on. It never runs
+phase skills inline.
+
+`test_autorun.py` covers the refusals, the phase map, and the container
+routing, then drives the real loop against a shim `claude` — progress,
+stall, dirty tree, max-runs, and a container whose every work must run
+(the shim eats piped stdin the way `claude -p` does, which is how the
+works loop once lost every work after the first). 558 → 575 tests.
+
+---
+
 ## 0.20.0 — 2026-08-19
 
 The findings from re-running 0.18.0 on redshift, filed under

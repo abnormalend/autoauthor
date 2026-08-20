@@ -42,6 +42,7 @@ guards the narrow version of this.
 | `slop_score.py` | the tier lists that can fail a chapter |
 | `continuity_check.py` | numbers a chapter states that no fact-bearing document states |
 | `splice_audit.py` | paragraph-level damage a mechanical cut leaves behind |
+| `autoauthor_run.sh` | the unattended driver — one fresh headless session per phase invocation |
 
 Read the module docstrings. They are long on purpose and they carry the
 reasoning, not just the interface.
@@ -151,7 +152,7 @@ strict.
 uv run pytest tests/ -q
 ```
 
-558 tests, about 8 seconds. CI runs exactly that, then validates every genre
+575 tests, about 8 seconds. CI runs exactly that, then validates every genre
 pack, every form pack, and runs `gate_solver.py` across all packs — so a cap
 that makes a gate unreachable fails the build rather than a user's book.
 

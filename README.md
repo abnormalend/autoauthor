@@ -145,7 +145,7 @@ than a weak chapter does.
 
 ---
 
-## The ten skills
+## The eleven skills
 
 | Skill | What it does |
 |---|---|
@@ -159,6 +159,7 @@ than a weak chapter does.
 | `/autoauthor:collection` | For a collection: the one pass that reads every work at once, hunting the convergence no single-work judge can see. Sets the running order. |
 | `/autoauthor:series` | For a series: the same pass pointed the other way — continuity against the series bible, and whether each volume both advances the whole and closes itself. |
 | `/autoauthor:export` | Typesets a print-ready LaTeX PDF and builds the ePub. For a collection, binds every work in the running order first. |
+| `/autoauthor:auto` | The unattended driver: runs the remaining phases, one fresh headless session each, until the pipeline ends or a phase stops on a question a human should answer. |
 
 ---
 
@@ -347,6 +348,27 @@ Run `/autoauthor:status` inside one — it detects this, explains that your
 existing scores came from the fantasy rubric, and migrates on your
 confirmation. Don't skip it: a missing genre silently resolves to general
 fiction.
+
+**Run the rest unattended.** Once a project is seeded:
+
+```bash
+plugin/autoauthor/shared/scripts/autoauthor_run.sh ~/novels/myproject
+```
+
+(or `/autoauthor:auto` from a session). One fresh headless `claude -p`
+session per phase invocation — the repo is the memory between phases, so
+every phase starts with a clean context, which is what the skills were
+built for. The driver starts AFTER seed on purpose: the premise deserves
+a human iterating on it, and no guard can tell a good one from a cheap
+one. On a collection or series it runs each work in the declared order
+and leaves the cross-work pass and export to you. It stops — by design —
+whenever a phase makes no commit: that means the skill asked a question,
+and the log it names holds the question. `--stop-after draft` (or any
+skill) gives a supervised checkpoint; `--max-runs` caps the spend.
+Headless permissions are yours to decide: a project allowlist in
+`.claude/settings.json`, or
+`AUTOAUTHOR_CLAUDE_FLAGS="--dangerously-skip-permissions"` somewhere you
+would let an agent run unattended.
 
 ---
 
