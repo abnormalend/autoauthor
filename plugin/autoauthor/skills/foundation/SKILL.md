@@ -312,8 +312,6 @@ Set state.json: `chapters_total: <chapter count from outline.md>`,
 `iteration: 0`, and record the final scores. Set `phase`: if every
 outlined chapter already exists in `chapters/` (imported finished
 manuscript), set `"revision"`; otherwise set `"drafting"`. Commit
-`foundation complete: <overall>/<pillar>`. Send a Pushover notification
-(pushover skill): title "autoauthor: foundation", message with final
+`foundation complete: <overall>/<pillar>`. Report to the user: final
 scores, iterations used, and next step `/autoauthor:draft` (or
-`/autoauthor:revise` when exiting to revision). Then report the
-same to the user.
+`/autoauthor:revise` when exiting to revision).

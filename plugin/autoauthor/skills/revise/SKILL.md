@@ -562,9 +562,8 @@ Set state.json `phase: "review"`. Run
 for the record. It writes to `edit_logs/`, which is gitignored; paste
 its summary table into the `revision complete` commit message so the
 record is tracked. Commit `revision complete: <cycles> cycles
-(<final score>)`. Pushover notification (pushover skill): title
-"autoauthor: revision", message with cycles run, score trajectory, next
-step `/autoauthor:review`. Report the same to the user.
+(<final score>)`. Report to the user: cycles run, score trajectory,
+next step `/autoauthor:review`.
 
 ## Guardrails (from the playbook — non-negotiable)
 

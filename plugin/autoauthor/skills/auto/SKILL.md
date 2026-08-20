@@ -46,9 +46,12 @@ Run in the background — the pipeline takes hours, not minutes:
 ```
 
 Use the Bash tool's background mode; report the log directory
-(`<project>/edit_logs/auto/`) to the user immediately. The phase skills
-send their own Pushover notifications at each phase exit, so the user's
-phone is the progress feed.
+(`<project>/edit_logs/auto/`) to the user immediately. If the user has a
+notification command (a script that takes a title and a message —
+Pushover, ntfy, whatever), set `AUTOAUTHOR_NOTIFY_CMD` to it when
+launching: the driver calls it on every phase transition and whenever it
+stops, so the phone is the progress feed. Ask once; do not assume one
+exists.
 
 If the nested `claude` invocation fails inside this session's shell
 (environment conflicts are possible when Claude Code launches Claude

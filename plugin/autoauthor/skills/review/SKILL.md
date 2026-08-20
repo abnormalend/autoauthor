@@ -144,7 +144,5 @@ professor of fiction. Fix the top items; repeat. Maximum 4 rounds.
 
 Set state.json `phase: "export"`. Commit:
 `git add -A && git commit -m "review complete: <R> round(s), <stars> stars"`.
-Pushover notification (pushover skill): title
-"autoauthor: review", message with rounds, final star rating, stop
-reason, next step `/autoauthor:export`. Report the same to the
-user, including any accepted structural items.
+Report to the user: rounds, final star rating, stop reason, any
+accepted structural items, and next step `/autoauthor:export`.

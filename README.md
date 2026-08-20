@@ -369,6 +369,10 @@ Headless permissions are yours to decide: a project allowlist in
 `.claude/settings.json`, or
 `AUTOAUTHOR_CLAUDE_FLAGS="--dangerously-skip-permissions"` somewhere you
 would let an agent run unattended.
+Progress to your phone is the driver's job, not the skills': set
+`AUTOAUTHOR_NOTIFY_CMD` to any command taking a title and a message (a
+Pushover script, `ntfy send`, `mail -s`) and it fires on every phase
+transition and whenever the driver stops. Unset, nothing is sent.
 
 ---
 

@@ -10,6 +10,25 @@ the reason a thing was *not* changed is worth the same record as a change.
 
 ---
 
+## 0.22.0 — 2026-08-19
+
+Notifications move from the skills to the driver.
+
+Five phase skills ended with "Pushover notification (pushover skill):
+…" — a reference to a skill that exists on one machine. Any other
+install got instructions naming a skill it does not have, which
+interactively wastes a turn and headless reads as something to stall
+on. The sentences are gone; each Exit now just reports to the user.
+
+The driver owns the phone instead, because only the driver knows a
+phase ended: `AUTOAUTHOR_NOTIFY_CMD=/path/to/cmd` (any command taking
+title and message) fires on every phase transition, on completion, and
+whenever the driver stops for a human. Best-effort — a failing notifier
+never stops a run, and unset means silent. A test keeps notification
+services out of the phase skills. 575 → 578 tests.
+
+---
+
 ## 0.21.0 — 2026-08-19
 
 The pipeline runs itself between the two places judgment lives.

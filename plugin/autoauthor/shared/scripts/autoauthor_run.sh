@@ -33,6 +33,13 @@
 # A dirty tree after a run means the same thing (every skill commits what
 # it keeps).
 #
+# Notifications: the phase skills do not send any — reporting to a phone
+# is the driver's job, because only the driver knows a phase ended. Set
+#   AUTOAUTHOR_NOTIFY_CMD=/path/to/notify.sh
+# to any command taking two arguments (title, message) — a Pushover
+# script, ntfy, mail. It is called on every phase transition and whenever
+# the driver stops, best-effort: a failing notifier never stops a run.
+#
 # Permissions: the default flags are `--permission-mode acceptEdits`,
 # which still denies anything outside the allowlist in headless mode. A
 # genuinely unattended run needs either a permission allowlist in the
@@ -47,6 +54,7 @@ STOP_AFTER=""
 DRY_RUN=0
 CLAUDE_BIN="${AUTOAUTHOR_CLAUDE:-claude}"
 CLAUDE_FLAGS="${AUTOAUTHOR_CLAUDE_FLAGS:---permission-mode acceptEdits}"
+NOTIFY_CMD="${AUTOAUTHOR_NOTIFY_CMD:-}"
 
 # Pipeline order, phase (state.json) -> skill. Seed is absent on purpose.
 PHASES=(foundation drafting revision review)
@@ -57,6 +65,16 @@ usage() {
 }
 
 die() { echo "autoauthor_run: $1" >&2; exit "${2:-1}"; }
+
+notify() { # notify <title> <message> — best-effort, never fatal
+  [ -n "$NOTIFY_CMD" ] || return 0
+  $NOTIFY_CMD "$1" "$2" >/dev/null 2>&1 || true
+}
+
+stop() { # stop <message> — a human is needed: notify, then die
+  notify "autoauthor: stopped" "$1"
+  die "$1"
+}
 
 json_get() { # json_get <file> <key> -> value or "null"
   python3 - "$1" "$2" <<'EOF'
@@ -95,7 +113,7 @@ skill_rank() { # position in the pipeline, for --stop-after
 }
 
 run_one() { # run_one <project-dir> — one work (or standalone) to completion
-  local dir=$1 phase skill before after log n
+  local dir=$1 phase skill before after log n new_phase
 
   for ((n = 1; n <= MAX_RUNS; n++)); do
     phase=$(json_get "$dir/state.json" phase)
@@ -115,7 +133,7 @@ run_one() { # run_one <project-dir> — one work (or standalone) to completion
     fi
 
     [ -n "$(git -C "$dir" status --porcelain)" ] && \
-      die "$dir has a dirty tree — a skill stopped mid-step and a human should look before anything else runs"
+      stop "$dir has a dirty tree — a skill stopped mid-step and a human should look before anything else runs"
 
     mkdir -p "$dir/edit_logs/auto"
     before=$(git -C "$dir" rev-parse HEAD)
@@ -128,13 +146,17 @@ run_one() { # run_one <project-dir> — one work (or standalone) to completion
     (cd "$dir" && "$CLAUDE_BIN" -p "/autoauthor:$skill" $CLAUDE_FLAGS </dev/null) 2>&1 | tee "$log" || true
 
     [ -n "$(git -C "$dir" status --porcelain)" ] && \
-      die "$dir: tree left dirty by /autoauthor:$skill — read $log; a human is needed"
+      stop "$dir: tree left dirty by /autoauthor:$skill — read $log; a human is needed"
     after=$(git -C "$dir" rev-parse HEAD)
     if [ "$after" = "$before" ]; then
-      die "$dir: /autoauthor:$skill made no commit — it likely STOPped on a question. Read $log, answer it interactively, then re-run"
+      stop "$dir: /autoauthor:$skill made no commit — it likely STOPped on a question. Read $log, answer it interactively, then re-run"
+    fi
+    new_phase=$(json_get "$dir/state.json" phase)
+    if [ "$new_phase" != "$phase" ]; then
+      notify "autoauthor: $(basename "$dir")" "phase $phase done → $new_phase"
     fi
   done
-  die "$dir: reached --max-runs $MAX_RUNS without finishing — raise it if progress is real, read the last log if it is not"
+  stop "$dir: reached --max-runs $MAX_RUNS without finishing — raise it if progress is real, read the last log if it is not"
 }
 
 main() {
@@ -172,12 +194,14 @@ main() {
       [ "$(json_get "$dir/works/$w/state.json" phase)" = "export" ] || all_done=0
     done < <(json_list "$dir/state.json" works)
     if [ "$DRY_RUN" != 1 ] && [ "$all_done" = 1 ]; then
+      notify "autoauthor: $(basename "$dir")" "every work is done — cross-work pass and export are yours"
       echo "== every work is done. The cross-work pass and export are container decisions — run"
       echo "   /autoauthor:$( [ "$structure" = collection ] && echo collection || echo series ) and then /autoauthor:export from $dir yourself"
     fi
   else
     run_one "$dir"
     if [ "$DRY_RUN" != 1 ] && [ -z "$STOP_AFTER" ]; then
+      notify "autoauthor: $(basename "$dir")" "pipeline done — ready for /autoauthor:export"
       echo "== phase is export — run /autoauthor:export from $dir (typesetting choices are worth supervising)"
     fi
   fi

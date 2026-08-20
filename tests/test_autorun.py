@@ -219,3 +219,65 @@ def test_container_loop_runs_every_work_not_just_the_first(tmp_path):
     for w in works:
         assert phase_of(c / "works" / w) == "export", f"{w} never ran"
     assert "every work is done" in r.stdout
+
+
+def test_no_phase_skill_names_a_notification_service():
+    """Notification is the driver's job (AUTOAUTHOR_NOTIFY_CMD) — a phase
+    skill naming a user-local service (pushover, ntfy) makes the plugin
+    depend on a skill other installs do not have, and headless it reads
+    as a question to stall on."""
+    for skill_md in sorted((ROOT / "skills").glob("*/SKILL.md")):
+        if skill_md.parent.name == "auto":
+            continue  # auto names Pushover once, as an example value
+        text = skill_md.read_text(encoding="utf-8").lower()
+        assert "pushover" not in text and "ntfy" not in text, skill_md
+
+
+def test_notify_cmd_fires_on_phase_change_and_on_stop(tmp_path):
+    log = tmp_path / "notify.log"
+    notifier = tmp_path / "notify.sh"
+    notifier.write_text(f'#!/bin/bash\necho "$1 | $2" >> "{log}"\n')
+    notifier.chmod(0o755)
+    env_extra = {"AUTOAUTHOR_NOTIFY_CMD": str(notifier)}
+
+    d = seeded(tmp_path / "p", "review")
+    shim = tmp_path / "claude-shim"
+    shim.write_text(ADVANCE)
+    shim.chmod(0o755)
+    r = subprocess.run(["bash", str(SCRIPT), str(d)],
+                       capture_output=True, text=True, cwd=tmp_path,
+                       stdin=subprocess.DEVNULL,
+                       env={**os.environ, "AUTOAUTHOR_CLAUDE": str(shim),
+                            **env_extra})
+    assert r.returncode == 0, r.stdout + r.stderr
+    out = log.read_text()
+    assert "phase review done → export" in out
+    assert "pipeline done" in out
+
+    log.write_text("")
+    d2 = seeded(tmp_path / "q", "drafting")
+    shim.write_text(STALL)
+    r = subprocess.run(["bash", str(SCRIPT), str(d2)],
+                       capture_output=True, text=True, cwd=tmp_path,
+                       stdin=subprocess.DEVNULL,
+                       env={**os.environ, "AUTOAUTHOR_CLAUDE": str(shim),
+                            **env_extra})
+    assert r.returncode == 1
+    assert "autoauthor: stopped" in log.read_text()
+
+
+def test_a_failing_notifier_never_stops_a_run(tmp_path):
+    notifier = tmp_path / "notify.sh"
+    notifier.write_text("#!/bin/bash\nexit 1\n")
+    notifier.chmod(0o755)
+    d = seeded(tmp_path / "p", "review")
+    shim = tmp_path / "claude-shim"
+    shim.write_text(ADVANCE)
+    shim.chmod(0o755)
+    r = subprocess.run(["bash", str(SCRIPT), str(d)],
+                       capture_output=True, text=True, cwd=tmp_path,
+                       stdin=subprocess.DEVNULL,
+                       env={**os.environ, "AUTOAUTHOR_CLAUDE": str(shim),
+                            "AUTOAUTHOR_NOTIFY_CMD": str(notifier)})
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert phase_of(d) == "export"

@@ -267,10 +267,8 @@ a 6.0 ships; revision is Phase 3's job.
    commit` with nothing staged exits non-zero, and a literal reading
    ended one run's phase on a failed command.
 2. Set state.json `phase: "revision"`. Commit.
-3. Pushover notification (pushover skill): title "autoauthor: drafting",
-   message with chapters drafted, mean/min final scores, total words,
-   next step `/autoauthor:revise`. Then report the same to the
-   user.
+3. Report to the user: chapters drafted, mean/min final scores, total
+   words, next step `/autoauthor:revise`.
 
 ## Session-length note
 

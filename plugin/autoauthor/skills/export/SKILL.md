@@ -106,7 +106,5 @@ Produces `typeset/novel.pdf` (LaTeX via tectonic) and `<title-slug>.epub`
 7. **Finish.** Set state.json `phase: "done"`. Commit:
    `git add -A && git commit -m "export: <title> — <total word count> words"`
    (built artifacts are gitignored; the commit records state and any
-   filled templates). Pushover notification (pushover skill): title
-   "autoauthor: export", message with word count and output paths.
-   Report to the user: PDF path, ePub path, word count, and that the
-   novel is done.
+   filled templates). Report to the user: PDF path, ePub path, word
+   count, and that the work is done.
