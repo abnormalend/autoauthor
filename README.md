@@ -349,33 +349,73 @@ existing scores came from the fantasy rubric, and migrates on your
 confirmation. Don't skip it: a missing genre silently resolves to general
 fiction.
 
-**Run the rest unattended.** Once a project is seeded:
-
-```bash
-plugin/autoauthor/shared/scripts/autoauthor_run.sh ~/novels/myproject
-```
-
-(or `/autoauthor:auto` from a session). One fresh headless `claude -p`
-session per phase invocation — the repo is the memory between phases, so
-every phase starts with a clean context, which is what the skills were
-built for. The driver starts AFTER seed on purpose: the premise deserves
-a human iterating on it, and no guard can tell a good one from a cheap
-one. On a collection or series it runs each work in the declared order
-and leaves the cross-work pass and export to you. It stops — by design —
-whenever a phase makes no commit: that means the skill asked a question,
-and the log it names holds the question. `--stop-after draft` (or any
-skill) gives a supervised checkpoint; `--max-runs` caps the spend.
-Headless permissions are yours to decide: a project allowlist in
-`.claude/settings.json`, or
-`AUTOAUTHOR_CLAUDE_FLAGS="--dangerously-skip-permissions"` somewhere you
-would let an agent run unattended.
-Progress to your phone is the driver's job, not the skills': set
-`AUTOAUTHOR_NOTIFY_CMD` to any command taking a title and a message (a
-Pushover script, `ntfy send`, `mail -s`) and it fires on every phase
-transition and whenever the driver stops. Unset, nothing is sent.
+**Run the rest unattended.** `autoauthor_run.sh` drives a seeded project
+to the end of its pipeline, one fresh headless session per phase
+invocation — see [Unattended runs](#unattended-runs).
 
 ---
 
+
+## Unattended runs
+
+Once a project is seeded, the driver runs the rest:
+
+```bash
+# from a clone of this repo
+plugin/autoauthor/shared/scripts/autoauthor_run.sh ~/novels/myproject
+
+# from a marketplace install (the cache path carries the version)
+~/.claude/plugins/cache/autoauthor/autoauthor/*/shared/scripts/autoauthor_run.sh ~/novels/myproject
+```
+
+Or say "run the rest of the book" in a session — `/autoauthor:auto` is a
+thin supervisor that launches the same script in the background.
+
+Each invocation is one fresh headless `claude -p "/autoauthor:<skill>"`
+session. The repo is the memory between phases — state.json, git,
+results.tsv — so every phase starts with a clean context, which is what
+the skills' resume machinery was built for. The driver starts AFTER seed
+on purpose: a premise needs a human iterating on it, and no guard can
+tell a good one from a cheap one.
+
+**Resuming and skipping ahead need nothing from you.** The driver keeps
+no state of its own; every iteration reads the phase from `state.json`
+and invokes that phase's skill, and the skill's own resume point handles
+partial work (draft picks up at the next chapter, revise at the next
+cycle). Interrupt it anywhere, run the same command again, and it
+continues from wherever the repo says it is.
+
+**It stops on purpose.** A phase that runs but makes no commit was
+asking a question; the driver exits 1 and names the log that holds it.
+Answer interactively (a normal session in the project directory), then
+re-run the driver. A dirty tree gets the same refusal — a previous
+session died mid-step, and a human should look before anything else
+runs. Never delete the leftovers just to make it go; read the log first.
+
+**Flags and environment:**
+
+| | |
+|---|---|
+| `--stop-after <foundation\|draft\|revise\|review>` | supervised checkpoint: stop before the next phase past this one |
+| `--max-runs N` | cap on invocations for this driver run (default 30; a fresh run gets a fresh budget) |
+| `--dry-run` | print the command it would run and exit |
+| `AUTOAUTHOR_CLAUDE_FLAGS` | flags for each `claude -p` (default `--permission-mode acceptEdits`) |
+| `AUTOAUTHOR_NOTIFY_CMD` | command taking `<title> <message>`; fires on phase transitions, completion, and every stop. Unset = silent |
+| `AUTOAUTHOR_CLAUDE` | the `claude` binary to use |
+
+**Permissions are your decision, not the driver's.** The default mode
+will stall headless the first time a phase needs a Bash command outside
+the allowlist. Either build a project allowlist in
+`.claude/settings.json`, or set
+`AUTOAUTHOR_CLAUDE_FLAGS="--dangerously-skip-permissions"` — the latter
+only on a machine where you would let an agent run unattended.
+
+**Collections and series:** the driver runs each work in the declared
+running order to the end of that work's own pipeline, skipping works
+already done, then stops. The cross-work pass and export are container
+decisions — running order, accepted convergence findings — and stay
+supervised. Export for a standalone book stays supervised for the same
+reason: typesetting choices are worth a look.
 
 ## Production history
 
